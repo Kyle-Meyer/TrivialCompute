@@ -4,7 +4,7 @@ import sys
 import cairo
 import pygame
 from pygame.locals import *
-import rsvg
+import TrivialCompute.inc.rsvg as rsvg
 import random
 
 def pygameDemo():
@@ -63,7 +63,7 @@ def pygameDemo():
         if is_inside_bounding_box(player.center):
             color = red
         elif is_inside_bounding_box(mouse_pos):
-            color = blue;
+            color = blue
         else:
             color = green
         

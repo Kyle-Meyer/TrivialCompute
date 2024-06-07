@@ -2,7 +2,7 @@
 #on windows.
 import os
 try:
-    import rsvg
+    import TrivialCompute.inc.rsvg as rsvg
     WINDOWS=False
 except ImportError:
     print("Warning, could not import 'rsvg'")
