@@ -4,7 +4,8 @@ import sys
 import cairo
 import pygame
 from pygame.locals import *
-import TrivialCompute.inc.rsvg as rsvg
+sys.path.append('/path/to/application/app/folder')
+import wrappers.rsvg as rsvg
 import random
 
 def pygameDemo():
@@ -24,7 +25,8 @@ def pygameDemo():
 
     #except for these, you could make an argument that this is acceptable since there will only ever be One screen and 4 players
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    player = pygame.Rect((300, 250, 50, 50))
+    player_size = 50
+    player = pygame.Rect((300, 250, player_size, player_size))
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
 
@@ -67,6 +69,19 @@ def pygameDemo():
         else:
             color = green
         
+        #perform a check on the player cube so that it cant go off screen
+        #right edge
+        if player.x > WIDTH - player_size:
+            player.x = WIDTH - player_size
+        #left edge
+        if player.x < 0:
+            player.x = 0
+        #lower edge
+        if player.y < 0:
+            player.y = 0
+        #upper edge
+        if player.y > HEIGHT - player_size:
+            player.y = HEIGHT - player_size
         pygame.display.update()
         
 
