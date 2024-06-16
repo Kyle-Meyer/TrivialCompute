@@ -7,15 +7,14 @@ from pygame.locals import *
 sys.path.append('/path/to/application/app/folder')
 import wrappers.rsvg as rsvg
 import random
+from tile import *
+from colors import *
+from board import cBoard
 
 def pygameDemo():
-    WIDTH = 800
-    HEIGHT = 600
+    WIDTH = 1280
+    HEIGHT = 720
 
-    black = (0, 0, 0)
-    green = (0, 255, 0)
-    blue = (0, 0, 255)
-    red = (255, 0, 0)
 
 
     #globals are bad, avoid them when we can
@@ -23,12 +22,15 @@ def pygameDemo():
     moving = False
     color = green
 
+    playBoard = cBoard(WIDTH, HEIGHT)
+
     #except for these, you could make an argument that this is acceptable since there will only ever be One screen and 4 players
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    player_size = 50
+    screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
+    player_size = WIDTH * HEIGHT * .00008
     player = pygame.Rect((300, 250, player_size, player_size))
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
+    bounding_box2 = pygame.Rect(100, 200, 200, 200)
 
     #detect if we are in bounding box
     def is_inside_bounding_box(point_or_rect):
@@ -39,19 +41,46 @@ def pygameDemo():
             return bounding_box.collidepoint(point_or_rect)
         return False
 
+    def initializeBoard():
+        LENGTH = WIDTH
+        OFFSET = HEIGHT
+        if HEIGHT < WIDTH:
+            LENGTH = HEIGHT
+            OFFSET = WIDTH
+        rect_x, rect_y = WIDTH//4, HEIGHT//4  # Position of the rectangle we always work in quadrants
+        rect_width, rect_height = LENGTH - (.1 * OFFSET), LENGTH - (.1 * OFFSET)  # Size of the rectangle
+        cols, rows = 9, 9  # Number of columns and rows in the grid
+        cell_width = rect_width // cols
+        cell_height = rect_height // rows
+        center_rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
+        center_rect.center = (WIDTH + 200,HEIGHT//2)
+        for col in range(cols):
+            for row in range(rows):
+                cell_x = rect_x + col * cell_width + (LENGTH * .4)
+                cell_y = rect_y + row * cell_height - (LENGTH * .15)
+                cell_rect = pygame.Rect(cell_x, cell_y, cell_width, cell_height)
+                pygame.draw.rect(screen, base01, cell_rect, 1)
     while run:
         
-        screen.fill((0,0,0))
+        screen.fill((25, 28, 38))
         #draw calls
-        pygame.draw.rect(screen, (255, 0, 0), player)
-        pygame.draw.rect(screen, color, bounding_box, 7)
-
+        #pygame.draw.rect(screen, color, bounding_box)
+        #pygame.draw.rect(screen, color, bounding_box2, 7)
+        #do a draw of the grid
+        initializeBoard()
+        #Test for resize
+        #pygame.draw.rect(screen, (200,0,0), (screen.get_width()/3, screen.get_height()/3, screen.get_width()/3, screen.get_height()/3))
+        #pygame.draw.rect(screen, red, playBoard.outerBoard, 1)
+        pygame.draw.rect(screen, base1, player)
         for event in pygame.event.get():
             if event.type == QUIT:
                 run= False
-    
+
+            if event.type == pygame.VIDEORESIZE:
+                # addfunctionality to resize everything
+                screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             # Making player move
-            elif event.type == MOUSEBUTTONDOWN:
+            if event.type == MOUSEBUTTONDOWN:
                 if player.collidepoint(event.pos):
                     moving = True
             elif event.type == MOUSEBUTTONUP:
@@ -86,124 +115,6 @@ def pygameDemo():
         
 
     pygame.quit()
-
-
-# Parameters
-rows, cols = 10, 10  # Dimensions of the grid
-steps = 200  # Number of steps to move
-def create_grid(rows, cols):
-    """ Create a 2D grid represented as a list of lists """
-    return [['.' for _ in range(cols)] for _ in range(rows)]
-
-def print_grid(grid):
-    """ Print the grid """
-    for row in grid:
-        print(' '.join(row))
-    print()
-
-def forwardBoardScan(grid, x, y):
-    count = 0
-    if x-1 >= 0 and grid[x-1][y] == "X":  # Can move left
-        count += 1
-    if x+1 < rows and grid[x+1][y] == "X":  # Can move right
-        count += 1
-    if y-1 >= 0 and grid[x][y-1] == "X":  # Can move up
-        count += 1
-    if y+1 < cols and grid[x][y+1] == "X":  # Can move down
-        count += 1
-    if count >= 2:
-        return False
-    return True
-def valid_moves(grid, x, y):
-    """ Generate valid movements within grid boundaries """
-    moves = []
-    if x-1 >= 0 and grid[x-1][y] == "." and forwardBoardScan(grid, x-1, y):  # Can move left
-        moves.append((x - 1, y))
-    if x+1 < rows and grid[x+1][y] == "." and forwardBoardScan(grid, x+1, y):  # Can move right
-        moves.append((x + 1, y))
-    if y-1 >= 0 and grid[x][y-1] == "." and forwardBoardScan(grid, x, y-1):  # Can move up
-        moves.append((x, y-1))
-    if y+1 < cols and grid[x][y+1] == "." and forwardBoardScan(grid, x, y+1):  # Can move down
-        moves.append((x, y+1))
-    return moves
-
-def random_navigation(rows, cols, steps):
-    """ Simulate random navigation on a 2D grid """
-    grid = create_grid(rows, cols)
-    x, y = 0, 0  # Start in the middle of the grid
-    grid[x][y] = 'S'  # Starting point
-
-    for _ in range(steps):
-        move_options = valid_moves(grid, x, y)
-
-        if not move_options:
-            break  # No valid moves possible
-        choice = random.choice(move_options)
-        x = choice[0]
-        y = choice[1]
-        grid[x][y] = 'X'  # Mark the path taken
-
-    grid[x][y] = 'E'  # End point
-    return grid
-
-
-
-# Generate the grid with random navigation
-
-
-def create_board(rows, cols):
-    """ Create a random board game layout with various elements """
-    # Define the possible elements in the board game
-    elements = ['R', 'G', 'B', '.']  # R = red trivia, B = blue trivia, G = green trivia, '.' = Empty space
-    weights = [0.4, 0.2, 0.1, 0.3]  # Probability weights for each element
-
-    # Create the board as a 2D list
-    board = [[random.choices(elements, weights)[0] for _ in range(cols)] for _ in range(rows)]
-
-    # Ensure starting and ending points
-    board[0][0] = 'S'  # Start at top-left corner
-    board[rows-1][cols-1] = 'E'  # End at bottom-right corner
-
-    return board
-
-def print_board(board):
-    """ Print the board in a readable format """
-    for row in board:
-        print(' '.join(row))
-    print()
-
-def generate_sierpinski_carpet(n):
-    """ Generate a Sierpinski carpet of size 3**n x 3**n. """
-    if n == 0:
-        elements = ['R', 'G', 'B', '.']  # R = red trivia, B = blue trivia, G = green trivia, '.' = Empty space
-        weights = [0.4, 0.2, 0.1, 0.3]  # Probability weights for each element
-        return [[random.choices(elements, weights)[0] for _ in range(4)] for _ in range(4)]  # Base case: a 1x1 grid with a filled square
-
-    # Recursive step: Get the (smaller) Sierpinski carpet
-    smaller_carpet = generate_sierpinski_carpet(n-1)
-    size = len(smaller_carpet)
-    new_size = size * 3
-    carpet = [[' ' for _ in range(new_size)] for _ in range(new_size)]
-
-    # Populate the larger carpet with 8 smaller carpets and a hole in the center
-    for i in range(3):
-        for j in range(3):
-            if i == 1 and j == 1:  # Leave the center sub-grid empty
-                continue
-            # Calculate where to place the smaller carpet in the larger one
-            start_x = i * size
-            start_y = j * size
-            for x in range(size):
-                for y in range(size):
-                    carpet[start_x + x][start_y + y] = smaller_carpet[x][y]
-
-    return carpet
-
-def print_carpet(carpet):
-    """ Print the 2D grid representation of the carpet. """
-    for row in carpet:
-        print(''.join(row))
-
 
 def main(): 
     #rows = 10  # Number of rows in the board
