@@ -23,6 +23,8 @@ NO WHEEL FILE OR INIT.PY<br />
     - (from your venv terminal) pip install pygame<br />
 8.) install cairo<br />
     - (from your venv terminal) pip install pycairo<br />
+9.) install numpy<br />
+    - (from your venv terminal) pip install numpy<br />
 <br />
 =======Running========<br />
-python main.py<br />
+(from your venv terminal) python src/main.py<br />
