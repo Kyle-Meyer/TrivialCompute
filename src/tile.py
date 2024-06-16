@@ -15,10 +15,10 @@ class tile(object):
     #standard convention in python to mark private variables with "__"
     
     size = 50
-    mColor = (0,0,0)
+    mColor = (base0)
 
 
-    def __init__(self, inColor, inSize = 10):
+    def __init__(self, inColor=(base0), inSize = 10):
         self.size = inSize
         self.box = pygame.Rect(300, 200, self.size, self.size)
         match inColor:
@@ -30,8 +30,17 @@ class tile(object):
                 mColor = yellow
             case triviaType.WHITE:
                 mColor = base2
-    @classmethod
-    def emptyTile(cls) -> 'tile':
-        print("later")
+    def instantiateTile(self, inColor, inSize = 10):
+        self.size = inSize
+        self.box = pygame.Rect(300, 200, self.size, self.size)
+        match inColor:
+            case triviaType.RED:
+                mColor = red
+            case triviaType.BLUE:
+                mColor = blue
+            case triviaType.YELLOW:
+                mColor = yellow
+            case triviaType.WHITE:
+                mColor = base2
     def setTileSize(inSize):
         tile.size = inSize

@@ -10,11 +10,16 @@ import random
 from tile import *
 from colors import *
 from board import cBoard
+from pprint import pprint
 
-def pygameDemo():
+class pygameDemo(object):
     WIDTH = 1280
     HEIGHT = 720
-
+    LENGTH = WIDTH
+    OFFSET = HEIGHT
+    if HEIGHT < WIDTH:
+        LENGTH = HEIGHT
+        OFFSET = WIDTH
 
 
     #globals are bad, avoid them when we can
@@ -26,95 +31,121 @@ def pygameDemo():
 
     #except for these, you could make an argument that this is acceptable since there will only ever be One screen and 4 players
     screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
-    player_size = WIDTH * HEIGHT * .00008
+
+    player_size = LENGTH // 16
     player = pygame.Rect((300, 250, player_size, player_size))
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
     bounding_box2 = pygame.Rect(100, 200, 200, 200)
 
     #detect if we are in bounding box
-    def is_inside_bounding_box(point_or_rect):
+    
+    def is_inside_bounding_box(self, point_or_rect):
         """ Check if a point or another rectangle is inside the bounding box. """
         if isinstance(point_or_rect, pygame.Rect):
-            return bounding_box.colliderect(point_or_rect)
+            return self.bounding_box.colliderect(point_or_rect)
         elif isinstance(point_or_rect, tuple):
-            return bounding_box.collidepoint(point_or_rect)
+            return self.bounding_box.collidepoint(point_or_rect)
         return False
 
-    def initializeBoard():
-        LENGTH = WIDTH
-        OFFSET = HEIGHT
-        if HEIGHT < WIDTH:
-            LENGTH = HEIGHT
-            OFFSET = WIDTH
-        rect_x, rect_y = WIDTH//4, HEIGHT//4  # Position of the rectangle we always work in quadrants
-        rect_width, rect_height = LENGTH - (.1 * OFFSET), LENGTH - (.1 * OFFSET)  # Size of the rectangle
+    def initializeBoard(self):
+        
+        rect_x, rect_y = self.WIDTH//4, self.HEIGHT//4  # Position of the rectangle we always work in quadrants
+        rect_width, rect_height = self.LENGTH - (.1 * self.OFFSET), self.LENGTH - (.1 * self.OFFSET)  # Size of the rectangle
         cols, rows = 9, 9  # Number of columns and rows in the grid
         cell_width = rect_width // cols
         cell_height = rect_height // rows
         center_rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
-        center_rect.center = (WIDTH + 200,HEIGHT//2)
+        center_rect.center = (self.WIDTH + 200,self.HEIGHT//2)
         for col in range(cols):
             for row in range(rows):
-                cell_x = rect_x + col * cell_width + (LENGTH * .4)
-                cell_y = rect_y + row * cell_height - (LENGTH * .15)
-                cell_rect = pygame.Rect(cell_x, cell_y, cell_width, cell_height)
-                pygame.draw.rect(screen, base01, cell_rect, 1)
-    while run:
-        
-        screen.fill((25, 28, 38))
-        #draw calls
-        #pygame.draw.rect(screen, color, bounding_box)
-        #pygame.draw.rect(screen, color, bounding_box2, 7)
-        #do a draw of the grid
-        initializeBoard()
-        #Test for resize
-        #pygame.draw.rect(screen, (200,0,0), (screen.get_width()/3, screen.get_height()/3, screen.get_width()/3, screen.get_height()/3))
-        #pygame.draw.rect(screen, red, playBoard.outerBoard, 1)
-        pygame.draw.rect(screen, base1, player)
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                run= False
+                cell_x = rect_x + col * cell_width + (self.LENGTH * .4)
+                cell_y = rect_y + row * cell_height - (self.LENGTH * .15)
+                self.playBoard.board[col][row].box = pygame.Rect(cell_x, cell_y, cell_width, cell_height)
+                #pygame.draw.rect(screen, playBoard.board[col][row].mColor, playBoard.board[col][row].box, 1)
 
-            if event.type == pygame.VIDEORESIZE:
-                # addfunctionality to resize everything
-                screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-            # Making player move
-            if event.type == MOUSEBUTTONDOWN:
-                if player.collidepoint(event.pos):
-                    moving = True
-            elif event.type == MOUSEBUTTONUP:
-                moving = False
-            #player moves while mouse is held
-            elif event.type == MOUSEMOTION and moving:
-                player.move_ip(event.rel)
-            # Test a moving point (mouse position)
-        #update the bounding box
-        mouse_pos = pygame.mouse.get_pos()
-        if is_inside_bounding_box(player.center):
-            color = red
-        elif is_inside_bounding_box(mouse_pos):
-            color = blue
-        else:
-            color = green
-        
-        #perform a check on the player cube so that it cant go off screen
-        #right edge
-        if player.x > WIDTH - player_size:
-            player.x = WIDTH - player_size
-        #left edge
-        if player.x < 0:
-            player.x = 0
-        #lower edge
-        if player.y < 0:
-            player.y = 0
-        #upper edge
-        if player.y > HEIGHT - player_size:
-            player.y = HEIGHT - player_size
-        pygame.display.update()
-        
+    def resizeAll(self, inWidth, inHeight):
+        # recalculate our offset
+        off = min(inWidth, inHeight) // 2
+        #re-adjust position
+        print("Height DIFF: ", inHeight)
+        print("Wdith DIFF: ", inWidth)
+        #adjust the width and height of things
+        self.player.x -= inWidth
+        self.player.y -= inHeight
+        for i in range(9):
+            for j in range(9):
+                self.playBoard.board[i][j].box.x -=inWidth
+                self.playBoard.board[i][j].box.y -=inHeight
+    def drawBoard(self):
+        for col in range(9):
+            for row in range(9):
+                pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 1)
+    def mainLoop(self):
+        while self.run:
+            
+            self.screen.fill((25, 28, 38))
+            #draw calls
+            #pygame.draw.rect(screen, color, bounding_box)
+            #pygame.draw.rect(screen, color, bounding_box2, 7)
+            #do a draw of the grid
+            
+            #Test for resize
+            #pygame.draw.rect(screen, (200,0,0), (screen.get_width()/3, screen.get_height()/3, screen.get_width()/3, screen.get_height()/3))
+            #pygame.draw.rect(screen, red, playBoard.outerBoard, 1)
+            oldWidth = self.screen.get_width()
+            oldHeight = self.screen.get_height()
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    self.run= False
 
-    pygame.quit()
+                if event.type == pygame.VIDEORESIZE:
+                    # addfunctionality to resize everything
+                    print("resize grid and player")
+                    screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                    print("Old WIdth: ", oldWidth, " event Widht: ", event.w)
+                    print("old Height: ", oldHeight, " event height: ", event.h)
+                    self.resizeAll(oldWidth - event.w, oldHeight - event.h)
+                # Making player move
+
+                if event.type == MOUSEBUTTONDOWN:
+                    if self.player.collidepoint(event.pos):
+                        self.moving = True
+                elif event.type == MOUSEBUTTONUP:
+                    self.moving = False
+                #player moves while mouse is held
+                elif event.type == MOUSEMOTION and self.moving:
+                    self.player.move_ip(event.rel)
+                # Test a moving point (mouse position)
+            #update the bounding box
+            mouse_pos = pygame.mouse.get_pos()
+            if self.is_inside_bounding_box(self.player.center):
+                self.color = red
+            elif self.is_inside_bounding_box(mouse_pos):
+                self.color = blue
+            else:
+                self.color = green
+            
+            #perform a check on the player cube so that it cant go off screen
+            #right edge
+            if self.player.x > self.WIDTH - self.player_size:
+                self.player.x = self.WIDTH - self.player_size
+            #left edge
+            if self.player.x < 0:
+                self.player.x = 0
+            #lower edge
+            if self.player.y < 0:
+                self.player.y = 0
+            #upper edge
+            if self.player.y > self.HEIGHT - self.player_size:
+                self.player.y = self.HEIGHT - self.player_size
+
+            self.drawBoard()
+            pygame.draw.rect(self.screen, base1, self.player)
+            pygame.display.update()
+            
+
+        pygame.quit()
 
 def main(): 
     #rows = 10  # Number of rows in the board
@@ -129,7 +160,9 @@ def main():
     #n = 2  # Depth of recursion, generates a 3**3 x 3**3 grid
     #sierpinski_carpet = generate_sierpinski_carpet(n)
     #print_carpet(sierpinski_carpet)
-    pygameDemo()
+    demo = pygameDemo()
+    demo.initializeBoard()
+    demo.mainLoop()
     
 if __name__=="__main__": 
     main() 
