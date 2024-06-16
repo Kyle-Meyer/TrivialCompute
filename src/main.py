@@ -15,11 +15,8 @@ from pprint import pprint
 class pygameDemo(object):
     WIDTH = 1280
     HEIGHT = 720
-    LENGTH = WIDTH
-    OFFSET = HEIGHT
-    if HEIGHT < WIDTH:
-        LENGTH = HEIGHT
-        OFFSET = WIDTH
+    LENGTH = min(WIDTH, HEIGHT)
+    OFFSET = max(WIDTH, HEIGHT)
 
 
     #globals are bad, avoid them when we can
@@ -29,8 +26,9 @@ class pygameDemo(object):
 
     playBoard = cBoard(WIDTH, HEIGHT)
 
-    #except for these, you could make an argument that this is acceptable since there will only ever be One screen and 4 players
-    screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    #we could make the screen resizable, but I dont think this is the best way to do it
+    #screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
 
     player_size = LENGTH // 16
     player = pygame.Rect((300, 250, player_size, player_size))
@@ -50,13 +48,13 @@ class pygameDemo(object):
 
     def initializeBoard(self):
         
-        rect_x, rect_y = self.WIDTH//4, self.HEIGHT//4  # Position of the rectangle we always work in quadrants
+        rect_x, rect_y = self.screen.get_width()//4, self.screen.get_height()//4  # Position of the rectangle we always work in quadrants
+        self.LENGTH = min(self.screen.get_width(), self.screen.get_height())
+        self.OFFSET = max(self.screen.get_width(), self.screen.get_height())
         rect_width, rect_height = self.LENGTH - (.1 * self.OFFSET), self.LENGTH - (.1 * self.OFFSET)  # Size of the rectangle
         cols, rows = 9, 9  # Number of columns and rows in the grid
         cell_width = rect_width // cols
         cell_height = rect_height // rows
-        center_rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
-        center_rect.center = (self.WIDTH + 200,self.HEIGHT//2)
         for col in range(cols):
             for row in range(rows):
                 cell_x = rect_x + col * cell_width + (self.LENGTH * .4)
@@ -73,10 +71,21 @@ class pygameDemo(object):
         #adjust the width and height of things
         self.player.x -= inWidth
         self.player.y -= inHeight
+        #resize player
+        self.player.width = min(self.screen.get_width(), self.screen.get_height()) // 16
+        self.player.height = min(self.screen.get_width(), self.screen.get_height()) // 16
+        print("player dimensions, width: ", self.player.width, " , height: ", self.player.height)
         for i in range(9):
             for j in range(9):
+                #adjust size
+                self.LENGTH = min(self.screen.get_width(), self.screen.get_height())
+                self.OFFSET = max(self.screen.get_width(), self.screen.get_height())
+                self.playBoard.board[i][j].box.width = ((self.LENGTH - (.1 * self.OFFSET)) // 9)
+                self.playBoard.board[i][j].box.height = (self.LENGTH - (.1 * self.OFFSET)) // 9
+                #adjust position
                 self.playBoard.board[i][j].box.x -=inWidth
                 self.playBoard.board[i][j].box.y -=inHeight
+        print((self.LENGTH - (.1 * self.OFFSET)) // 9)
     def drawBoard(self):
         for col in range(9):
             for row in range(9):
@@ -84,7 +93,7 @@ class pygameDemo(object):
     def mainLoop(self):
         while self.run:
             
-            self.screen.fill((25, 28, 38))
+            
             #draw calls
             #pygame.draw.rect(screen, color, bounding_box)
             #pygame.draw.rect(screen, color, bounding_box2, 7)
@@ -99,6 +108,8 @@ class pygameDemo(object):
                 if event.type == QUIT:
                     self.run= False
 
+                #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
+                '''
                 if event.type == pygame.VIDEORESIZE:
                     # addfunctionality to resize everything
                     print("resize grid and player")
@@ -106,6 +117,7 @@ class pygameDemo(object):
                     print("Old WIdth: ", oldWidth, " event Widht: ", event.w)
                     print("old Height: ", oldHeight, " event height: ", event.h)
                     self.resizeAll(oldWidth - event.w, oldHeight - event.h)
+                '''
                 # Making player move
 
                 if event.type == MOUSEBUTTONDOWN:
@@ -139,7 +151,7 @@ class pygameDemo(object):
             #upper edge
             if self.player.y > self.HEIGHT - self.player_size:
                 self.player.y = self.HEIGHT - self.player_size
-
+            self.screen.fill((25, 28, 38))
             self.drawBoard()
             pygame.draw.rect(self.screen, base1, self.player)
             pygame.display.update()

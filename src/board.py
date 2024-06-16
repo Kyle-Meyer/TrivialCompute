@@ -29,11 +29,11 @@ class cBoard(object):
                     case "X":
                         self.board[i][j] = tile(triviaType.RED)
                     case ".":
-                        self.board[i][j] = tile.emptyTile()
+                        self.board[i][j] = tile(triviaType.NULL)
     #def setCore(self, limit : int):
     #    self.board[4][4].box = 
     def __init__(self, width, height):
         self.__width = width
         self.__height = height
         self.board = [[tile() for j in range(9)] for i in range(9)]
-        #self.create_board()
+        self.create_board()
