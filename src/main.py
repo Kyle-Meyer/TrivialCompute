@@ -4,17 +4,19 @@ import sys
 import cairo
 import pygame
 from pygame.locals import *
-import TrivialCompute.inc.rsvg as rsvg
+sys.path.append('/path/to/application/app/folder')
+import wrappers.rsvg as rsvg
 import random
+from tile import *
+from colors import *
+from board import cBoard
+from pprint import pprint
 
-def pygameDemo():
-    WIDTH = 800
-    HEIGHT = 600
-
-    black = (0, 0, 0)
-    green = (0, 255, 0)
-    blue = (0, 0, 255)
-    red = (255, 0, 0)
+class pygameDemo(object):
+    WIDTH = 1280
+    HEIGHT = 720
+    LENGTH = min(WIDTH, HEIGHT)
+    OFFSET = max(WIDTH, HEIGHT)
 
 
     #globals are bad, avoid them when we can
@@ -22,173 +24,148 @@ def pygameDemo():
     moving = False
     color = green
 
-    #except for these, you could make an argument that this is acceptable since there will only ever be One screen and 4 players
+    playBoard = cBoard(WIDTH, HEIGHT)
+
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    player = pygame.Rect((300, 250, 50, 50))
+    #we could make the screen resizable, but I dont think this is the best way to do it
+    #screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
+
+    player_size = LENGTH // 16
+    player = pygame.Rect((300, 250, player_size, player_size))
+    #player = pygame.surface.
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
+    bounding_box2 = pygame.Rect(100, 200, 200, 200)
 
     #detect if we are in bounding box
-    def is_inside_bounding_box(point_or_rect):
+    
+    def is_inside_bounding_box(self, point_or_rect):
         """ Check if a point or another rectangle is inside the bounding box. """
         if isinstance(point_or_rect, pygame.Rect):
-            return bounding_box.colliderect(point_or_rect)
+            return self.bounding_box.colliderect(point_or_rect)
         elif isinstance(point_or_rect, tuple):
-            return bounding_box.collidepoint(point_or_rect)
+            return self.bounding_box.collidepoint(point_or_rect)
         return False
 
-    while run:
+    def initializeBoard(self):
         
-        screen.fill((0,0,0))
-        #draw calls
-        pygame.draw.rect(screen, (255, 0, 0), player)
-        pygame.draw.rect(screen, color, bounding_box, 7)
+        rect_x, rect_y = self.screen.get_width()//4, self.screen.get_height()//4  # Position of the rectangle we always work in quadrants
+        self.LENGTH = min(self.screen.get_width(), self.screen.get_height())
+        self.OFFSET = max(self.screen.get_width(), self.screen.get_height())
+        rect_width, rect_height = self.LENGTH - (.1 * self.OFFSET), self.LENGTH - (.1 * self.OFFSET)  # Size of the rectangle
+        cols, rows = 9, 9  # Number of columns and rows in the grid
+        cell_width = rect_width // cols
+        cell_height = rect_height // rows
+        for col in range(cols):
+            for row in range(rows):
+                cell_x = rect_x + col * cell_width + (self.LENGTH * .4)
+                cell_y = rect_y + row * cell_height - (self.LENGTH * .15)
+                self.playBoard.board[col][row].box = pygame.Rect(cell_x, cell_y, cell_width, cell_height)
+                #pygame.draw.rect(screen, playBoard.board[col][row].mColor, playBoard.board[col][row].box, 1)
 
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                run= False
-    
-            # Making player move
-            elif event.type == MOUSEBUTTONDOWN:
-                if player.collidepoint(event.pos):
-                    moving = True
-            elif event.type == MOUSEBUTTONUP:
-                moving = False
-            #player moves while mouse is held
-            elif event.type == MOUSEMOTION and moving:
-                player.move_ip(event.rel)
-            # Test a moving point (mouse position)
-        #update the bounding box
-        mouse_pos = pygame.mouse.get_pos()
-        if is_inside_bounding_box(player.center):
-            color = red
-        elif is_inside_bounding_box(mouse_pos):
-            color = blue
-        else:
-            color = green
-        
-        pygame.display.update()
-        
+    def resizeAll(self, inWidth, inHeight):
+        # recalculate our offset
+        off = min(inWidth, inHeight) // 2
+        #re-adjust position
+        print("Height DIFF: ", inHeight)
+        print("Wdith DIFF: ", inWidth)
+        #adjust the width and height of things
+        self.player.x -= inWidth
+        self.player.y -= inHeight
+        #resize player
+        self.player.width = min(self.screen.get_width(), self.screen.get_height()) // 16
+        self.player.height = min(self.screen.get_width(), self.screen.get_height()) // 16
+        print("player dimensions, width: ", self.player.width, " , height: ", self.player.height)
+        for i in range(9):
+            for j in range(9):
+                #adjust size
+                self.LENGTH = min(self.screen.get_width(), self.screen.get_height())
+                self.OFFSET = max(self.screen.get_width(), self.screen.get_height())
+                self.playBoard.board[i][j].box.width = ((self.LENGTH - (.1 * self.OFFSET)) // 9)
+                self.playBoard.board[i][j].box.height = (self.LENGTH - (.1 * self.OFFSET)) // 9
+                #adjust position
+                self.playBoard.board[i][j].box.x -=inWidth
+                self.playBoard.board[i][j].box.y -=inHeight
+        print((self.LENGTH - (.1 * self.OFFSET)) // 9)
+    def drawBoard(self):
+        for col in range(9):
+            for row in range(9):
+                if self.playBoard.board[col][row].mDistinct == tileDistinction.HQ:
+                    pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 1)
+                else:
+                    if self.playBoard.board[col][row].mDistinct != tileDistinction.NULL:
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
+                        pygame.draw.rect(self.screen, base3, self.playBoard.board[col][row].box, 1)
+                    else:
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
+    def mainLoop(self):
+        while self.run:
+            
+            
+            #draw calls
+            #pygame.draw.rect(screen, color, bounding_box)
+            #pygame.draw.rect(screen, color, bounding_box2, 7)
+            #do a draw of the grid
+            
+            #Test for resize
+            #pygame.draw.rect(screen, (200,0,0), (screen.get_width()/3, screen.get_height()/3, screen.get_width()/3, screen.get_height()/3))
+            #pygame.draw.rect(screen, red, playBoard.outerBoard, 1)
+            oldWidth = self.screen.get_width()
+            oldHeight = self.screen.get_height()
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    self.run= False
 
-    pygame.quit()
+                #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
+                '''
+                if event.type == pygame.VIDEORESIZE:
+                    # addfunctionality to resize everything
+                    print("resize grid and player")
+                    screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                    print("Old WIdth: ", oldWidth, " event Widht: ", event.w)
+                    print("old Height: ", oldHeight, " event height: ", event.h)
+                    self.resizeAll(oldWidth - event.w, oldHeight - event.h)
+                '''
+                # Making player move
 
+                if event.type == MOUSEBUTTONDOWN:
+                    if self.player.collidepoint(event.pos):
+                        self.moving = True
+                elif event.type == MOUSEBUTTONUP:
+                    self.moving = False
+                #player moves while mouse is held
+                elif event.type == MOUSEMOTION and self.moving:
+                    self.player.move_ip(event.rel)
+                # Test a moving point (mouse position)
+            #update the bounding box
+            mouse_pos = pygame.mouse.get_pos()
+            if self.is_inside_bounding_box(self.player.center):
+                self.color = red
+            elif self.is_inside_bounding_box(mouse_pos):
+                self.color = blue
+            else:
+                self.color = green
+            
+            #perform a check on the player cube so that it cant go off screen
+            #right edge
+            if self.player.x > self.WIDTH - self.player_size:
+                self.player.x = self.WIDTH - self.player_size
+            #left edge
+            if self.player.x < 0:
+                self.player.x = 0
+            #lower edge
+            if self.player.y < 0:
+                self.player.y = 0
+            #upper edge
+            if self.player.y > self.HEIGHT - self.player_size:
+                self.player.y = self.HEIGHT - self.player_size
+            self.screen.fill((25, 28, 38))
+            self.drawBoard()
+            pygame.draw.rect(self.screen, base1, self.player)
+            pygame.display.update()
+            
 
-# Parameters
-rows, cols = 10, 10  # Dimensions of the grid
-steps = 200  # Number of steps to move
-def create_grid(rows, cols):
-    """ Create a 2D grid represented as a list of lists """
-    return [['.' for _ in range(cols)] for _ in range(rows)]
-
-def print_grid(grid):
-    """ Print the grid """
-    for row in grid:
-        print(' '.join(row))
-    print()
-
-def forwardBoardScan(grid, x, y):
-    count = 0
-    if x-1 >= 0 and grid[x-1][y] == "X":  # Can move left
-        count += 1
-    if x+1 < rows and grid[x+1][y] == "X":  # Can move right
-        count += 1
-    if y-1 >= 0 and grid[x][y-1] == "X":  # Can move up
-        count += 1
-    if y+1 < cols and grid[x][y+1] == "X":  # Can move down
-        count += 1
-    if count >= 2:
-        return False
-    return True
-def valid_moves(grid, x, y):
-    """ Generate valid movements within grid boundaries """
-    moves = []
-    if x-1 >= 0 and grid[x-1][y] == "." and forwardBoardScan(grid, x-1, y):  # Can move left
-        moves.append((x - 1, y))
-    if x+1 < rows and grid[x+1][y] == "." and forwardBoardScan(grid, x+1, y):  # Can move right
-        moves.append((x + 1, y))
-    if y-1 >= 0 and grid[x][y-1] == "." and forwardBoardScan(grid, x, y-1):  # Can move up
-        moves.append((x, y-1))
-    if y+1 < cols and grid[x][y+1] == "." and forwardBoardScan(grid, x, y+1):  # Can move down
-        moves.append((x, y+1))
-    return moves
-
-def random_navigation(rows, cols, steps):
-    """ Simulate random navigation on a 2D grid """
-    grid = create_grid(rows, cols)
-    x, y = 0, 0  # Start in the middle of the grid
-    grid[x][y] = 'S'  # Starting point
-
-    for _ in range(steps):
-        move_options = valid_moves(grid, x, y)
-
-        if not move_options:
-            break  # No valid moves possible
-        choice = random.choice(move_options)
-        x = choice[0]
-        y = choice[1]
-        grid[x][y] = 'X'  # Mark the path taken
-
-    grid[x][y] = 'E'  # End point
-    return grid
-
-
-
-# Generate the grid with random navigation
-
-
-def create_board(rows, cols):
-    """ Create a random board game layout with various elements """
-    # Define the possible elements in the board game
-    elements = ['R', 'G', 'B', '.']  # R = red trivia, B = blue trivia, G = green trivia, '.' = Empty space
-    weights = [0.4, 0.2, 0.1, 0.3]  # Probability weights for each element
-
-    # Create the board as a 2D list
-    board = [[random.choices(elements, weights)[0] for _ in range(cols)] for _ in range(rows)]
-
-    # Ensure starting and ending points
-    board[0][0] = 'S'  # Start at top-left corner
-    board[rows-1][cols-1] = 'E'  # End at bottom-right corner
-
-    return board
-
-def print_board(board):
-    """ Print the board in a readable format """
-    for row in board:
-        print(' '.join(row))
-    print()
-
-def generate_sierpinski_carpet(n):
-    """ Generate a Sierpinski carpet of size 3**n x 3**n. """
-    if n == 0:
-        elements = ['R', 'G', 'B', '.']  # R = red trivia, B = blue trivia, G = green trivia, '.' = Empty space
-        weights = [0.4, 0.2, 0.1, 0.3]  # Probability weights for each element
-        return [[random.choices(elements, weights)[0] for _ in range(4)] for _ in range(4)]  # Base case: a 1x1 grid with a filled square
-
-    # Recursive step: Get the (smaller) Sierpinski carpet
-    smaller_carpet = generate_sierpinski_carpet(n-1)
-    size = len(smaller_carpet)
-    new_size = size * 3
-    carpet = [[' ' for _ in range(new_size)] for _ in range(new_size)]
-
-    # Populate the larger carpet with 8 smaller carpets and a hole in the center
-    for i in range(3):
-        for j in range(3):
-            if i == 1 and j == 1:  # Leave the center sub-grid empty
-                continue
-            # Calculate where to place the smaller carpet in the larger one
-            start_x = i * size
-            start_y = j * size
-            for x in range(size):
-                for y in range(size):
-                    carpet[start_x + x][start_y + y] = smaller_carpet[x][y]
-
-    return carpet
-
-def print_carpet(carpet):
-    """ Print the 2D grid representation of the carpet. """
-    for row in carpet:
-        print(''.join(row))
-
+        pygame.quit()
 
 def main(): 
     #rows = 10  # Number of rows in the board
@@ -203,7 +180,9 @@ def main():
     #n = 2  # Depth of recursion, generates a 3**3 x 3**3 grid
     #sierpinski_carpet = generate_sierpinski_carpet(n)
     #print_carpet(sierpinski_carpet)
-    pygameDemo()
+    demo = pygameDemo()
+    demo.initializeBoard()
+    demo.mainLoop()
     
 if __name__=="__main__": 
     main() 
