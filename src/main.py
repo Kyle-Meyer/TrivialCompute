@@ -32,6 +32,7 @@ class pygameDemo(object):
 
     player_size = LENGTH // 16
     player = pygame.Rect((300, 250, player_size, player_size))
+    #player = pygame.surface.
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
     bounding_box2 = pygame.Rect(100, 200, 200, 200)
@@ -89,7 +90,14 @@ class pygameDemo(object):
     def drawBoard(self):
         for col in range(9):
             for row in range(9):
-                pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 1)
+                if self.playBoard.board[col][row].mDistinct == tileDistinction.HQ:
+                    pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 1)
+                else:
+                    if self.playBoard.board[col][row].mDistinct != tileDistinction.NULL:
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
+                        pygame.draw.rect(self.screen, base3, self.playBoard.board[col][row].box, 1)
+                    else:
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
     def mainLoop(self):
         while self.run:
             
