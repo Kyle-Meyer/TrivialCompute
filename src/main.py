@@ -11,6 +11,8 @@ from tile import *
 from colors import *
 from board import cBoard
 from pprint import pprint
+from boundingBox import boundingBox
+from player import player
 
 class pygameDemo(object):
     WIDTH = 1280
@@ -24,18 +26,26 @@ class pygameDemo(object):
     moving = False
     color = green
 
+    player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
 
+    #for dice roll in the future
+    diceRoll = 1
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Trivial Compute")
     #we could make the screen resizable, but I dont think this is the best way to do it
     #screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
 
-    player_size = LENGTH // 16
-    player = pygame.Rect((300, 250, player_size, player_size))
+    #TODO Remove later
+    #player_size = LENGTH // 16
+    #player_size = 40
+    #player = pygame.Rect((300, 250, player_size, player_size))
+    #checkBox = pygame.Rect((300,250, player_size*4, player_size*4))
     #player = pygame.surface.
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
     bounding_box2 = pygame.Rect(100, 200, 200, 200)
+    clock = pygame.time.Clock()
 
     #detect if we are in bounding box
     
@@ -63,6 +73,7 @@ class pygameDemo(object):
                 self.playBoard.board[col][row].box = pygame.Rect(cell_x, cell_y, cell_width, cell_height)
                 #pygame.draw.rect(screen, playBoard.board[col][row].mColor, playBoard.board[col][row].box, 1)
 
+    #might come back to this later
     def resizeAll(self, inWidth, inHeight):
         # recalculate our offset
         off = min(inWidth, inHeight) // 2
@@ -87,35 +98,66 @@ class pygameDemo(object):
                 self.playBoard.board[i][j].box.x -=inWidth
                 self.playBoard.board[i][j].box.y -=inHeight
         print((self.LENGTH - (.1 * self.OFFSET)) // 9)
+
     def drawBoard(self):
         for col in range(9):
             for row in range(9):
-                if self.playBoard.board[col][row].mDistinct == tileDistinction.HQ:
-                    pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 1)
+                if self.playBoard.board[col][row].mDistinct == tileDistinction.SPECIAL:
+                    pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 4)
                 else:
                     if self.playBoard.board[col][row].mDistinct != tileDistinction.NULL:
                         pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
                         pygame.draw.rect(self.screen, base3, self.playBoard.board[col][row].box, 1)
                     else:
                         pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
+
+    def initiatePlayers(self):
+        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, blue)
+        #set player relative to the coords of the board
+        self.player.updateBoardPos(0, 0)
+        self.player.setScreenCoords(self.playBoard.board[0][0].box.centerx, self.playBoard.board[0][0].box.centery)
+        print("coords being passed ", self.playBoard.board[0][0].box.centerx, " ", self.playBoard.board[0][0].box.centery)
+        self.player.updateBox(self.playBoard.board[0][0].box.centerx, #x position
+                              self.playBoard.board[0][0].box.centery, #y position
+                              ((self.playBoard.board[0][0].box.size[0]) + (self.playBoard.board[0][0].box.size[0] * self.diceRoll)*2)) #size dependent on dice rolls
+
+    def drawPlayers(self):
+        print("yuh")
+
+    def handleCurrentPlayerMoves(self):
+        neighbors = []
+        self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
+        neighbors.remove(self.player.currCordinate)
+        #print(neighbors)
+        for i in range(len(neighbors)):
+            #if this within our range
+            if self.player.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
+                #check if the player has moved beyond their starting square
+                if self.player.currCordinate != neighbors[i]:
+                    #make the call from here to spawn the end turn button
+                    print("has changed")
+                break
+        #reset player position if its invalid
+        else:
+            self.player.circle_x = self.playBoard.board[0][0].box.centerx
+            self.player.circle_y = self.playBoard.board[0][0].box.centery
+
+    def calculateBoundingBox(self):
+        self.playBoard.board[0][0].box.size[0]
+
     def mainLoop(self):
         while self.run:
-            
-            
-            #draw calls
-            #pygame.draw.rect(screen, color, bounding_box)
-            #pygame.draw.rect(screen, color, bounding_box2, 7)
-            #do a draw of the grid
-            
-            #Test for resize
-            #pygame.draw.rect(screen, (200,0,0), (screen.get_width()/3, screen.get_height()/3, screen.get_width()/3, screen.get_height()/3))
-            #pygame.draw.rect(screen, red, playBoard.outerBoard, 1)
-            oldWidth = self.screen.get_width()
-            oldHeight = self.screen.get_height()
+          
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self.run= False
-
+                
+                #get the press hold event for the player
+                self.handleCurrentPlayerMoves()
+                #update the bounding box, this will move into the endTurn function coming with menus update
+                
+                self.player.checkIfHeld(event)
+                self.player.clampPlayer(self.WIDTH, self.HEIGHT)
                 #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
                 '''
                 if event.type == pygame.VIDEORESIZE:
@@ -125,45 +167,16 @@ class pygameDemo(object):
                     print("Old WIdth: ", oldWidth, " event Widht: ", event.w)
                     print("old Height: ", oldHeight, " event height: ", event.h)
                     self.resizeAll(oldWidth - event.w, oldHeight - event.h)
-                '''
-                # Making player move
-
-                if event.type == MOUSEBUTTONDOWN:
-                    if self.player.collidepoint(event.pos):
-                        self.moving = True
-                elif event.type == MOUSEBUTTONUP:
-                    self.moving = False
-                #player moves while mouse is held
-                elif event.type == MOUSEMOTION and self.moving:
-                    self.player.move_ip(event.rel)
-                # Test a moving point (mouse position)
-            #update the bounding box
-            mouse_pos = pygame.mouse.get_pos()
-            if self.is_inside_bounding_box(self.player.center):
-                self.color = red
-            elif self.is_inside_bounding_box(mouse_pos):
-                self.color = blue
-            else:
-                self.color = green
+            '''
             
-            #perform a check on the player cube so that it cant go off screen
-            #right edge
-            if self.player.x > self.WIDTH - self.player_size:
-                self.player.x = self.WIDTH - self.player_size
-            #left edge
-            if self.player.x < 0:
-                self.player.x = 0
-            #lower edge
-            if self.player.y < 0:
-                self.player.y = 0
-            #upper edge
-            if self.player.y > self.HEIGHT - self.player_size:
-                self.player.y = self.HEIGHT - self.player_size
             self.screen.fill((25, 28, 38))
             self.drawBoard()
-            pygame.draw.rect(self.screen, base1, self.player)
+            #draw calls
+            pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
+            pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)
+            pygame.draw.rect(self.screen, base1, self.player.clampBox.box, 2)
             pygame.display.update()
-            
+            self.clock.tick(60) #60 fps
 
         pygame.quit()
 
@@ -182,6 +195,7 @@ def main():
     #print_carpet(sierpinski_carpet)
     demo = pygameDemo()
     demo.initializeBoard()
+    demo.initiatePlayers()
     demo.mainLoop()
     
 if __name__=="__main__": 

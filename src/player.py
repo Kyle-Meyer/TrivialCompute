@@ -1,0 +1,109 @@
+import pygame
+from colors import *
+from boundingBox import boundingBox
+from tile import *
+from board import *
+
+class player(object):
+    circle_radius = 30
+    circle_x, circle_y =0, 0  
+    circle_color = blue
+    currCordinate = (0,0)
+    dragging = False  # This flag checks if the circle is being dragged
+    playerScore = 0
+    clampBox = boundingBox()
+
+    #recursively grab all of our potential next moves
+    def getNeighbors(self, inboard : cBoard, curPosition, diceRolls : int, possibleNeighbors):
+        if not isinstance(inboard, cBoard):
+            print("bad board passed")
+            return
+        if curPosition[0] < 0 or curPosition[1] < 0 or curPosition[0] >= 9 or curPosition[1] >= 9:
+            return possibleNeighbors
+        if diceRolls == 0:
+            return possibleNeighbors
+        if (inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.NORMAL or inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.HQ) and curPosition not in(possibleNeighbors):
+            possibleNeighbors.append(curPosition)
+        self.getNeighbors(inboard, (curPosition[0] - 1, curPosition[1]), diceRolls - 1, possibleNeighbors)
+        self.getNeighbors(inboard, (curPosition[0] + 1, curPosition[1]), diceRolls - 1, possibleNeighbors)
+        self.getNeighbors(inboard, (curPosition[0], curPosition[1] - 1), diceRolls - 1, possibleNeighbors)
+        self.getNeighbors(inboard, (curPosition[0], curPosition[1] + 1), diceRolls - 1, possibleNeighbors)
+
+    def checkIfHeld(self, inEvent : pygame.event):
+        if inEvent.type == pygame.QUIT:
+            return False
+        elif inEvent.type == pygame.MOUSEBUTTONDOWN:
+            # Check if the mouse is clicked on the circle
+            if (self.circle_x - inEvent.pos[0]) ** 2 + (self.circle_y - inEvent.pos[1]) ** 2 <= self.circle_radius ** 2:
+                self.dragging = True
+        elif inEvent.type == pygame.MOUSEBUTTONUP:
+            self.dragging = False
+        elif inEvent.type == pygame.MOUSEMOTION:
+            # Move the circle with the mouse
+            if self.dragging:
+                self.circle_x, self.circle_y = inEvent.pos
+    
+    def checkValidMove(self, inTile : tile):
+        if inTile.is_inside_bounding_box((self.circle_x, self.circle_y)):
+            return True
+        #elif inTile.is_inside_bounding_box(mouse_pos):
+        #    return
+        else:
+            return
+
+    def clampPlayer(self, screenWidth, screenHeight):
+        #perform a check on the players so that it cant go off screen maybe move this to player function
+        #right edge
+        if self.circle_x > screenWidth - self.circle_radius:
+            self.circle_x = screenWidth - self.circle_radius
+        #left edge
+        if self.circle_x < 0:
+            self.circle_x = 0
+        #lower edge
+        if self.circle_y < 0:
+            self.circle_y = 0
+        #upper edge
+        if self.circle_y > screenHeight - self.circle_radius:
+            self.circle_y = screenHeight - self.circle_radius
+
+        #clamp to our bounding box
+        leftPlayerEdge = self.circle_x - self.circle_radius
+        rightPlayerEdge = self.circle_x + self.circle_radius
+        topPlayerEdge = self.circle_y - self.circle_radius
+        bottomPlayerEdge = self.circle_y + self.circle_radius
+        leftCheckEdge = self.clampBox.box.centerx - (self.clampBox.box.size[0] // 2)
+        rightCheckEdge = self.clampBox.box.centerx + (self.clampBox.box.size[0] // 2)
+        topCheckEdge = self.clampBox.box.centery - (self.clampBox.box.size[0] // 2)
+        bottomCheckEdge = self.clampBox.box.centery + (self.clampBox.box.size[0] // 2)
+        if leftPlayerEdge < leftCheckEdge:
+            self.circle_x = leftCheckEdge + self.circle_radius
+        if rightPlayerEdge > rightCheckEdge:
+            self.circle_x = rightCheckEdge - self.circle_radius
+        if topPlayerEdge < topCheckEdge:
+            self.circle_y = topCheckEdge + self.circle_radius
+        if bottomPlayerEdge > bottomCheckEdge:
+            self.circle_y = bottomCheckEdge - self.circle_radius
+
+    def updateBox(self, inX, inY, size = 120):
+        #ALWAYS RESIZE BEFORE SETTING COORDINATES
+        self.clampBox.box.size = (size, size)
+        self.clampBox.box.center = (inX, inY)
+
+    def updateBoardPos(self, inX, inY):
+        print("updating to ", inX, " ", inY)
+        self.currCordinate = (inX, inY)
+    
+    #this is a forcible function, and shouldnt have to be called outside of game start
+    def setScreenCoords(self, inX, inY):
+        #set player coords
+        self.circle_x = inX
+        self.circle_y = inY
+
+    def __init__(self, inRadius = 2, inX = 100, inY = 100, inColor = blue):
+        self.circle_radius = inRadius
+        self.circle_color = inColor
+        self.circle_x = inX
+        self.circle_y = inY
+        self.playerScore = 0
+        self.clampBox = boundingBox()
+    
