@@ -90,7 +90,6 @@ class player(object):
         self.clampBox.box.center = (inX, inY)
 
     def updateBoardPos(self, inX, inY):
-        print("updating to ", inX, " ", inY)
         self.currCordinate = (inX, inY)
     
     #this is a forcible function, and shouldnt have to be called outside of game start

@@ -86,7 +86,6 @@ class pygameDemo(object):
         #resize player
         self.player.width = min(self.screen.get_width(), self.screen.get_height()) // 16
         self.player.height = min(self.screen.get_width(), self.screen.get_height()) // 16
-        print("player dimensions, width: ", self.player.width, " , height: ", self.player.height)
         for i in range(9):
             for j in range(9):
                 #adjust size
@@ -116,7 +115,6 @@ class pygameDemo(object):
         #set player relative to the coords of the board
         self.player.updateBoardPos(0, 0)
         self.player.setScreenCoords(self.playBoard.board[0][0].box.centerx, self.playBoard.board[0][0].box.centery)
-        print("coords being passed ", self.playBoard.board[0][0].box.centerx, " ", self.playBoard.board[0][0].box.centery)
         self.player.updateBox(self.playBoard.board[0][0].box.centerx, #x position
                               self.playBoard.board[0][0].box.centery, #y position
                               ((self.playBoard.board[0][0].box.size[0]) + (self.playBoard.board[0][0].box.size[0] * self.diceRoll)*2)) #size dependent on dice rolls
@@ -127,7 +125,7 @@ class pygameDemo(object):
     def handleCurrentPlayerMoves(self):
         neighbors = []
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
-        neighbors.remove(self.player.currCordinate)
+        #neighbors.remove(self.player.currCordinate)
         #print(neighbors)
         for i in range(len(neighbors)):
             #if this within our range

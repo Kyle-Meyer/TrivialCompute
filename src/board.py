@@ -57,7 +57,6 @@ class cBoard(object):
                         possibleColors.remove(self.board[i][j-1].mTrivia)
                     if j + 1 < 9 and self.board[i][j+1].mTrivia in possibleColors:
                         possibleColors.remove(self.board[i][j+1].mTrivia)
-                    print("on ", i, " ", j, " colors left: ", possibleColors)
                     #add weight scoring to make sure we get a more even distribution of tiles
                     self.board[i][j] = tile(random.choice(possibleColors))
     def __init__(self, width, height):
