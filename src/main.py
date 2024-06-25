@@ -13,6 +13,8 @@ from board import cBoard
 from pprint import pprint
 from boundingBox import boundingBox
 from player import player
+from button import button
+
 
 class pygameDemo(object):
     WIDTH = 1280
@@ -29,6 +31,7 @@ class pygameDemo(object):
     player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
 
+    testButton = button((10, 10))
     #for dice roll in the future
     diceRoll = 1
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -47,7 +50,13 @@ class pygameDemo(object):
     bounding_box2 = pygame.Rect(100, 200, 200, 200)
     clock = pygame.time.Clock()
 
-    #detect if we are in bounding box
+    def debugButton(self):
+        self.testButton.button_text = "this is a test"
+        self.testButton.border_thickness = 0
+        self.testButton.changeTextSize(20)
+        self.testButton.button_text_color = base3
+        self.testButton.draw_button(self.screen)
+    #detect if we are in bounding box?????Thought I moved this ?
     
     def is_inside_bounding_box(self, point_or_rect):
         """ Check if a point or another rectangle is inside the bounding box. """
@@ -156,6 +165,7 @@ class pygameDemo(object):
                 
                 self.player.checkIfHeld(event)
                 self.player.clampPlayer(self.WIDTH, self.HEIGHT)
+                self.testButton.isClicked(event)
                 #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
                 '''
                 if event.type == pygame.VIDEORESIZE:
@@ -169,6 +179,7 @@ class pygameDemo(object):
             
             self.screen.fill((25, 28, 38))
             self.drawBoard()
+            self.debugButton()
             #draw calls
             pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
             pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)
@@ -191,6 +202,7 @@ def main():
     #n = 2  # Depth of recursion, generates a 3**3 x 3**3 grid
     #sierpinski_carpet = generate_sierpinski_carpet(n)
     #print_carpet(sierpinski_carpet)
+    pygame.init()
     demo = pygameDemo()
     demo.initializeBoard()
     demo.initiatePlayers()
