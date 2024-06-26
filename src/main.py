@@ -14,7 +14,7 @@ from pprint import pprint
 from boundingBox import boundingBox
 from player import player
 from button import button
-
+from menu import menu
 
 class pygameDemo(object):
     WIDTH = 1280
@@ -32,6 +32,7 @@ class pygameDemo(object):
     playBoard = cBoard(WIDTH, HEIGHT)
 
     testButton = button((10, 10))
+    testMenu = menu((10, 50), 300, 600)
     #for dice roll in the future
     diceRoll = 1
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -179,7 +180,8 @@ class pygameDemo(object):
             
             self.screen.fill((25, 28, 38))
             self.drawBoard()
-            self.debugButton()
+            #self.debugButton()
+            self.testMenu.drawMenu(self.screen)
             #draw calls
             pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
             pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)
