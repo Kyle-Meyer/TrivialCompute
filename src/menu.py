@@ -39,7 +39,8 @@ class menu(object):
     def drawMenu(self, screen):
         self.draw_rounded_rect(screen)
         text_surf = self.title.render(self.title_text, True, base3)
-        text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size + 5))
+        text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size))
+        #text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery))
         #print("in ", self, " 's draw call: ")
         #print("\t BUTTON SIZE: ", len(self.child_Dictionary[childType.BUTTON]))
         #print("\t MENU SIZE: ", len(self.child_Dictionary[childType.MENU]))
@@ -48,11 +49,17 @@ class menu(object):
             self.child_Dictionary[childType.BUTTON][i].draw_button(screen)
         for i in range(len(self.child_Dictionary[childType.MENU])):
             self.child_Dictionary[childType.MENU][i].drawMenu(screen)
-        return screen.blit(text_surf, text_rect)
+        screen.blit(text_surf, text_rect)
+
+    def changeTextSize(self, inSize):
+        self.title = pygame.font.Font(None, inSize)
+        self.title_text_size = inSize
 
     def resizeBox(self, width, height):
         self.rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], width, height)
-    
+        self.menu_height = height
+        self.menu_width = width
+
     def moveBox(self, inPosition):
         self.rect.centerx = inPosition[0]
         self.rect.centery = inPosition[1]
@@ -76,28 +83,30 @@ class menu(object):
         width = self.menu_width //2
         height = width // 2
         y_offset = self.ScreenCoords[1] - self.menu_height // 2 + height + 50
-        #TODO add generic text widget
+        #TODO add generic text widget to the and conditional----------------------------------------V
         if len(self.child_Dictionary[childType.BUTTON]) > 0 and (isinstance(inComponent, menu) or False):
             print
             self.reOrientButtons((x_offset - width // 2, y_offset), width, height)
             #adjust the offset to be the new half on the right side of the screen
-            
+            x_offset = x_offset + self.menu_width // 4
         if isinstance(inComponent, button):
+            print("is button")
             if len(self.child_Dictionary[childType.BUTTON]) <= 0:
-                print("no buttons, making the first...")
                 inComponent.resizeBox(width, height)
                 inComponent.moveBox((x_offset, y_offset))
             else:
-                print("in the else")
                 for i in range(len(self.child_Dictionary[childType.BUTTON])):
                     y_offset += 15 + height
                 inComponent.resizeBox(width, height)
                 inComponent.moveBox((x_offset, y_offset))
             self.child_Dictionary[childType.BUTTON].append(inComponent)
         elif isinstance(inComponent, menu):
-            for i in range(len(self.child_Dictionary[childType.BUTTON])):
+            print
+            for i in range(len(self.child_Dictionary[childType.MENU])):
                 y_offset += 15 + height
-            inComponent.ScreenCoords = (x_offset, y_offset)
+            inComponent.changeTextSize(height // 4)
+            inComponent.resizeBox(width - 25, height)
+            inComponent.moveBox((x_offset, y_offset))
             self.child_Dictionary[childType.MENU].append(inComponent)
 
     def listen_for_buttons(self, event):
