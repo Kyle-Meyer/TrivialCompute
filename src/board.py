@@ -6,6 +6,7 @@ from tile import tileDistinction
 import numpy
 import pygame
 import random
+from colors import *
 class cBoard(object):
     #done with strings for right now, will Tile object in future
     #X = tile
@@ -21,10 +22,11 @@ class cBoard(object):
              ["X",".","P",".","X",".","P",".","X"],
              ["X",".",".",".","X",".",".",".","X"],
              ["R","X","X","X","H","X","X","X","R"],]
+    #TODO add thje ability to save a string here that captures the colors of the board
+    
     outerBoard = pygame.Rect(0, 0, 720 - 100, 720 - 100)
     outerBoard.center = (1280/2 , 720/2)
     tileSize = 0
-    #this will randomly generate tiles in the future
     def create_board(self):
         for i in range(9):
             for j in range(9):
@@ -42,8 +44,18 @@ class cBoard(object):
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.NULL)
                     case "H":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.HQ)
-    #def setCore(self, limit : int):
-    #    self.board[4][4].box =
+
+    def drawBoard(self, screen):
+        for col in range(9):
+            for row in range(9):
+                if self.board[col][row].mDistinct == tileDistinction.SPECIAL:
+                    pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box, 4)
+                else:
+                    if self.board[col][row].mDistinct != tileDistinction.NULL:
+                        self.board[col][row].drawTile(screen)
+                    else:
+                        pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
+
     def correctBoard(self):
         for i in range(9):
             for j in range(9):

@@ -2,7 +2,7 @@ import pygame
 from enum import Enum
 from button import button
 from colors import *
-
+from textWidget import textWidget
 
 class childType(Enum):
     BUTTON = 0,
@@ -49,6 +49,8 @@ class menu(object):
             self.child_Dictionary[childType.BUTTON][i].draw_button(screen)
         for i in range(len(self.child_Dictionary[childType.MENU])):
             self.child_Dictionary[childType.MENU][i].drawMenu(screen)
+        for i in range(len(self.child_Dictionary[childType.TEXT])):
+            self.child_Dictionary[childType.TEXT][i].drawWidget(screen)
         screen.blit(text_surf, text_rect)
 
     def changeTextSize(self, inSize):
@@ -83,14 +85,13 @@ class menu(object):
         width = self.menu_width //2
         height = width // 2
         y_offset = self.ScreenCoords[1] - self.menu_height // 2 + height + 50
-        #TODO add generic text widget to the and conditional----------------------------------------V
-        if len(self.child_Dictionary[childType.BUTTON]) > 0 and (isinstance(inComponent, menu) or False):
-            print
+        #TODO Might depricate this, this function is doing too much
+        if len(self.child_Dictionary[childType.BUTTON]) > 0 and (isinstance(inComponent, menu) or isinstance(inComponent, textWidget)):
             self.reOrientButtons((x_offset - width // 2, y_offset), width, height)
             #adjust the offset to be the new half on the right side of the screen
             x_offset = x_offset + self.menu_width // 4
+            
         if isinstance(inComponent, button):
-            print("is button")
             if len(self.child_Dictionary[childType.BUTTON]) <= 0:
                 inComponent.resizeBox(width, height)
                 inComponent.moveBox((x_offset, y_offset))
@@ -101,23 +102,31 @@ class menu(object):
                 inComponent.moveBox((x_offset, y_offset))
             self.child_Dictionary[childType.BUTTON].append(inComponent)
         elif isinstance(inComponent, menu):
-            print
+            for i in range(len(self.child_Dictionary[childType.MENU])):
+                y_offset += 15 + height
+            #TODO make changing of text size happen in the respective class
+            inComponent.changeTextSize(height // 4)
+            inComponent.resizeBox(width - 25, height)
+            inComponent.moveBox((x_offset, y_offset))
+            self.child_Dictionary[childType.MENU].append(inComponent)
+        elif isinstance(inComponent, textWidget):
             for i in range(len(self.child_Dictionary[childType.MENU])):
                 y_offset += 15 + height
             inComponent.changeTextSize(height // 4)
             inComponent.resizeBox(width - 25, height)
             inComponent.moveBox((x_offset, y_offset))
-            self.child_Dictionary[childType.MENU].append(inComponent)
+            self.child_Dictionary[childType.TEXT].append(inComponent)
 
     def listen_for_buttons(self, event):
         for i in range(len(self.child_Dictionary[childType.BUTTON])):
             self.child_Dictionary[childType.BUTTON][i].isClicked(event)
         
-    def __init__(self, position : tuple[int, ...], width = 200, height = 200):
+    def __init__(self, position : tuple[int, ...], width = 200, height = 200, titleText = "place holder"):
         self.ScreenCoords = position
         self.menu_width = width
         self.menu_height = height
         self.rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], self.menu_width, self.menu_height)
+        self.title_text = titleText
         self.title = pygame.font.Font(None, self.title_text_size)
         self.child_Dictionary = {}
         #initialize our child dictionary to have empty arrays

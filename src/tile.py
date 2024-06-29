@@ -35,10 +35,21 @@ class tile(object):
         return False
     
     #def drawTile(self, screen):
+    def drawTile(self, screen):
+        #TODO move this to the tile class
+        pygame.draw.rect(screen, self.mComplimentColor, self.box)
+        pygame.draw.rect(screen, self.mColor, self.inner_box)
+        pygame.draw.rect(screen, self.mComplimentColor, self.box, 3)
+        pygame.draw.rect(screen, base3, self.box, 1)
+
+    def updateTile(self, inPosition, inWidth, inHeight):
+        self.box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight)
+        self.inner_box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight-10)
 
     def __init__(self, inColor=(base0), dist = tileDistinction.NORMAL, inSize = 10):
         self.size = inSize
         self.box = pygame.Rect(300, 200, self.size, self.size)
+        self.inner_box = pygame.Rect(300, 200, self.size, self.size-10)
         self.mDistinct = dist
         self.Randomized=False
         match dist:
@@ -66,18 +77,6 @@ class tile(object):
                         self.mTrivia = triviaType.GREEN
                         self.mColor = green
                         self.mComplimentColor = darkGreen
-        
-    def instantiateTile(self, inColor, inSize = 10):
-        self.size = inSize
-        self.box = pygame.Rect(300, 200, self.size, self.size)
-        match inColor:
-            case triviaType.RED:
-                mColor = red
-            case triviaType.BLUE:
-                mColor = blue
-            case triviaType.YELLOW:
-                mColor = yellow
-            case triviaType.WHITE:
-                mColor = base2
+
     def setTileSize(inSize):
         tile.size = inSize

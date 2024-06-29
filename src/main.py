@@ -15,6 +15,7 @@ from boundingBox import boundingBox
 from player import player
 from button import button
 from menu import *
+from textWidget import textWidget
 
 #flesh this out later
 class mainMenu(object):
@@ -42,6 +43,9 @@ class pygameMain(object):
     player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
 
+    #the playground
+    testWidget = textWidget((350, 400), 100, 100, "Text Widget")
+    testWidget.border_thickness = 1
     testButton = button((10, 10))
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
     testButton2.button_text = "shadoobie"
@@ -49,10 +53,9 @@ class pygameMain(object):
     testMenu.title_text = "Example menu"
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
-    #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
-    testMenu.addChildComponent(menu((250,250), 20, 20))
-    #testMenu.offsetButtons(-70, 0)
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle3"))
+    testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
+    testMenu.addChildComponent(testWidget)
     #for dice roll in the future
     diceRoll = 1
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -91,8 +94,7 @@ class pygameMain(object):
             for row in range(rows):
                 cell_x = rect_x + col * cell_width + (self.LENGTH * .4)
                 cell_y = rect_y + row * cell_height - (self.LENGTH * .15)
-                self.playBoard.board[col][row].box = pygame.Rect(cell_x, cell_y, cell_width, cell_height)
-                #pygame.draw.rect(screen, playBoard.board[col][row].mColor, playBoard.board[col][row].box, 1)
+                self.playBoard.board[col][row].updateTile((cell_x, cell_y), cell_width, cell_height)
 
     #might come back to this later
     def resizeAll(self, inWidth, inHeight):
@@ -120,22 +122,7 @@ class pygameMain(object):
         print((self.LENGTH - (.1 * self.OFFSET)) // 9)
 
     #TODO move this draw over to board class
-    def drawBoard(self):
-        for col in range(9):
-            for row in range(9):
-                if self.playBoard.board[col][row].mDistinct == tileDistinction.SPECIAL:
-                    pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 4)
-                else:
-                    if self.playBoard.board[col][row].mDistinct != tileDistinction.NULL:
-                        #TODO move this to the tile class
-                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mComplimentColor, self.playBoard.board[col][row].box)
-                        testRect = pygame.Rect(self.playBoard.board[col][row].box.x, self.playBoard.board[col][row].box.y, self.playBoard.board[col][row].box.width, self.playBoard.board[col][row].box.height-10)
-                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, testRect)
-                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mComplimentColor, testRect, 3)
-                        pygame.draw.rect(self.screen, base3, self.playBoard.board[col][row].box, 1)
-                    else:
-                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
-
+   
     def initiatePlayers(self):
         self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, blue)
         #set player relative to the coords of the board
@@ -209,9 +196,10 @@ class pygameMain(object):
             '''
             
             self.screen.fill((25, 28, 38))
-            self.drawBoard()
+            self.playBoard.drawBoard(self.screen)
             #self.debugButton()
             self.testMenu.drawMenu(self.screen)
+            self.testWidget.drawWidget(self.screen)
             #draw calls
             pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
             pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)
