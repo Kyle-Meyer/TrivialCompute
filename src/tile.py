@@ -22,6 +22,7 @@ class tile(object):
     
     size = 50
     mColor = (base0)
+    mComplimentColor = (base0)
     mDistinct = tileDistinction.NORMAL
     mTrivia = triviaType.RED
 
@@ -33,6 +34,8 @@ class tile(object):
             return self.box.collidepoint(point_or_rect)
         return False
     
+    #def drawTile(self, screen):
+
     def __init__(self, inColor=(base0), dist = tileDistinction.NORMAL, inSize = 10):
         self.size = inSize
         self.box = pygame.Rect(300, 200, self.size, self.size)
@@ -50,15 +53,19 @@ class tile(object):
                     case triviaType.RED:
                         self.mTrivia = triviaType.RED
                         self.mColor = red
+                        self.mComplimentColor = darkRed
                     case triviaType.BLUE:
                         self.mTrivia = triviaType.BLUE
                         self.mColor = blue
+                        self.mComplimentColor = darkBlue
                     case triviaType.YELLOW:
                         self.mTrivia = triviaType.YELLOW
                         self.mColor = yellow
+                        self.mComplimentColor = darkYellow
                     case triviaType.GREEN:
                         self.mTrivia = triviaType.GREEN
                         self.mColor = green
+                        self.mComplimentColor = darkGreen
         
     def instantiateTile(self, inColor, inSize = 10):
         self.size = inSize

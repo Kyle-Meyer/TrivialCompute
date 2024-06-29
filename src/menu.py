@@ -1,7 +1,13 @@
 import pygame 
+from enum import Enum
 from button import button
 from colors import *
 
+
+class childType(Enum):
+    BUTTON = 0,
+    MENU = 1,
+    TEXT = 2
 class menu(object):
 
     #member vars
@@ -9,7 +15,7 @@ class menu(object):
     title = pygame.font.init()
     title_text = "place holder"
     title_text_size = 40
-    button_list = [] #this can remain empty
+    child_Dictionary = {}
     ScreenCoords = (0,0)
     menu_width = 200    
     menu_height = 200
@@ -34,19 +40,80 @@ class menu(object):
         self.draw_rounded_rect(screen)
         text_surf = self.title.render(self.title_text, True, base3)
         text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size + 5))
-        screen.blit(text_surf, text_rect)
+        #print("in ", self, " 's draw call: ")
+        #print("\t BUTTON SIZE: ", len(self.child_Dictionary[childType.BUTTON]))
+        #print("\t MENU SIZE: ", len(self.child_Dictionary[childType.MENU]))
+        #print("\t TEXT SIZE: ", len(self.child_Dictionary[childType.TEXT]))
+        for i in range(len(self.child_Dictionary[childType.BUTTON])):
+            self.child_Dictionary[childType.BUTTON][i].draw_button(screen)
+        for i in range(len(self.child_Dictionary[childType.MENU])):
+            self.child_Dictionary[childType.MENU][i].drawMenu(screen)
+        return screen.blit(text_surf, text_rect)
 
     def resizeBox(self, width, height):
-        self.button_rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], width, height)
+        self.rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], width, height)
     
     def moveBox(self, inPosition):
-        self.button_rect = pygame.Rect(inPosition[0], inPosition[1], self.menu_width, self.menu_height) 
+        self.rect.centerx = inPosition[0]
+        self.rect.centery = inPosition[1]
 
+    def reOrientButtons(self, inPosition, width, height):
+        y_offset = 0
+        print(width)
+        for i in range(len(self.child_Dictionary[childType.BUTTON])):
+            print(self.child_Dictionary[childType.BUTTON][i].button_text_size // 2)
+            self.child_Dictionary[childType.BUTTON][i].changeTextSize(self.child_Dictionary[childType.BUTTON][i].button_text_size - (self.child_Dictionary[childType.BUTTON][i].button_text_size // 4))
+            self.child_Dictionary[childType.BUTTON][i].resizeBox(width - width // 4, height)
+            self.child_Dictionary[childType.BUTTON][i].moveBox((inPosition[0], inPosition[1] + y_offset))
+            y_offset += height + 10
+    #add fading effect
+    
+
+    #TODO change this functionality to add child components rather than just buttons
+    #TODO alter functionality to space components based on landscape vs portrait
+    def addChildComponent(self, inComponent):
+        x_offset = self.ScreenCoords[0]
+        width = self.menu_width //2
+        height = width // 2
+        y_offset = self.ScreenCoords[1] - self.menu_height // 2 + height + 50
+        #TODO add generic text widget
+        if len(self.child_Dictionary[childType.BUTTON]) > 0 and (isinstance(inComponent, menu) or False):
+            print
+            self.reOrientButtons((x_offset - width // 2, y_offset), width, height)
+            #adjust the offset to be the new half on the right side of the screen
+            
+        if isinstance(inComponent, button):
+            if len(self.child_Dictionary[childType.BUTTON]) <= 0:
+                print("no buttons, making the first...")
+                inComponent.resizeBox(width, height)
+                inComponent.moveBox((x_offset, y_offset))
+            else:
+                print("in the else")
+                for i in range(len(self.child_Dictionary[childType.BUTTON])):
+                    y_offset += 15 + height
+                inComponent.resizeBox(width, height)
+                inComponent.moveBox((x_offset, y_offset))
+            self.child_Dictionary[childType.BUTTON].append(inComponent)
+        elif isinstance(inComponent, menu):
+            for i in range(len(self.child_Dictionary[childType.BUTTON])):
+                y_offset += 15 + height
+            inComponent.ScreenCoords = (x_offset, y_offset)
+            self.child_Dictionary[childType.MENU].append(inComponent)
+
+    def listen_for_buttons(self, event):
+        for i in range(len(self.child_Dictionary[childType.BUTTON])):
+            self.child_Dictionary[childType.BUTTON][i].isClicked(event)
+        
     def __init__(self, position : tuple[int, ...], width = 200, height = 200):
         self.ScreenCoords = position
         self.menu_width = width
         self.menu_height = height
         self.rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], self.menu_width, self.menu_height)
         self.title = pygame.font.Font(None, self.title_text_size)
+        self.child_Dictionary = {}
+        #initialize our child dictionary to have empty arrays
+        self.child_Dictionary[childType.BUTTON] = []
+        self.child_Dictionary[childType.MENU] = []
+        self.child_Dictionary[childType.TEXT] = []
         self.resizeBox(width, height)
         self.moveBox(position)

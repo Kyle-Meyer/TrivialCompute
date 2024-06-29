@@ -14,9 +14,20 @@ from pprint import pprint
 from boundingBox import boundingBox
 from player import player
 from button import button
-from menu import menu
+from menu import *
 
-class pygameDemo(object):
+#flesh this out later
+class mainMenu(object):
+    run = True
+    #move stuff like this to be global or wrap everything back into yet another object
+    WIDTH = 1280
+    HEIGHT = 720
+    testButton = button((WIDTH // 2, HEIGHT // 2))
+    testButton.button_text = "shadoobie"
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    
+class pygameMain(object):
     WIDTH = 1280
     HEIGHT = 720
     LENGTH = min(WIDTH, HEIGHT)
@@ -32,7 +43,16 @@ class pygameDemo(object):
     playBoard = cBoard(WIDTH, HEIGHT)
 
     testButton = button((10, 10))
-    testMenu = menu((10, 50), 300, 600)
+    testButton2 = button((WIDTH // 2, HEIGHT // 2))
+    testButton2.button_text = "shadoobie"
+    testMenu = menu((250, 350), 400, 600) 
+    testMenu.title_text = "Example menu"
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
+    #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
+    testMenu.addChildComponent(menu((250,250), 20, 20))
+    #testMenu.offsetButtons(-70, 0)
     #for dice roll in the future
     diceRoll = 1
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -57,15 +77,6 @@ class pygameDemo(object):
         self.testButton.changeTextSize(20)
         self.testButton.button_text_color = base3
         self.testButton.draw_button(self.screen)
-    #detect if we are in bounding box?????Thought I moved this ?
-    
-    def is_inside_bounding_box(self, point_or_rect):
-        """ Check if a point or another rectangle is inside the bounding box. """
-        if isinstance(point_or_rect, pygame.Rect):
-            return self.bounding_box.colliderect(point_or_rect)
-        elif isinstance(point_or_rect, tuple):
-            return self.bounding_box.collidepoint(point_or_rect)
-        return False
 
     def initializeBoard(self):
         
@@ -108,6 +119,7 @@ class pygameDemo(object):
                 self.playBoard.board[i][j].box.y -=inHeight
         print((self.LENGTH - (.1 * self.OFFSET)) // 9)
 
+    #TODO move this draw over to board class
     def drawBoard(self):
         for col in range(9):
             for row in range(9):
@@ -115,7 +127,11 @@ class pygameDemo(object):
                     pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box, 4)
                 else:
                     if self.playBoard.board[col][row].mDistinct != tileDistinction.NULL:
-                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
+                        #TODO move this to the tile class
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mComplimentColor, self.playBoard.board[col][row].box)
+                        testRect = pygame.Rect(self.playBoard.board[col][row].box.x, self.playBoard.board[col][row].box.y, self.playBoard.board[col][row].box.width, self.playBoard.board[col][row].box.height-10)
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, testRect)
+                        pygame.draw.rect(self.screen, self.playBoard.board[col][row].mComplimentColor, testRect, 3)
                         pygame.draw.rect(self.screen, base3, self.playBoard.board[col][row].box, 1)
                     else:
                         pygame.draw.rect(self.screen, self.playBoard.board[col][row].mColor, self.playBoard.board[col][row].box)
@@ -130,8 +146,8 @@ class pygameDemo(object):
                               ((self.playBoard.board[0][0].box.size[0]) + (self.playBoard.board[0][0].box.size[0] * self.diceRoll)*2)) #size dependent on dice rolls
 
     def drawPlayers(self):
-        print("yuh")
-
+        return
+    
     def handleCurrentPlayerMoves(self):
         neighbors = []
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
@@ -153,6 +169,19 @@ class pygameDemo(object):
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
 
+    def mainMenuLoop(self):
+        localRun = True
+        while localRun:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    localRun= False
+                if self.testButton2.isClicked(event):
+                    localRun = False
+            self.screen.fill((25, 28, 38))
+            self.testButton2.draw_button(self.screen)  
+            pygame.display.update()
+            self.clock.tick(60) #60 fps
+
     def mainLoop(self):
         while self.run:
           
@@ -167,6 +196,7 @@ class pygameDemo(object):
                 self.player.checkIfHeld(event)
                 self.player.clampPlayer(self.WIDTH, self.HEIGHT)
                 self.testButton.isClicked(event)
+                self.testMenu.listen_for_buttons(event)
                 #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
                 '''
                 if event.type == pygame.VIDEORESIZE:
@@ -205,7 +235,8 @@ def main():
     #sierpinski_carpet = generate_sierpinski_carpet(n)
     #print_carpet(sierpinski_carpet)
     pygame.init()
-    demo = pygameDemo()
+    demo = pygameMain()
+    #demo.mainMenuLoop()
     demo.initializeBoard()
     demo.initiatePlayers()
     demo.mainLoop()
