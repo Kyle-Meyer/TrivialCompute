@@ -6,11 +6,17 @@ from board import *
 
 class player(object):
     circle_radius = 30
-    circle_x, circle_y =0, 0  
+    circle_inner_radius = 20
+    circle_highlight_radius = 5
+    circle_x, circle_y = 0, 0  #center coordinates, by screen
     circle_color = blue
+    circle_shadow_color = blue
+    circle_highlight_color = blue
     currCordinate = (0,0)
     dragging = False  # This flag checks if the circle is being dragged
     playerScore = 0
+    isTurn = True
+    hasRolled = False
     clampBox = boundingBox()
 
     #recursively grab all of our potential next moves
@@ -89,6 +95,11 @@ class player(object):
         self.clampBox.box.size = (size, size)
         self.clampBox.box.center = (inX, inY)
 
+    def updateBoxByDice(self, diceRoll, tileSize):
+        oldCenter = self.clampBox.box.center
+        self.clampBox.box.size = ((tileSize) + (tileSize * diceRoll)*2, (tileSize) + (tileSize * diceRoll)*2)
+        self.clampBox.box.center = (oldCenter)
+
     def updateBoardPos(self, inX, inY):
         self.currCordinate = (inX, inY)
     
@@ -97,10 +108,27 @@ class player(object):
         #set player coords
         self.circle_x = inX
         self.circle_y = inY
+    
+    def drawPlayer(self, screen):
+        #draw the darker circle
+        pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius)
+        #draw the mid tone circle, offset by the difference
+        diff = self.circle_radius - self.circle_inner_radius
+        pygame.draw.circle(screen, self.circle_color, (self.circle_x - diff, self.circle_y - diff), self.circle_inner_radius)
+        #draw the outline
+        pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius+diff, diff*2)
+        #draw the highlight
+        pygame.draw.circle(screen, self.circle_highlight_color, (self.circle_x - (self.circle_radius * .2), self.circle_y - (self.circle_radius * .4)), self.circle_highlight_radius)
 
-    def __init__(self, inRadius = 2, inX = 100, inY = 100, inColor = blue):
+    def __init__(self, inRadius = 2, inX = 100, inY = 100, inColor = player_blue):
         self.circle_radius = inRadius
+        self.circle_inner_radius = inRadius - (inRadius // 10)
+        self.circle_highlight_radius = inRadius // 10
         self.circle_color = inColor
+        #TODO add more of these conditionals for the other 4 colors
+        if(inColor == player_blue):
+            self.circle_shadow_color = player_dark_blue
+            self.circle_highlight_color = player_blue_highlight
         self.circle_x = inX
         self.circle_y = inY
         self.playerScore = 0
