@@ -16,6 +16,7 @@ from player import player
 from button import button
 from menu import *
 from textWidget import textWidget
+from dice import dice
 
 #flesh this out later
 class mainMenu(object):
@@ -44,20 +45,26 @@ class pygameMain(object):
     playBoard = cBoard(WIDTH, HEIGHT)
 
     #the playground
+    testDice = dice((350, 450), 150, 100)
+    testDice.diceMenu.changeTextSize(25)
+    testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
+    testDice.diceText.changeTextSize(20)
+    testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery + 60))
+    
     testWidget = textWidget((350, 400), 100, 100, "Text Widget")
-    testWidget.border_thickness = 1
+    testWidget.border_thickness = 0
     testButton = button((10, 10))
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
     testButton2.button_text = "shadoobie"
     testMenu = menu((250, 350), 400, 600) 
     testMenu.title_text = "Example menu"
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle2"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Shadoingle3"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button1"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button2"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Roll dice"))
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(testWidget)
     #for dice roll in the future
-    diceRoll = 1
+    diceRoll = 2
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Trivial Compute")
     #we could make the screen resizable, but I dont think this is the best way to do it
@@ -121,10 +128,9 @@ class pygameMain(object):
                 self.playBoard.board[i][j].box.y -=inHeight
         print((self.LENGTH - (.1 * self.OFFSET)) // 9)
 
-    #TODO move this draw over to board class
-   
+   #TODO encapsulate this so that it can draw mutliple players
     def initiatePlayers(self):
-        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, blue)
+        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_blue)
         #set player relative to the coords of the board
         self.player.updateBoardPos(0, 0)
         self.player.setScreenCoords(self.playBoard.board[0][0].box.centerx, self.playBoard.board[0][0].box.centery)
@@ -145,7 +151,7 @@ class pygameMain(object):
             if self.player.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
                 #check if the player has moved beyond their starting square
                 if self.player.currCordinate != neighbors[i]:
-                    #make the call from here to spawn the end turn button
+                    #TODO make the call from here to spawn the end turn button
                     print("has changed")
                 break
         #reset player position if its invalid
@@ -183,7 +189,11 @@ class pygameMain(object):
                 self.player.checkIfHeld(event)
                 self.player.clampPlayer(self.WIDTH, self.HEIGHT)
                 self.testButton.isClicked(event)
-                self.testMenu.listen_for_buttons(event)
+                abs = self.testMenu.listen_for_buttons(event)
+                if abs == 2:
+                    self.testDice.rollDice(self.screen)
+                    self.player.hasRolled = True
+                
                 #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
                 '''
                 if event.type == pygame.VIDEORESIZE:
@@ -194,16 +204,20 @@ class pygameMain(object):
                     print("old Height: ", oldHeight, " event height: ", event.h)
                     self.resizeAll(oldWidth - event.w, oldHeight - event.h)
             '''
-            
+            if not self.testDice.rolling and self.player.hasRolled:
+                self.diceRoll = self.testDice.diceValue
+                self.player.updateBoxByDice(self.diceRoll, self.playBoard.board[0][0].box.size[0])
             self.screen.fill((25, 28, 38))
             self.playBoard.drawBoard(self.screen)
             #self.debugButton()
             self.testMenu.drawMenu(self.screen)
             self.testWidget.drawWidget(self.screen)
+            self.testDice.drawDice(self.screen)
             #draw calls
-            pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
-            pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)
-            pygame.draw.rect(self.screen, base1, self.player.clampBox.box, 2)
+            '''pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
+            pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)'''
+            self.player.drawPlayer(self.screen)
+            pygame.draw.rect(self.screen, debug_red, self.player.clampBox.box, 2)
             pygame.display.update()
             self.clock.tick(60) #60 fps
 

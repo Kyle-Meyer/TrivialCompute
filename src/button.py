@@ -40,14 +40,6 @@ class button(object):
     #TODO add lockout state to buttons
     def isClicked(self, event):
         mouse_pos = pygame.mouse.get_pos()
-        
-        if event.type == pygame.QUIT:
-                return False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            #if event.button == 1:  # Left mouse click
-            if self.button_rect.collidepoint(event.pos):
-                print(self.button_text, "clicked!")
-                return True
         #highlight the button white when we hover over it
         if self.button_rect.collidepoint(mouse_pos):
             self.button_inner_color = base3
@@ -55,6 +47,14 @@ class button(object):
         else:
             self.button_inner_color = self.oldColor
             self.button_text_color = self.oldTextColor
+        if event.type == pygame.QUIT:
+                return False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            #if event.button == 1:  # Left mouse click
+            if self.button_rect.collidepoint(event.pos):
+                print(self.button_text, "clicked!")
+                return True
+        
     
     def updateInnerColor(self, inColor):
         self.oldColor = inColor

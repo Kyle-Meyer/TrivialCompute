@@ -118,9 +118,11 @@ class menu(object):
             self.child_Dictionary[childType.TEXT].append(inComponent)
 
     def listen_for_buttons(self, event):
+        selfSet = False
         for i in range(len(self.child_Dictionary[childType.BUTTON])):
-            self.child_Dictionary[childType.BUTTON][i].isClicked(event)
-        
+            if self.child_Dictionary[childType.BUTTON][i].isClicked(event):
+                selfSet = i
+        return selfSet
     def __init__(self, position : tuple[int, ...], width = 200, height = 200, titleText = "place holder"):
         self.ScreenCoords = position
         self.menu_width = width
@@ -133,5 +135,9 @@ class menu(object):
         self.child_Dictionary[childType.BUTTON] = []
         self.child_Dictionary[childType.MENU] = []
         self.child_Dictionary[childType.TEXT] = []
+        if width > 100:
+            self.changeTextSize(width // 10)
+        else:
+            self.changeTextSize(width // 4)
         self.resizeBox(width, height)
         self.moveBox(position)

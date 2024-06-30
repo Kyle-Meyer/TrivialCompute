@@ -1,4 +1,4 @@
-
+#basics
 null = (25, 28, 38)
 base03 = (0, 43, 54)
 base02 = (7, 54, 66)
@@ -20,3 +20,12 @@ darkBlue = (16, 62, 94)
 cyan = (42, 161, 152)
 green = (133, 193, 0)
 darkGreen = (56, 82, 0)
+
+#player colors
+player_dark_blue = (29, 44, 87)  # Blue circle
+player_blue = (55, 83, 158)
+player_blue_highlight = (118, 146, 227)
+
+
+#debugs
+debug_red = (255, 0, 0)
