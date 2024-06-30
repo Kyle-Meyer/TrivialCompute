@@ -34,23 +34,17 @@ class pygameMain(object):
     HEIGHT = 720
     LENGTH = min(WIDTH, HEIGHT)
     OFFSET = max(WIDTH, HEIGHT)
-
-
-    #globals are bad, avoid them when we can
     run = True
     moving = False
     color = green
-
     player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
-
     #the playground
     testDice = dice((350, 450), 150, 100)
     testDice.diceMenu.changeTextSize(25)
     testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
     testDice.diceText.changeTextSize(20)
     testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery + 60))
-    
     testWidget = textWidget((350, 400), 100, 100, "Text Widget")
     testWidget.border_thickness = 0
     testButton = button((10, 10))
@@ -67,15 +61,6 @@ class pygameMain(object):
     diceRoll = 2
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Trivial Compute")
-    #we could make the screen resizable, but I dont think this is the best way to do it
-    #screen = pygame.display.set_mode((WIDTH, HEIGHT),pygame.RESIZABLE)
-
-    #TODO Remove later
-    #player_size = LENGTH // 16
-    #player_size = 40
-    #player = pygame.Rect((300, 250, player_size, player_size))
-    #checkBox = pygame.Rect((300,250, player_size*4, player_size*4))
-    #player = pygame.surface.
 
     bounding_box = pygame.Rect(300, 200, 200, 200)
     bounding_box2 = pygame.Rect(100, 200, 200, 200)
@@ -103,31 +88,6 @@ class pygameMain(object):
                 cell_y = rect_y + row * cell_height - (self.LENGTH * .15)
                 self.playBoard.board[col][row].updateTile((cell_x, cell_y), cell_width, cell_height)
 
-    #might come back to this later
-    def resizeAll(self, inWidth, inHeight):
-        # recalculate our offset
-        off = min(inWidth, inHeight) // 2
-        #re-adjust position
-        print("Height DIFF: ", inHeight)
-        print("Wdith DIFF: ", inWidth)
-        #adjust the width and height of things
-        self.player.x -= inWidth
-        self.player.y -= inHeight
-        #resize player
-        self.player.width = min(self.screen.get_width(), self.screen.get_height()) // 16
-        self.player.height = min(self.screen.get_width(), self.screen.get_height()) // 16
-        for i in range(9):
-            for j in range(9):
-                #adjust size
-                self.LENGTH = min(self.screen.get_width(), self.screen.get_height())
-                self.OFFSET = max(self.screen.get_width(), self.screen.get_height())
-                self.playBoard.board[i][j].box.width = ((self.LENGTH - (.1 * self.OFFSET)) // 9)
-                self.playBoard.board[i][j].box.height = (self.LENGTH - (.1 * self.OFFSET)) // 9
-                #adjust position
-                self.playBoard.board[i][j].box.x -=inWidth
-                self.playBoard.board[i][j].box.y -=inHeight
-        print((self.LENGTH - (.1 * self.OFFSET)) // 9)
-
    #TODO encapsulate this so that it can draw mutliple players
     def initiatePlayers(self):
         self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_blue)
@@ -142,7 +102,9 @@ class pygameMain(object):
         return
     
     def handleCurrentPlayerMoves(self):
-        neighbors = []
+        #neighbors = []
+        self.player.currentNeighbors.clear()
+        neighbors = self.player.currentNeighbors
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
         #neighbors.remove(self.player.currCordinate)
         #print(neighbors)
@@ -156,12 +118,14 @@ class pygameMain(object):
                 break
         #reset player position if its invalid
         else:
-            self.player.circle_x = self.playBoard.board[0][0].box.centerx
-            self.player.circle_y = self.playBoard.board[0][0].box.centery
+            #self.player.circle_x = self.playBoard.board[0][0].box.centerx
+            #self.player.circle_y = self.playBoard.board[0][0].box.centery
+            print("bad move")
 
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
 
+    #TODO implement this later
     def mainMenuLoop(self):
         localRun = True
         while localRun:
@@ -177,45 +141,30 @@ class pygameMain(object):
 
     def mainLoop(self):
         while self.run:
-          
+            #event chain
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    self.run= False
-                
-                #get the press hold event for the player
-                self.handleCurrentPlayerMoves()
-                #update the bounding box, this will move into the endTurn function coming with menus update
-                
-                self.player.checkIfHeld(event)
-                self.player.clampPlayer(self.WIDTH, self.HEIGHT)
+                    self.run= False               
+                self.player.checkIfHeld(event)              
                 self.testButton.isClicked(event)
                 abs = self.testMenu.listen_for_buttons(event)
                 if abs == 2:
                     self.testDice.rollDice(self.screen)
                     self.player.hasRolled = True
-                
-                #this is getting wonky, and fast, so I'm going to leave this commented out and maybe come back around to it
-                '''
-                if event.type == pygame.VIDEORESIZE:
-                    # addfunctionality to resize everything
-                    print("resize grid and player")
-                    screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-                    print("Old WIdth: ", oldWidth, " event Widht: ", event.w)
-                    print("old Height: ", oldHeight, " event height: ", event.h)
-                    self.resizeAll(oldWidth - event.w, oldHeight - event.h)
-            '''
+
             if not self.testDice.rolling and self.player.hasRolled:
                 self.diceRoll = self.testDice.diceValue
                 self.player.updateBoxByDice(self.diceRoll, self.playBoard.board[0][0].box.size[0])
+            #get the press hold event for the player
+            self.player.clampPlayer(self.WIDTH, self.HEIGHT)
+            self.handleCurrentPlayerMoves()
             self.screen.fill((25, 28, 38))
-            self.playBoard.drawBoard(self.screen)
+            self.playBoard.drawBoard(self.screen, self.player.currentNeighbors)
             #self.debugButton()
             self.testMenu.drawMenu(self.screen)
             self.testWidget.drawWidget(self.screen)
             self.testDice.drawDice(self.screen)
             #draw calls
-            '''pygame.draw.circle(self.screen, self.player.circle_color, (self.player.circle_x, self.player.circle_y), self.player.circle_radius)
-            pygame.draw.circle(self.screen, base1, (self.player.circle_x, self.player.circle_y), self.player.circle_radius, 2)'''
             self.player.drawPlayer(self.screen)
             pygame.draw.rect(self.screen, debug_red, self.player.clampBox.box, 2)
             pygame.display.update()
@@ -224,18 +173,6 @@ class pygameMain(object):
         pygame.quit()
 
 def main(): 
-    #rows = 10  # Number of rows in the board
-    #cols = 10  # Number of columns in the board
-
-    # Generate the board
-    #game_board = create_board(rows, cols)
-
-    # Print the generated board
-    #print_board(game_board)
-    # Example usage
-    #n = 2  # Depth of recursion, generates a 3**3 x 3**3 grid
-    #sierpinski_carpet = generate_sierpinski_carpet(n)
-    #print_carpet(sierpinski_carpet)
     pygame.init()
     demo = pygameMain()
     #demo.mainMenuLoop()

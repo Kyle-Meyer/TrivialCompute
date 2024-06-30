@@ -45,7 +45,7 @@ class cBoard(object):
                     case "H":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.HQ)
 
-    def drawBoard(self, screen):
+    def drawBoard(self, screen, currentNeighbors):
         for col in range(9):
             for row in range(9):
                 if self.board[col][row].mDistinct == tileDistinction.SPECIAL:
@@ -53,6 +53,8 @@ class cBoard(object):
                 else:
                     if self.board[col][row].mDistinct != tileDistinction.NULL:
                         self.board[col][row].drawTile(screen)
+                        if (col, row) in currentNeighbors:
+                            pygame.draw.rect(screen, base3, self.board[col][row].box, 2)
                     else:
                         pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
 
