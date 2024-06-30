@@ -18,7 +18,7 @@ class player(object):
     isTurn = True
     hasRolled = False
     clampBox = boundingBox()
-
+    currentNeighbors = []
     #recursively grab all of our potential next moves
     def getNeighbors(self, inboard : cBoard, curPosition, diceRolls : int, possibleNeighbors):
         if not isinstance(inboard, cBoard):
@@ -125,6 +125,7 @@ class player(object):
         self.circle_inner_radius = inRadius - (inRadius // 10)
         self.circle_highlight_radius = inRadius // 10
         self.circle_color = inColor
+        self.currentNeighbors = []
         #TODO add more of these conditionals for the other 4 colors
         if(inColor == player_blue):
             self.circle_shadow_color = player_dark_blue

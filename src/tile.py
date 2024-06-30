@@ -40,7 +40,7 @@ class tile(object):
         pygame.draw.rect(screen, self.mComplimentColor, self.box)
         pygame.draw.rect(screen, self.mColor, self.inner_box)
         pygame.draw.rect(screen, self.mComplimentColor, self.box, 3)
-        pygame.draw.rect(screen, base3, self.box, 1)
+        #pygame.draw.rect(screen, base3, self.box, 1)
 
     def updateTile(self, inPosition, inWidth, inHeight):
         self.box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight)
