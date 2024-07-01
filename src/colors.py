@@ -29,3 +29,8 @@ player_blue_highlight = (118, 146, 227)
 
 #debugs
 debug_red = (255, 0, 0)
+
+#particle
+particle1 = (166, 170, 189)
+particle2 = (106, 110, 128)
+particle3 = (50, 53, 64)

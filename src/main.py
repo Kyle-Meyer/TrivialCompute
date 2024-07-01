@@ -17,7 +17,7 @@ from button import button
 from menu import *
 from textWidget import textWidget
 from dice import dice
-
+from particleMgr import particleManager
 #flesh this out later
 class mainMenu(object):
     run = True
@@ -40,6 +40,7 @@ class pygameMain(object):
     player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
     #the playground
+    testParticle = particleManager(WIDTH, HEIGHT)
     testDice = dice((350, 450), 150, 100)
     testDice.diceMenu.changeTextSize(25)
     testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
@@ -158,13 +159,15 @@ class pygameMain(object):
             #get the press hold event for the player
             self.player.clampPlayer(self.WIDTH, self.HEIGHT)
             self.handleCurrentPlayerMoves()
+
+            #draw calls
             self.screen.fill((25, 28, 38))
+            self.testParticle.drawParticles(self.screen)
             self.playBoard.drawBoard(self.screen, self.player.currentNeighbors)
             #self.debugButton()
             self.testMenu.drawMenu(self.screen)
             self.testWidget.drawWidget(self.screen)
             self.testDice.drawDice(self.screen)
-            #draw calls
             self.player.drawPlayer(self.screen)
             pygame.draw.rect(self.screen, debug_red, self.player.clampBox.box, 2)
             pygame.display.update()
