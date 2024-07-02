@@ -35,7 +35,15 @@ HQ_dark_yellow = (77, 40, 3)
 player_dark_blue = (29, 44, 87)  # Blue circle
 player_blue = (55, 83, 158)
 player_blue_highlight = (118, 146, 227)
-
+player_red = (138, 23, 46)
+player_red_dark = (71, 6, 19)
+player_red_highlight = (209, 111, 130)
+player_green = (102, 143, 73)
+player_green_dark = (34, 54, 20)
+player_green_highlight = (178, 212, 155)
+player_yellow = (156, 154, 67)
+player_yellow_dark = (71, 70, 19)
+player_yellow_highlight = (209, 208, 151)
 
 #debugs
 debug_red = (255, 0, 0)

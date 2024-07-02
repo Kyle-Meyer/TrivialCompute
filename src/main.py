@@ -45,7 +45,7 @@ class pygameMain(object):
     testDice = dice((350, 450), 150, 100)
     testDice.diceMenu.changeTextSize(25)
     testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
-    testDice.diceText.changeTextSize(20)
+    testDice.diceText.changeTextSize(30)
     testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery + 60))
     testWidget = textWidget((350, 400), 100, 100, "Text Widget")
     testWidget.border_thickness = 0
