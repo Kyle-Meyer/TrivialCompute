@@ -60,7 +60,7 @@ class pygameMain(object):
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(testWidget)
     #for dice roll in the future
-    diceRoll = 2
+    diceRoll = 6
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Trivial Compute")
 
@@ -92,7 +92,7 @@ class pygameMain(object):
 
    #TODO encapsulate this so that it can draw mutliple players
     def initiatePlayers(self):
-        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_blue)
+        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_green)
         #set player relative to the coords of the board
         self.player.updateBoardPos(0, 0)
         self.player.setScreenCoords(self.playBoard.board[0][0].box.centerx, self.playBoard.board[0][0].box.centery)

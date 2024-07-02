@@ -130,6 +130,15 @@ class player(object):
         if(inColor == player_blue):
             self.circle_shadow_color = player_dark_blue
             self.circle_highlight_color = player_blue_highlight
+        elif(inColor == player_yellow):
+            self.circle_shadow_color = player_yellow_dark
+            self.circle_highlight_color = player_yellow_highlight
+        elif(inColor == player_red):
+            self.circle_shadow_color = player_red_dark
+            self.circle_highlight_color = player_red_highlight
+        elif(inColor == player_green):
+            self.circle_shadow_color = player_green_dark
+            self.circle_highlight_color = player_green_highlight
         self.circle_x = inX
         self.circle_y = inY
         self.playerScore = 0
