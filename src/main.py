@@ -18,6 +18,8 @@ from menu import *
 from textWidget import textWidget
 from dice import dice
 from particleMgr import particleManager
+from databaseConnection import databaseConnection
+
 #flesh this out later
 class mainMenu(object):
     run = True
@@ -184,12 +186,20 @@ class pygameMain(object):
         pygame.quit()
 
 def main(): 
+    #tests db connection by retrieving a question/answer of a certain category
+    database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
+    # question, answer = database.getQuestionAndAnswerByCategory('Chemistry')
+    # print(f"test retrieving question from db: {question}")
+    # print(f"test retrieving answer from db: {answer}")
+    
     pygame.init()
     demo = pygameMain()
     #demo.mainMenuLoop()
     demo.initializeBoard()
     demo.initiatePlayers()
     demo.mainLoop()
+
+    database.close()
     
 if __name__=="__main__": 
     main() 
