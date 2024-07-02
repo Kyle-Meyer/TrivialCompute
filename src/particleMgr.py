@@ -10,10 +10,13 @@ class particleManager(object):
     screen_width = 100
     screen_height = 100
     particles = []
-
+    timingOffset = 0
     def drawParticles(self, screen):
         # Update particle positions
-        for particle in self.particles:
+        if self.timingOffset < len(self.particles):
+            self.timingOffset += 1
+        for i in range(self.timingOffset):
+            particle = self.particles[i]
             particle['x'] += particle['speed']  # Move particle rightwards at its own speed
             # Reset particles that move off the screen to simulate continuous flow
             if particle['x'] > self.screen_width:
