@@ -1,5 +1,6 @@
 CREATE TABLE categories (
-    "name" VARCHAR PRIMARY KEY
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR UNIQUE
 );
 
 CREATE TABLE questions (
@@ -8,10 +9,4 @@ CREATE TABLE questions (
     "answer" TEXT NOT NULL,
     "category" VARCHAR NOT NULL,
     FOREIGN KEY ("category") REFERENCES categories("name")
-);
-
-CREATE TABLE players (
-    "id" SERIAL PRIMARY KEY,
-    "username" VARCHAR NOT NULL UNIQUE,
-    "score" INTEGER DEFAULT 0
 );
