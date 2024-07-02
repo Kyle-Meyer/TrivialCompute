@@ -40,6 +40,7 @@ class pygameMain(object):
     player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
     #the playground
+    boundingDraw = True
     testParticle = particleManager(WIDTH, HEIGHT)
     testDice = dice((350, 450), 150, 100)
     testDice.diceMenu.changeTextSize(25)
@@ -54,7 +55,7 @@ class pygameMain(object):
     testMenu = menu((250, 350), 400, 600) 
     testMenu.title_text = "Example menu"
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button1"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button2"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Roll dice"))
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(testWidget)
@@ -152,6 +153,11 @@ class pygameMain(object):
                 if abs == 2:
                     self.testDice.rollDice(self.screen)
                     self.player.hasRolled = True
+                elif abs == 1:
+                    if self.boundingDraw == True:
+                        self.boundingDraw = False
+                    else:
+                        self.boundingDraw = True
 
             if not self.testDice.rolling and self.player.hasRolled:
                 self.diceRoll = self.testDice.diceValue
@@ -169,7 +175,9 @@ class pygameMain(object):
             self.testWidget.drawWidget(self.screen)
             self.testDice.drawDice(self.screen)
             self.player.drawPlayer(self.screen)
-            pygame.draw.rect(self.screen, debug_red, self.player.clampBox.box, 2)
+            #bounding box draw
+            if self.boundingDraw:
+                pygame.draw.rect(self.screen, debug_red, self.player.clampBox.box, 2)
             pygame.display.update()
             self.clock.tick(60) #60 fps
 

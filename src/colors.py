@@ -21,6 +21,16 @@ cyan = (42, 161, 152)
 green = (133, 193, 0)
 darkGreen = (56, 82, 0)
 
+#HQ colors
+HQ_red = (171, 5, 41)
+HQ_dark_red = (61, 1, 14)
+HQ_blue = (39, 47, 163)
+HQ_dark_blue = (18, 23, 97)
+HQ_green = (7, 163, 93)
+HQ_dark_green = (2, 54, 31)
+HQ_yellow = (217, 114, 11)
+HQ_dark_yellow = (77, 40, 3)
+
 #player colors
 player_dark_blue = (29, 44, 87)  # Blue circle
 player_blue = (55, 83, 158)

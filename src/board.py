@@ -23,7 +23,7 @@ class cBoard(object):
              ["X",".",".",".","X",".",".",".","X"],
              ["R","X","X","X","H","X","X","X","R"],]
     #TODO add thje ability to save a string here that captures the colors of the board
-    
+    HQs = [triviaType.RED, triviaType.BLUE, triviaType.YELLOW, triviaType.GREEN]
     outerBoard = pygame.Rect(0, 0, 720 - 100, 720 - 100)
     outerBoard.center = (1280/2 , 720/2)
     tileSize = 0
@@ -43,8 +43,11 @@ class cBoard(object):
                     case ".":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.NULL)
                     case "H":
-                        self.board[i][j] = tile(triviaType.RED, tileDistinction.HQ)
-
+                        hqChoice = random.choice(self.HQs)
+                        self.HQs.remove(hqChoice)
+                        self.board[i][j] = tile(hqChoice, tileDistinction.HQ)
+                    case "R":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.ROLL)
     def drawBoard(self, screen, currentNeighbors):
         for col in range(9):
             for row in range(9):
