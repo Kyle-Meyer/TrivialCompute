@@ -25,6 +25,38 @@ NO WHEEL FILE OR INIT.PY<br />
     - (from your venv terminal) pip install pycairo<br />
 9.) install numpy<br />
     - (from your venv terminal) pip install numpy<br />
+10.) install psycopg2<br />
+    - (from your venv terminal) pip install psycopg2-binary<br />
 <br />
 =======Running========<br />
 (from your venv terminal) python src/main.py<br />
+<br />
+
+Database setup<br />
+======================================<br />
+Download PostgreSQL (This will install pgAdmin 4 as well)<br />
+https://www.enterprisedb.com/downloads/postgres-postgresql-downloads<br />
+
+password: postgres<br />
+port: 5432<br />
+locale: Default locale<br />
+
+Open pgAdmin 4<br />
+Create a database with the following:<br />
+
+Host name/address: localhost<br />
+Port: 5432<br />
+Username: postgres<br />
+Password: postgres<br />
+database name: trivialCompute<br />
+
+Run the table creation scripts: scripts/01_table_creation_scripts.sql<br />
+Run the following script to insert sample categories and questions into the db tables: scripts/02_sample_categories_and_questions.sql<br />
+
+
+macOS setup python virtual environment<br />
+======================================<br />
+Source: https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/<br />
+1. python3.10 -m venv .venv (create new virtual environemnt)<br />
+2. source .venv/bin/activate (activate virtual environment)<br />
+3. which python (to confirm)<br />
