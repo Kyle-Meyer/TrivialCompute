@@ -16,7 +16,8 @@ class tileDistinction(Enum):
     HQ = 1
     ROLL = 2
     SPECIAL = 3
-    NULL = 4
+    CENTER = 4
+    NULL = 5
 class tile(object):
     #standard convention in python to mark private variables with "__"
     
@@ -55,7 +56,7 @@ class tile(object):
             text_surface = self.title.render(self.title_text, True, self.title_color)
             text_rect = text_surface.get_rect(center=(self.box.centerx, self.box.centery))
             screen.blit(text_surface, text_rect)
-        elif self.mDistinct == tileDistinction.ROLL:
+        elif self.mDistinct == tileDistinction.ROLL or self.mDistinct == tileDistinction.CENTER:
             text_surface = self.title.render(self.title_text, True, self.title_color)
             text_rect = text_surface.get_rect(center=(self.box.centerx, self.box.centery- (self.title_text_size // 2)))
             screen.blit(text_surface, text_rect)
@@ -115,6 +116,17 @@ class tile(object):
                 self.title_text_size = inSize * 2
                 self.etitle_text = "Again"
                 self.etitle_color = base0
+                self.etitle_text_size = inSize * 2
+                self.etitle = pygame.font.Font(None, self.etitle_text_size)
+                self.title = pygame.font.Font(None, self.title_text_size)
+            case tileDistinction.CENTER:
+                self.mColor = magenta
+                self.mComplimentColor=violet
+                self.title_text = "Trivial"
+                self.title_color = violet
+                self.title_text_size = inSize * 2
+                self.etitle_text = "Compute"
+                self.etitle_color = violet
                 self.etitle_text_size = inSize * 2
                 self.etitle = pygame.font.Font(None, self.etitle_text_size)
                 self.title = pygame.font.Font(None, self.title_text_size)

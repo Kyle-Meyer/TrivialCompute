@@ -18,7 +18,7 @@ class cBoard(object):
              ["X",".",".",".","X",".",".",".","X"],
              ["X",".","P",".","X",".","P",".","X"],
              ["X",".",".",".","X",".",".",".","X"],
-             ["H","X","X","X","X","X","X","X","H"],
+             ["H","X","X","X","C","X","X","X","H"],
              ["X",".",".",".","X",".",".",".","X"],
              ["X",".","P",".","X",".","P",".","X"],
              ["X",".",".",".","X",".",".",".","X"],
@@ -47,6 +47,9 @@ class cBoard(object):
                         self.board[i][j] = tile(hqChoice, tileDistinction.HQ, 10, i, j)
                     case "R":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.ROLL, 10, i, j)
+                    case "C":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.CENTER, 10, i, j)
+
     def drawBoard(self, screen, currentNeighbors):
         for col in range(9):
             for row in range(9):
@@ -56,7 +59,7 @@ class cBoard(object):
                     if self.board[col][row].mDistinct != tileDistinction.NULL:
                         self.board[col][row].drawTile(screen)
                         if (col, row) in currentNeighbors:
-                            pygame.draw.rect(screen, base3, self.board[col][row].box, 2)
+                            pygame.draw.rect(screen, base3, self.board[col][row].box, 3)
                     else:
                         pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
 

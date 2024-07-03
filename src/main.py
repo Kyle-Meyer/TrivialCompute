@@ -54,13 +54,14 @@ class pygameMain(object):
     testWidget.border_thickness = 0
     testButton = button((10, 10))
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
-    testButton2.button_text = "shadoobie"
+    testButton2.button_text = "locked button"
+    testButton2.lockOut = True
     testMenu = menu((250, 350), 400, 600) 
     testMenu.title_text = "Example menu"
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button1"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Roll dice"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Button 4"))
+    testMenu.addChildComponent(testButton2)
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(testWidget)
     #for dice roll in the future
@@ -86,7 +87,7 @@ class pygameMain(object):
         #TODO collpase this all into one function to make it easier
         #this takes in a tile object from the board
         self.player.updateBoardPos(self.playBoard.board[4][4], self.diceRoll)
-        
+
     def drawPlayers(self):
         return
     
