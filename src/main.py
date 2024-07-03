@@ -39,8 +39,9 @@ class pygameMain(object):
     run = True
     moving = False
     color = green
-    player = player()
     playBoard = cBoard(WIDTH, HEIGHT)
+    player = player()
+    
     #the playground
     boundingDraw = True
     testParticle = particleManager(WIDTH, HEIGHT)
@@ -59,10 +60,11 @@ class pygameMain(object):
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button1"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Roll dice"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Button 4"))
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(testWidget)
     #for dice roll in the future
-    diceRoll = 6
+    diceRoll = 3
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Trivial Compute")
 
@@ -76,54 +78,36 @@ class pygameMain(object):
         self.testButton.changeTextSize(20)
         self.testButton.button_text_color = base3
         self.testButton.draw_button(self.screen)
-
-    def initializeBoard(self):
         
-        rect_x, rect_y = self.screen.get_width()//4, self.screen.get_height()//4  # Position of the rectangle we always work in quadrants
-        self.LENGTH = min(self.screen.get_width(), self.screen.get_height())
-        self.OFFSET = max(self.screen.get_width(), self.screen.get_height())
-        rect_width, rect_height = self.LENGTH - (.1 * self.OFFSET), self.LENGTH - (.1 * self.OFFSET)  # Size of the rectangle
-        cols, rows = 9, 9  # Number of columns and rows in the grid
-        cell_width = rect_width // cols
-        cell_height = rect_height // rows
-        for col in range(cols):
-            for row in range(rows):
-                cell_x = rect_x + col * cell_width + (self.LENGTH * .4)
-                cell_y = rect_y + row * cell_height - (self.LENGTH * .15)
-                self.playBoard.board[col][row].updateTile((cell_x, cell_y), cell_width, cell_height)
-
    #TODO encapsulate this so that it can draw mutliple players
     def initiatePlayers(self):
-        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_green)
+        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_blue)
         #set player relative to the coords of the board
-        self.player.updateBoardPos(0, 0)
-        self.player.setScreenCoords(self.playBoard.board[0][0].box.centerx, self.playBoard.board[0][0].box.centery)
-        self.player.updateBox(self.playBoard.board[0][0].box.centerx, #x position
-                              self.playBoard.board[0][0].box.centery, #y position
-                              ((self.playBoard.board[0][0].box.size[0]) + (self.playBoard.board[0][0].box.size[0] * self.diceRoll)*2)) #size dependent on dice rolls
-
+        #TODO collpase this all into one function to make it easier
+        #this takes in a tile object from the board
+        self.player.updateBoardPos(self.playBoard.board[4][4], self.diceRoll)
+        
     def drawPlayers(self):
         return
     
     def handleCurrentPlayerMoves(self):
-        #neighbors = []
         self.player.currentNeighbors.clear()
         neighbors = self.player.currentNeighbors
+        #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
+        #print(self.player.currCordinate)
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
-        #neighbors.remove(self.player.currCordinate)
-        #print(neighbors)
         for i in range(len(neighbors)):
             #if this within our range
             if self.player.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
                 #check if the player has moved beyond their starting square
                 if self.player.currCordinate != neighbors[i]:
                     #TODO make the call from here to spawn the end turn button
+                    return
                     print("has changed")
                 break
         #reset player position if its invalid
         else:
-            #self.player.circle_x = self.playBoard.board[0][0].box.centerx
-            #self.player.circle_y = self.playBoard.board[0][0].box.centery
+            return
             print("bad move")
 
     def calculateBoundingBox(self):
@@ -143,6 +127,7 @@ class pygameMain(object):
             pygame.display.update()
             self.clock.tick(60) #60 fps
 
+    #SETTING UP INTERACTIVTY
     def mainLoop(self):
         while self.run:
             #event chain
@@ -152,6 +137,7 @@ class pygameMain(object):
                 self.player.checkIfHeld(event)              
                 self.testButton.isClicked(event)
                 abs = self.testMenu.listen_for_buttons(event)
+                #BUTTON CALLBACK
                 if abs == 2:
                     self.testDice.rollDice(self.screen)
                     self.player.hasRolled = True
@@ -191,15 +177,17 @@ def main():
     # question, answer = database.getQuestionAndAnswerByCategory('Chemistry')
     # print(f"test retrieving question from db: {question}")
     # print(f"test retrieving answer from db: {answer}")
-    
     pygame.init()
+
+    #MAIN MENU
+    #TWO BUTTONS
+
+    
     demo = pygameMain()
     #demo.mainMenuLoop()
-    demo.initializeBoard()
     demo.initiatePlayers()
     demo.mainLoop()
-
-    database.close()
+    #database.close()
     
 if __name__=="__main__": 
     main() 

@@ -100,8 +100,14 @@ class player(object):
         self.clampBox.box.size = ((tileSize) + (tileSize * diceRoll)*2, (tileSize) + (tileSize * diceRoll)*2)
         self.clampBox.box.center = (oldCenter)
 
-    def updateBoardPos(self, inX, inY):
-        self.currCordinate = (inX, inY)
+    #The all in one
+    def updateBoardPos(self, inTile : tile, diceRoll : int):
+        print(inTile.row," ", inTile.col)
+        self.currCordinate = (inTile.row, inTile.col)
+        self.setScreenCoords(inTile.box.centerx, inTile.box.centery)
+        self.updateBox(inTile.box.centerx, #x position
+                       inTile.box.centery, #y position
+                       ((inTile.box.size[0]) + (inTile.box.size[0] * diceRoll)*2)) #size dependent on dice rolls
     
     #this is a forcible function, and shouldnt have to be called outside of game start
     def setScreenCoords(self, inX, inY):

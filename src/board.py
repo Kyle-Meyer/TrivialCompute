@@ -13,6 +13,7 @@ class cBoard(object):
     #P = head quarter tile
     #. = blank space   
 
+    #TODO add wild card center to template
     template=[["R","X","X","X","H","X","X","X","R"],
              ["X",".",".",".","X",".",".",".","X"],
              ["X",".","P",".","X",".","P",".","X"],
@@ -33,21 +34,19 @@ class cBoard(object):
                 match self.template[i][j]:
                     case "X":
                         print("tile size", self.board[i][j].box.size)
-                        self.board[i][j] = tile(triviaType.RED)
-                        roll = True
                         newColor = random.choice(list(triviaType))
                         print("setting new tile at ", i, " , ", j, " to ", newColor, " from ", self.board[i][j].mTrivia)
-                        self.board[i][j] = tile(newColor)
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.NORMAL, 10, i, j)
                     case "P":
-                        self.board[i][j] = tile(triviaType.RED, tileDistinction.SPECIAL)
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.SPECIAL, 10, i, j)
                     case ".":
-                        self.board[i][j] = tile(triviaType.RED, tileDistinction.NULL)
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.NULL, 10, i, j)
                     case "H":
                         hqChoice = random.choice(self.HQs)
                         self.HQs.remove(hqChoice)
-                        self.board[i][j] = tile(hqChoice, tileDistinction.HQ)
+                        self.board[i][j] = tile(hqChoice, tileDistinction.HQ, 10, i, j)
                     case "R":
-                        self.board[i][j] = tile(triviaType.RED, tileDistinction.ROLL)
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.ROLL, 10, i, j)
     def drawBoard(self, screen, currentNeighbors):
         for col in range(9):
             for row in range(9):
@@ -65,7 +64,7 @@ class cBoard(object):
         for i in range(9):
             for j in range(9):
                 if self.board[i][j].mDistinct == tileDistinction.NORMAL:
-                    possibleColors = [triviaType.BLUE, triviaType.GREEN, triviaType.YELLOW, triviaType.RED, triviaType.RED]
+                    possibleColors = [triviaType.BLUE, triviaType.GREEN, triviaType.YELLOW, triviaType.RED, triviaType.RED, triviaType.RED]
                     if i - 1 > 0 and self.board[i-1][j].mTrivia in possibleColors:
                         possibleColors.remove(self.board[i-1][j].mTrivia)
                     if i + 1 < 9 and self.board[i+1][j].mTrivia in possibleColors:
@@ -76,9 +75,25 @@ class cBoard(object):
                         possibleColors.remove(self.board[i][j+1].mTrivia)
                     #add weight scoring to make sure we get a more even distribution of tiles
                     self.board[i][j] = tile(random.choice(possibleColors))
+    def initializeBoard(self):
+        rect_x, rect_y = self.width//4, self.height//4  # Position of the rectangle we always work in quadrants
+        length = min(self.width, self.height)
+        offset = max(self.width, self.height)
+        rect_width, rect_height = length - (.1 * offset), length - (.1 * offset)  # Size of the rectangle
+        cols, rows = 9, 9  # Number of columns and rows in the grid
+        cell_width = rect_width // cols
+        cell_height = rect_height // rows
+        for col in range(cols):
+            for row in range(rows):
+                cell_x = rect_x + col * cell_width + (length * .4)
+                cell_y = rect_y + row * cell_height - (length * .15)
+                self.board[col][row].updateTile((cell_x, cell_y), cell_width, cell_height, col , row)
+
     def __init__(self, width, height):
-        self.__width = width
-        self.__height = height
+        self.width = width
+        self.height = height
         self.board = [ [tile(triviaType.RED) for j in range(9)] for i in range(9)]
         self.create_board()
         self.correctBoard()
+        self.initializeBoard()
+        

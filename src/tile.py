@@ -29,7 +29,8 @@ class tile(object):
     title_text = ""
     title_text_size = 40
     title_color = (base0)
-
+    row = 0
+    col = 0
     etitle = pygame.font.init()
     etitle_text = ""
     etitle_text_size = 40
@@ -46,6 +47,7 @@ class tile(object):
     #def drawTile(self, screen):
     def drawTile(self, screen):
         #TODO move this to the tile class
+        pygame.draw.rect(screen, debug_red, self.box)
         pygame.draw.rect(screen, self.mComplimentColor, self.box)
         pygame.draw.rect(screen, self.mColor, self.inner_box)
         pygame.draw.rect(screen, self.mComplimentColor, self.box, 3)
@@ -62,15 +64,19 @@ class tile(object):
             screen.blit(text_surface2, text_rect2)
         #pygame.draw.rect(screen, base3, self.box, 1)
 
-    def updateTile(self, inPosition, inWidth, inHeight):
+    def updateTile(self, inPosition, inWidth, inHeight, row, col):
         self.box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight)
         self.inner_box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight-10)
+        self.row = row
+        self.col = col
 
-    def __init__(self, inColor, dist = tileDistinction.NORMAL, inSize = 10):
+    def __init__(self, inColor, dist = tileDistinction.NORMAL, inSize = 10, row = 0, col = 0):
         self.size = inSize
         self.box = pygame.Rect(300, 200, self.size, self.size)
         self.inner_box = pygame.Rect(300, 200, self.size, self.size-10)
         self.mDistinct = dist
+        self.row = row
+        self.col = col
         self.title = pygame.font.Font(None, self.title_text_size)
         self.Randomized=False
         match dist:
