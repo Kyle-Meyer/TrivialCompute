@@ -43,3 +43,7 @@ class databaseConnection(object):
         query = "SELECT question, answer FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
         params = (category,)
         return self.executeQueryFetchOne(query, params)
+
+    def getRandomQuestionAndAnswer(self):
+        query = "SELECT question, answer FROM questions ORDER BY RANDOM() LIMIT 1"
+        return self.executeQueryFetchOne(query)       
