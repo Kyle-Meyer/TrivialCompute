@@ -50,20 +50,20 @@ class pygameMain(object):
     testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
     testDice.diceText.changeTextSize(30)
     testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery + 60))
-    testWidget = textWidget((350, 400), 100, 100, "Text Widget")
-    testWidget.border_thickness = 0
+    questionAnswerTextWidget = textWidget((350, 400), 100, 100, "")
+    questionAnswerTextWidget.border_thickness = 0
     testButton = button((10, 10))
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
     testButton2.button_text = "locked button"
     testButton2.lockOut = True
     testMenu = menu((250, 350), 400, 600) 
     testMenu.title_text = "Example menu"
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Test Button1"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Retrieve Q and A"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Roll dice"))
     testMenu.addChildComponent(testButton2)
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
-    testMenu.addChildComponent(testWidget)
+    testMenu.addChildComponent(questionAnswerTextWidget)
     #for dice roll in the future
     diceRoll = 3
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -114,6 +114,9 @@ class pygameMain(object):
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
 
+    def __init__(self, databaseConnection):
+        self.databaseConnection = databaseConnection    
+
     #TODO implement this later
     def mainMenuLoop(self):
         localRun = True
@@ -139,14 +142,17 @@ class pygameMain(object):
                 self.testButton.isClicked(event)
                 abs = self.testMenu.listen_for_buttons(event)
                 #BUTTON CALLBACK
-                if abs == 2:
-                    self.testDice.rollDice(self.screen)
-                    self.player.hasRolled = True
-                elif abs == 1:
+                if abs == 0:
                     if self.boundingDraw == True:
                         self.boundingDraw = False
                     else:
                         self.boundingDraw = True
+                elif abs == 1:
+                    question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
+                    self.questionAnswerTextWidget.updateText(question + ' ' + answer) 
+                elif abs == 2:
+                    self.testDice.rollDice(self.screen)
+                    self.player.hasRolled = True    
 
             if not self.testDice.rolling and self.player.hasRolled:
                 self.diceRoll = self.testDice.diceValue
@@ -161,7 +167,7 @@ class pygameMain(object):
             self.playBoard.drawBoard(self.screen, self.player.currentNeighbors)
             #self.debugButton()
             self.testMenu.drawMenu(self.screen)
-            self.testWidget.drawWidget(self.screen)
+            # self.questionAnswerTextWidget.drawWidget(self.screen)
             self.testDice.drawDice(self.screen)
             self.player.drawPlayer(self.screen)
             #bounding box draw
@@ -178,13 +184,14 @@ def main():
     # question, answer = database.getQuestionAndAnswerByCategory('Chemistry')
     # print(f"test retrieving question from db: {question}")
     # print(f"test retrieving answer from db: {answer}")
+
     pygame.init()
 
     #MAIN MENU
     #TWO BUTTONS
 
     
-    demo = pygameMain()
+    demo = pygameMain(database)
     #demo.mainMenuLoop()
     demo.initiatePlayers()
     demo.mainLoop()
