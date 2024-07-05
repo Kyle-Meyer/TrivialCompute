@@ -83,7 +83,7 @@ class menu(object):
     def addChildComponent(self, inComponent):
         x_offset = self.ScreenCoords[0]
         width = self.menu_width //2
-        height = width // 2
+        height = width // 4
         y_offset = self.ScreenCoords[1] - self.menu_height // 2 + height + 50
         #TODO Might depricate this, this function is doing too much
         if len(self.child_Dictionary[childType.BUTTON]) > 0 and (isinstance(inComponent, menu) or isinstance(inComponent, textWidget)):

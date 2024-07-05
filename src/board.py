@@ -16,11 +16,11 @@ class cBoard(object):
     #TODO add wild card center to template
     template=[["R","X","X","X","H","X","X","X","R"],
              ["X",".",".",".","X",".",".",".","X"],
-             ["X",".","P",".","X",".","P",".","X"],
+             ["X","L","P",".","X","M","P",".","X"],
              ["X",".",".",".","X",".",".",".","X"],
              ["H","X","X","X","C","X","X","X","H"],
              ["X",".",".",".","X",".",".",".","X"],
-             ["X",".","P",".","X",".","P",".","X"],
+             ["X","N","P",".","X","O","P",".","X"],
              ["X",".",".",".","X",".",".",".","X"],
              ["R","X","X","X","H","X","X","X","R"],]
     #TODO add thje ability to save a string here that captures the colors of the board
@@ -49,19 +49,37 @@ class cBoard(object):
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.ROLL, 10, i, j)
                     case "C":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.CENTER, 10, i, j)
+                    case "L":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.PLAYER1, 10, i, j)
+                    case "M":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.PLAYER2, 10, i, j)
+                    case "N":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.PLAYER3, 10, i, j)
+                    case "O":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.PLAYER4, 10, i, j)                                                                        
 
     def drawBoard(self, screen, currentNeighbors):
+        optionTileBlackOutline = True        
         for col in range(9):
             for row in range(9):
-                if self.board[col][row].mDistinct == tileDistinction.SPECIAL:
-                    pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box, 4)
+                if self.board[col][row].mDistinct != tileDistinction.NULL:
+                    self.board[col][row].drawTile(screen)
+                    if (col, row) in currentNeighbors:
+                        pygame.draw.rect(screen, base3, self.board[col][row].box, 5)
                 else:
-                    if self.board[col][row].mDistinct != tileDistinction.NULL:
-                        self.board[col][row].drawTile(screen)
-                        if (col, row) in currentNeighbors:
-                            pygame.draw.rect(screen, base3, self.board[col][row].box, 3)
-                    else:
-                        pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
+                    pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
+
+                # Add optional thin black border around tiles
+                if(optionTileBlackOutline):
+                    if self.board[col][row].mDistinct not in (tileDistinction.NULL,tileDistinction.PLAYER1,
+                                                            tileDistinction.PLAYER2,tileDistinction.PLAYER3,
+                                                            tileDistinction.PLAYER4,tileDistinction.SPECIAL):
+                        pygame.draw.rect(screen, black, self.board[col][row].box, 1)
+                
+                # Add gray border around score tile for visible player(s)
+                if self.board[col][row].mDistinct == tileDistinction.SPECIAL and \
+                    self.board[col][row].title_color==white:
+                    pygame.draw.rect(screen, base00, self.board[col][row].box, 4)
 
     def correctBoard(self):
         for i in range(9):

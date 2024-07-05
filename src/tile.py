@@ -18,9 +18,15 @@ class tileDistinction(Enum):
     SPECIAL = 3
     CENTER = 4
     NULL = 5
+    PLAYER1 = 6
+    PLAYER2 = 7
+    PLAYER3 = 8
+    PLAYER4 = 9
+
 class tile(object):
     #standard convention in python to mark private variables with "__"
     
+    optionThreeDimensiaonalTiles = False
     size = 50
     mColor = (base0)
     mComplimentColor = (base0)
@@ -48,11 +54,21 @@ class tile(object):
     #def drawTile(self, screen):
     def drawTile(self, screen):
         #TODO move this to the tile class
-        pygame.draw.rect(screen, debug_red, self.box)
-        pygame.draw.rect(screen, self.mComplimentColor, self.box)
-        pygame.draw.rect(screen, self.mColor, self.inner_box)
-        pygame.draw.rect(screen, self.mComplimentColor, self.box, 3)
-        if self.mDistinct == tileDistinction.HQ:
+        if(self.optionThreeDimensiaonalTiles):
+            if self.mDistinct not in (tileDistinction.PLAYER1,tileDistinction.PLAYER2,
+                                      tileDistinction.PLAYER3,tileDistinction.PLAYER4,
+                                      tileDistinction.SPECIAL):
+                pygame.draw.rect(screen, debug_red, self.box)
+                pygame.draw.rect(screen, self.mComplimentColor, self.box)
+                pygame.draw.rect(screen, self.mColor, self.inner_box)
+                pygame.draw.rect(screen, self.mComplimentColor, self.box, 3)
+            else:
+                pygame.draw.rect(screen, self.mColor, self.box)
+        else:
+            pygame.draw.rect(screen, self.mColor, self.box)
+        if self.mDistinct in (tileDistinction.SPECIAL,tileDistinction.PLAYER1,
+                              tileDistinction.PLAYER2,tileDistinction.PLAYER3,
+                              tileDistinction.PLAYER4,tileDistinction.HQ):
             text_surface = self.title.render(self.title_text, True, self.title_color)
             text_rect = text_surface.get_rect(center=(self.box.centerx, self.box.centery))
             screen.blit(text_surface, text_rect)
@@ -83,6 +99,30 @@ class tile(object):
         match dist:
             case tileDistinction.NULL:
                 self.mColor = null
+            case tileDistinction.PLAYER1:
+                self.title_text = ""
+                self.title_text_size = inSize * 3
+                self.title = pygame.font.Font(None, self.title_text_size)                
+                self.mColor = null
+                self.title_color = white
+            case tileDistinction.PLAYER2:
+                self.title_text = ""
+                self.title_text_size = inSize * 3
+                self.title = pygame.font.Font(None, self.title_text_size)                
+                self.mColor = null
+                self.title_color = white
+            case tileDistinction.PLAYER3:
+                self.title_text = ""
+                self.title_text_size = inSize * 3
+                self.title = pygame.font.Font(None, self.title_text_size)                
+                self.mColor = null
+                self.title_color = white
+            case tileDistinction.PLAYER4:
+                self.title_text = ""
+                self.title_text_size = inSize * 3
+                self.title = pygame.font.Font(None, self.title_text_size)                
+                self.mColor = null
+                self.title_color = white                  
             case tileDistinction.HQ:
                 self.title_text = "HQ"
                 self.title_text_size = inSize * 3
@@ -92,30 +132,30 @@ class tile(object):
                         self.mTrivia = triviaType.RED
                         self.mColor = HQ_red
                         self.mComplimentColor = HQ_dark_red                 
-                        self.title_color = HQ_dark_red
+                        self.title_color = black #HQ_dark_red
                     case triviaType.BLUE:
                         self.mTrivia = triviaType.BLUE
                         self.mColor = HQ_blue
                         self.mComplimentColor = HQ_dark_blue
-                        self.title_color = HQ_dark_blue
+                        self.title_color = black #HQ_dark_blue
                     case triviaType.GREEN:
                         self.mTrivia = triviaType.GREEN
                         self.mColor = HQ_green
                         self.mComplimentColor = HQ_dark_green
-                        self.title_color = HQ_dark_green
+                        self.title_color = black #HQ_dark_green
                     case triviaType.YELLOW:
                         self.mTrivia = triviaType.YELLOW
                         self.mColor = HQ_yellow
                         self.mComplimentColor = HQ_dark_yellow
-                        self.title_color = HQ_dark_yellow
+                        self.title_color = black #HQ_dark_yellow
             case tileDistinction.ROLL:
                 self.mColor = base3
                 self.mComplimentColor=base0
                 self.title_text = "Roll"
-                self.title_color = base0
+                self.title_color = black #base0
                 self.title_text_size = inSize * 2
                 self.etitle_text = "Again"
-                self.etitle_color = base0
+                self.etitle_color = black #base0
                 self.etitle_text_size = inSize * 2
                 self.etitle = pygame.font.Font(None, self.etitle_text_size)
                 self.title = pygame.font.Font(None, self.title_text_size)
@@ -123,15 +163,19 @@ class tile(object):
                 self.mColor = magenta
                 self.mComplimentColor=violet
                 self.title_text = "Trivial"
-                self.title_color = violet
+                self.title_color = black #violet
                 self.title_text_size = inSize * 2
                 self.etitle_text = "Compute"
-                self.etitle_color = violet
+                self.etitle_color = black #violet
                 self.etitle_text_size = inSize * 2
                 self.etitle = pygame.font.Font(None, self.etitle_text_size)
                 self.title = pygame.font.Font(None, self.title_text_size)
             case tileDistinction.SPECIAL:
-                self.mColor = base00
+                self.mColor = null
+                self.title_text = "____"
+                self.title_text_size = inSize * 3
+                self.title = pygame.font.Font(None, self.title_text_size)                
+                self.title_color = null
             case tileDistinction.NORMAL:
                 match inColor:
                     case triviaType.RED:

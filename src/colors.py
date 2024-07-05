@@ -20,6 +20,9 @@ darkBlue = (16, 62, 94)
 cyan = (42, 161, 152)
 green = (133, 193, 0)
 darkGreen = (56, 82, 0)
+white = (255,255,255)
+black = (0,0,0)
+winner_green = (102,255,102)
 
 #HQ colors
 HQ_red = (171, 5, 41)
