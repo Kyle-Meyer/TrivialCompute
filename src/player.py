@@ -14,7 +14,7 @@ class player(object):
     circle_highlight_color = blue
     currCordinate = (0,0)
     dragging = False  # This flag checks if the circle is being dragged
-    playerScore = 0
+    playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
     isTurn = True
     hasRolled = False
     clampBox = boundingBox()
@@ -30,6 +30,7 @@ class player(object):
             return possibleNeighbors
         if (inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.NORMAL or inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.HQ or inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.ROLL) and curPosition not in(possibleNeighbors):
             possibleNeighbors.append(curPosition)
+
         self.getNeighbors(inboard, (curPosition[0] - 1, curPosition[1]), diceRolls - 1, possibleNeighbors)
         self.getNeighbors(inboard, (curPosition[0] + 1, curPosition[1]), diceRolls - 1, possibleNeighbors)
         self.getNeighbors(inboard, (curPosition[0], curPosition[1] - 1), diceRolls - 1, possibleNeighbors)
@@ -147,6 +148,6 @@ class player(object):
             self.circle_highlight_color = player_green_highlight
         self.circle_x = inX
         self.circle_y = inY
-        self.playerScore = 0
+        self.playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
         self.clampBox = boundingBox()
     

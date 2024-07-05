@@ -12,6 +12,7 @@ class dice(object):
     diceValue = 0
     current_number = 0
     update_interval = 1  # update every 1000 milliseconds (1 second)
+    optionalFastDice = True    
     total_duration = 3000  # total duration of the animation (5 seconds)
     timer = 0  # track the time since the last number update
     start_time = pygame.time.get_ticks()  # get the initial time
@@ -34,7 +35,10 @@ class dice(object):
     #with concurrency for this
     def rollDice(self, screen):
         self.update_interval = 1  # update every 1000 milliseconds (1 second)
-        self.total_duration = 3000  # total duration of the animation (5 seconds)
+        if(self.optionalFastDice):
+            self.total_duration = 300
+        else:        
+            self.total_duration = 3000  # total duration of the animation (5 seconds)
         self.timer = 0  # track the time since the last number update
         self.rolling = True
         # Main game loop

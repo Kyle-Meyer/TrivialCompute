@@ -41,9 +41,14 @@ class pygameMain(object):
     color = green
     playBoard = cBoard(WIDTH, HEIGHT)
     player = player()
+
+    # Show Player 1 name and score on the board
+    # Note this is currently hardcoded for player 1
+    playBoard.board[2][1].title_text = "Kyle"
+    playBoard.board[2][2].title_color = white
     
     #the playground
-    boundingDraw = True
+    boundingDraw = False
     testParticle = particleManager(WIDTH, HEIGHT)
     testDice = dice((350, 450), 150, 100)
     testDice.diceMenu.changeTextSize(25)
@@ -58,14 +63,17 @@ class pygameMain(object):
     testButton2.lockOut = True
     testMenu = menu((250, 350), 400, 600) 
     testMenu.title_text = "Example menu"
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "TestButton1"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Retrieve Q and A"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Roll dice"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "1. Roll dice"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "2. Move Token"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "3. Get Q and A"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "4. Correct!"))
     testMenu.addChildComponent(testButton2)
     testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(questionAnswerTextWidget)
     #for dice roll in the future
-    diceRoll = 3
+    diceRoll = 0
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Trivial Compute")
 
@@ -91,6 +99,55 @@ class pygameMain(object):
     def drawPlayers(self):
         return
     
+    # Convert token position to tile coordinates
+    def screenPosToCoord(self): 
+        leftEdgeOfTiles = int(self.WIDTH // 4 + 0.4 * self.LENGTH) 
+        topEdgeOfTiles = int(self.HEIGHT // 4 - 0.15 * self.LENGTH) 
+        playerXCoord = int((self.player.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.1 * self.OFFSET))//9)) 
+        playerYCoord = int((self.player.circle_y - topEdgeOfTiles)//((self.LENGTH - (.1 * self.OFFSET))//9)) 
+        return(playerXCoord,playerYCoord) 
+    
+    # Locks in the player's move
+    def advanceToken(self, position = (-1,-1)):
+        if position != (-1,-1):
+            self.testDice.diceValue=0
+            self.testDice.diceText.title_text = str(self.testDice.diceValue)
+            self.diceRoll=self.testDice.diceValue
+            self.player.currentNeighbors.clear()
+            self.player.updateBoardPos(self.playBoard.board[position[0]][position[1]], self.diceRoll)
+            
+    # Update the score for a player
+    def updatePlayerScore(self, coord=(-1,-1)):
+        if coord not in [(0,4), (4,0), (4,8), (8,4)]: return
+        else:
+            if coord == (4,0): cat = "c1"
+            elif coord == (8,4): cat = "c2"
+            elif coord == (4,8): cat = "c3"
+            elif coord == (0,4): cat = "c4"
+            if self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.RED: self.player.playerScore[cat]="R"
+            elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.BLUE: self.player.playerScore[cat]="B"
+            elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.GREEN: self.player.playerScore[cat]="G"
+            elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.YELLOW: self.player.playerScore[cat]="Y"
+            # Note this is currently hardcoded for player 1
+            self.playBoard.board[2][2].title_text = str(self.player.playerScore["c1"])+ \
+                        str(self.player.playerScore["c2"])+     \
+                        str(self.player.playerScore["c3"])+     \
+                        str(self.player.playerScore["c4"])
+        return
+    
+    # Check for game winner
+    def checkIfPlayerJustWon(self):
+        if self.player.currCordinate == (4,4):
+            if '_' in self.player.playerScore.values():
+                return False
+            else:
+                return True
+    
+    # Crown the victor
+    def crownVictor(self):
+        self.playBoard.board[2][1].title_color = winner_green
+        self.playBoard.board[2][2].mcolor = winner_green
+                
     def handleCurrentPlayerMoves(self):
         self.player.currentNeighbors.clear()
         neighbors = self.player.currentNeighbors
@@ -142,17 +199,35 @@ class pygameMain(object):
                 self.testButton.isClicked(event)
                 abs = self.testMenu.listen_for_buttons(event)
                 #BUTTON CALLBACK
-                if abs == 0:
+                # Bounding Box Button
+                if abs == 1:
                     if self.boundingDraw == True:
                         self.boundingDraw = False
                     else:
                         self.boundingDraw = True
-                elif abs == 1:
-                    question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
-                    self.questionAnswerTextWidget.updateText(question + ' ' + answer) 
+                # Roll Dice Button
                 elif abs == 2:
                     self.testDice.rollDice(self.screen)
-                    self.player.hasRolled = True    
+                    self.player.hasRolled = True 
+                # Move Token Button
+                elif abs == 3:
+                    currentTokenPosition = self.screenPosToCoord()
+                    if currentTokenPosition in self.player.currentNeighbors and \
+                        currentTokenPosition != self.player.currCordinate:
+                        self.advanceToken(currentTokenPosition)
+                    else:
+                        self.player.updateBoardPos(self.playBoard.board[self.player.currCordinate[0]][self.player.currCordinate[1]], self.diceRoll)
+                # Get Q&A Button
+                elif abs == 4:
+                    question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
+                    self.questionAnswerTextWidget.updateText(question + ' ' + answer) 
+                # Correct Answer Button
+                elif abs == 5:
+                    if self.player.currCordinate in [(4,0),(8,4),(4,8),(0,4)]: 
+                        self.updatePlayerScore(self.player.currCordinate)
+                    elif self.player.currCordinate == (4,4):
+                        if self.checkIfPlayerJustWon():
+                            self.crownVictor
 
             if not self.testDice.rolling and self.player.hasRolled:
                 self.diceRoll = self.testDice.diceValue
