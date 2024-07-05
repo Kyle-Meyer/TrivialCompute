@@ -31,7 +31,7 @@ class player(object):
         if (inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.NORMAL or 
             inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.HQ or 
             inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.ROLL or
-            inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.CENTER or) and curPosition not in(possibleNeighbors):
+            inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.CENTER) and curPosition not in(possibleNeighbors):
             possibleNeighbors.append(curPosition)
 
         self.getNeighbors(inboard, (curPosition[0] - 1, curPosition[1]), diceRolls - 1, possibleNeighbors)
