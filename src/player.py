@@ -45,6 +45,19 @@ class player(object):
         self.getNeighbors(inboard, (curPosition[0], curPosition[1] - 1), diceRolls - 1, possibleNeighbors)
         self.getNeighbors(inboard, (curPosition[0], curPosition[1] + 1), diceRolls - 1, possibleNeighbors)
 
+    def pruneNeighbors(self, diceRoll):
+        #print(self.currentNeighbors)
+        toRemove = []
+        for entry in self.currentNeighbors:
+            diff = abs((entry[0] + entry[1]) - (self.currCordinate[0] + self.currCordinate[1]))
+            #print("\t ENTRY: ", entry, " has diff:" , diff)
+            if(diff != diceRoll) and diff != 0:
+                #print("\t removing: ", entry, " because diff was: ", diff)
+                toRemove.append(entry)
+        #python does not support in place deletions, so we have to loop AGAIN
+        for entry in toRemove:
+            self.currentNeighbors.remove(entry)
+
     def checkIfHeld(self, inEvent : pygame.event):
         if inEvent.type == pygame.QUIT:
             return False
