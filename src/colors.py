@@ -1,3 +1,5 @@
+from configOptions import *
+
 #basics
 null = (25, 28, 38)
 base03 = (0, 43, 54)
@@ -55,3 +57,19 @@ debug_red = (255, 0, 0)
 particle1 = (166, 170, 189)
 particle2 = (106, 110, 128)
 particle3 = (50, 53, 64)
+
+if optionalMatchOriginalColors == True:
+    yellow = (255,236,38)
+    blue = (41,173,255)
+    green = (0,228,53)
+    red = (255,0,76)
+    magenta = (255,255,255)
+    violet = base0
+    HQ_red = red
+    HQ_blue = blue
+    HQ_green = green
+    HQ_yellow = yellow
+    player_red = red
+    player_blue = blue
+    player_green = green
+    player_yellow = yellow

@@ -3,6 +3,7 @@ from colors import *
 from boundingBox import boundingBox
 from tile import *
 from board import *
+from configOptions import *
 
 class player(object):
     circle_radius = 30
@@ -21,9 +22,11 @@ class player(object):
     currentNeighbors = []
     #recursively grab all of our potential next moves
     def getNeighbors(self, inboard : cBoard, curPosition, diceRolls : int, possibleNeighbors):
+        '''
         if not isinstance(inboard, cBoard):
             print("bad board passed")
             return
+        '''
         if curPosition[0] < 0 or curPosition[1] < 0 or curPosition[0] >= 9 or curPosition[1] >= 9:
             return possibleNeighbors
         if diceRolls == 0:
@@ -123,15 +126,20 @@ class player(object):
         self.circle_y = inY
     
     def drawPlayer(self, screen):
-        #draw the darker circle
-        pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius)
-        #draw the mid tone circle, offset by the difference
-        diff = self.circle_radius - self.circle_inner_radius
-        pygame.draw.circle(screen, self.circle_color, (self.circle_x - diff, self.circle_y - diff), self.circle_inner_radius)
-        #draw the outline
-        pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius+diff, diff*2)
-        #draw the highlight
-        pygame.draw.circle(screen, self.circle_highlight_color, (self.circle_x - (self.circle_radius * .2), self.circle_y - (self.circle_radius * .4)), self.circle_highlight_radius)
+        if optionalThreeDimensionalTokens == True:
+            #draw the darker circle
+            pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius)
+            #draw the mid tone circle, offset by the difference
+            diff = self.circle_radius - self.circle_inner_radius
+            pygame.draw.circle(screen, self.circle_color, (self.circle_x - diff, self.circle_y - diff), self.circle_inner_radius)
+            #draw the outline
+            pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius+diff, diff*2)
+            #draw the highlight
+            pygame.draw.circle(screen, self.circle_highlight_color, (self.circle_x - (self.circle_radius * .2), self.circle_y - (self.circle_radius * .4)), self.circle_highlight_radius)
+        else:
+            pygame.draw.circle(screen, self.circle_color, (self.circle_x, self.circle_y), self.circle_radius)
+            diff = self.circle_radius - self.circle_inner_radius
+            pygame.draw.circle(screen, black, (self.circle_x, self.circle_y), self.circle_radius+diff, 2)
 
     def __init__(self, inRadius = 2, inX = 100, inY = 100, inColor = player_blue):
         self.circle_radius = inRadius
