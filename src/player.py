@@ -28,6 +28,9 @@ class player(object):
             return possibleNeighbors
         if diceRolls == 0:
             return possibleNeighbors
+        if inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.NULL:
+            return possibleNeighbors
+        
         if (inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.NORMAL or 
             inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.HQ or 
             inboard.board[curPosition[0]][curPosition[1]].mDistinct == tileDistinction.ROLL or
