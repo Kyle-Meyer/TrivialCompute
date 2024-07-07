@@ -42,6 +42,7 @@ class tile(object):
     etitle_text = ""
     etitle_text_size = 40
     etitle_color = (base0)
+    debugMode = True
 
     def is_inside_bounding_box(self, point_or_rect):
         """ Check if a point or another rectangle is inside the bounding box. """
@@ -79,6 +80,12 @@ class tile(object):
             text_surface2 = self.etitle.render(self.etitle_text, True, self.etitle_color)
             text_rect2 = text_surface2.get_rect(center=(self.box.centerx, self.box.centery+ (self.etitle_text_size // 2)))
             screen.blit(text_surface2, text_rect2)
+        elif self.debugMode:
+            self.title_color = base3
+            self.title_text = str(str(self.row) + ":" + str(self.col))
+            text_surface = self.title.render(self.title_text, True, self.title_color)
+            text_rect = text_surface.get_rect(center=(self.box.centerx, self.box.centery))
+            screen.blit(text_surface, text_rect)
         #pygame.draw.rect(screen, base3, self.box, 1)
 
     def updateTile(self, inPosition, inWidth, inHeight, row, col):
