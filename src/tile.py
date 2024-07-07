@@ -26,7 +26,7 @@ class tileDistinction(Enum):
 class tile(object):
     #standard convention in python to mark private variables with "__"
     
-    optionThreeDimensiaonalTiles = False
+    optionThreeDimensiaonalTiles = True
     size = 50
     mColor = (base0)
     mComplimentColor = (base0)
