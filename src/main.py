@@ -45,7 +45,7 @@ class pygameMain(object):
 
     # Show Player 1 name and score on the board
     # Note this is currently hardcoded for player 1
-    playBoard.board[2][1].title_text = "Kyle"
+    playBoard.board[2][1].title_text = "Larry"
     playBoard.board[2][2].title_color = white
     
     #the playground
@@ -91,7 +91,7 @@ class pygameMain(object):
         
    #TODO encapsulate this so that it can draw mutliple players
     def initiatePlayers(self):
-        self.player = player(10, self.WIDTH // 2, self.HEIGHT // 2, player_blue)
+        self.player = player(15, self.WIDTH // 2, self.HEIGHT // 2, player_red)
         #set player relative to the coords of the board
         #TODO collpase this all into one function to make it easier
         #this takes in a tile object from the board
@@ -147,7 +147,7 @@ class pygameMain(object):
     # Crown the victor
     def crownVictor(self):
         self.playBoard.board[2][1].title_color = winner_green
-        self.playBoard.board[2][2].mcolor = winner_green
+        self.playBoard.board[2][2].mColor = winner_green
                 
     def handleCurrentPlayerMoves(self):
         self.player.currentNeighbors.clear()
@@ -228,7 +228,7 @@ class pygameMain(object):
                         self.updatePlayerScore(self.player.currCordinate)
                     elif self.player.currCordinate == (4,4):
                         if self.checkIfPlayerJustWon():
-                            self.crownVictor
+                            self.crownVictor()
 
             if not self.testDice.rolling and self.player.hasRolled:
                 self.diceRoll = self.testDice.diceValue

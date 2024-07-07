@@ -3,6 +3,7 @@ import random
 from enum import Enum
 import pygame
 from colors import *
+from configOptions import *
 
 class triviaType(Enum):
     RED = 0 
@@ -25,8 +26,6 @@ class tileDistinction(Enum):
 
 class tile(object):
     #standard convention in python to mark private variables with "__"
-    
-    optionThreeDimensiaonalTiles = True
     size = 50
     mColor = (base0)
     mComplimentColor = (base0)
@@ -42,7 +41,6 @@ class tile(object):
     etitle_text = ""
     etitle_text_size = 40
     etitle_color = (base0)
-    debugMode = True
 
     def is_inside_bounding_box(self, point_or_rect):
         """ Check if a point or another rectangle is inside the bounding box. """
@@ -55,7 +53,7 @@ class tile(object):
     #def drawTile(self, screen):
     def drawTile(self, screen):
         #TODO move this to the tile class
-        if(self.optionThreeDimensiaonalTiles):
+        if(optionalThreeDimensionalTiles):
             if self.mDistinct not in (tileDistinction.PLAYER1,tileDistinction.PLAYER2,
                                       tileDistinction.PLAYER3,tileDistinction.PLAYER4,
                                       tileDistinction.SPECIAL):
@@ -80,7 +78,7 @@ class tile(object):
             text_surface2 = self.etitle.render(self.etitle_text, True, self.etitle_color)
             text_rect2 = text_surface2.get_rect(center=(self.box.centerx, self.box.centery+ (self.etitle_text_size // 2)))
             screen.blit(text_surface2, text_rect2)
-        elif self.debugMode:
+        elif optionalDebugMode:
             self.title_color = base3
             self.title_text = str(str(self.row) + ":" + str(self.col))
             text_surface = self.title.render(self.title_text, True, self.title_color)

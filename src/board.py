@@ -7,6 +7,7 @@ import numpy
 import pygame
 import random
 from colors import *
+from configOptions import *
 class cBoard(object):
     #done with strings for right now, will Tile object in future
     #X = tile
@@ -23,12 +24,27 @@ class cBoard(object):
              ["X","N","P",".","X","O","P",".","X"],
              ["X",".",".",".","X",".",".",".","X"],
              ["R","X","X","X","H","X","X","X","R"],]
+    
     #TODO add thje ability to save a string here that captures the colors of the board
     HQs = [triviaType.RED, triviaType.BLUE, triviaType.YELLOW, triviaType.GREEN]
     outerBoard = pygame.Rect(0, 0, 720 - 100, 720 - 100)
     outerBoard.center = (1280/2 , 720/2)
     tileSize = 0
     def create_board(self):
+        
+        if optionalStaticBoard == True:
+            self.template= \
+                    [["R","C4","C3","C2","HQ1","C4","C3","C2","R"],
+                    ["C1",".",".",".","C2",".",".",".","C1"],
+                    ["C2","L","P",".","C3","M","P",".","C4"],
+                    ["C3",".",".",".","C4",".",".",".","C3"],
+                    ["HQ4","C1","C2","C3","C","C1","C4","C3","HQ2"],
+                    ["C1",".",".",".","C2",".",".",".","C1"],
+                    ["C2","N","P",".","C1","O","P",".","C4"],
+                    ["C3",".",".",".","C4",".",".",".","C3"],
+                    ["R","C4","C1","C2","HQ3","C4","C1","C2","R"],]
+            
+
         for i in range(9):
             for j in range(9):
                 match self.template[i][j]:
@@ -57,9 +73,26 @@ class cBoard(object):
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.PLAYER3, 10, i, j)
                     case "O":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.PLAYER4, 10, i, j)                                                                        
+                    case "C4":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.NORMAL, 10, i, j)
+                    case "C3":
+                        self.board[i][j] = tile(triviaType.GREEN, tileDistinction.NORMAL, 10, i, j)       
+                    case "C2":
+                        self.board[i][j] = tile(triviaType.BLUE, tileDistinction.NORMAL, 10, i, j)      
+                    case "C1":
+                        self.board[i][j] = tile(triviaType.YELLOW, tileDistinction.NORMAL, 10, i, j)    
+                    case "HQ4":
+                        self.board[i][j] = tile(triviaType.RED, tileDistinction.HQ, 10, i, j)
+                    case "HQ3":
+                        self.board[i][j] = tile(triviaType.GREEN, tileDistinction.HQ, 10, i, j)       
+                    case "HQ2":
+                        self.board[i][j] = tile(triviaType.BLUE, tileDistinction.HQ, 10, i, j)      
+                    case "HQ1":
+                        self.board[i][j] = tile(triviaType.YELLOW, tileDistinction.HQ, 10, i, j)                                                            
+                                                                                     
 
     def drawBoard(self, screen, currentNeighbors):
-        optionTileBlackOutline = True        
+               
         for col in range(9):
             for row in range(9):
                 if self.board[col][row].mDistinct != tileDistinction.NULL:
@@ -70,16 +103,16 @@ class cBoard(object):
                     pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
 
                 # Add optional thin black border around tiles
-                if(optionTileBlackOutline):
+                if(optionalTileBlackOutline):
                     if self.board[col][row].mDistinct not in (tileDistinction.NULL,tileDistinction.PLAYER1,
                                                             tileDistinction.PLAYER2,tileDistinction.PLAYER3,
                                                             tileDistinction.PLAYER4,tileDistinction.SPECIAL):
-                        pygame.draw.rect(screen, black, self.board[col][row].box, 1)
+                        pygame.draw.rect(screen, black, self.board[col][row].box, 2)
                 
                 # Add gray border around score tile for visible player(s)
                 if self.board[col][row].mDistinct == tileDistinction.SPECIAL and \
                     self.board[col][row].title_color==white:
-                    pygame.draw.rect(screen, base00, self.board[col][row].box, 4)
+                    pygame.draw.rect(screen, player_red, self.board[col][row].box, 4)
 
     def correctBoard(self):
         for i in range(9):
@@ -115,6 +148,7 @@ class cBoard(object):
         self.height = height
         self.board = [ [tile(triviaType.RED) for j in range(9)] for i in range(9)]
         self.create_board()
-        self.correctBoard()
+        if optionalStaticBoard == False:
+            self.correctBoard()
         self.initializeBoard()
         
