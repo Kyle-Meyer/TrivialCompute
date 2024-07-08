@@ -49,7 +49,7 @@ class player(object):
         #print(self.currentNeighbors)
         toRemove = []
         for entry in self.currentNeighbors:
-            diff = abs((entry[0] + entry[1]) - (self.currCordinate[0] + self.currCordinate[1]))
+            diff = abs((entry[0] - self.currCordinate[0])) + abs((entry[1] - self.currCordinate[1]))
             #print("\t ENTRY: ", entry, " has diff:" , diff)
             if(diff != diceRoll) and diff != 0:
                 #print("\t removing: ", entry, " because diff was: ", diff)
@@ -126,6 +126,7 @@ class player(object):
     #The all in one
     def updateBoardPos(self, inTile : tile, diceRoll : int):
         print(inTile.row," ", inTile.col)
+        self.hasRolled = False
         self.currCordinate = (inTile.row, inTile.col)
         self.setScreenCoords(inTile.box.centerx, inTile.box.centery)
         self.updateBox(inTile.box.centerx, #x position

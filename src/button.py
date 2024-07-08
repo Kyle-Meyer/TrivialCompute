@@ -42,6 +42,10 @@ class button(object):
         text_rect = text_surf.get_rect(center=self.button_rect.center)
         screen.blit(text_surf, text_rect)
         if self.lockOut:
+            self.button_inner_color = null
+            self.oldColor = null
+            self.button_text_color = base3
+            self.oldTextColor = base3
             self.fadeBox.drawAlpha(screen)
     #TODO add lockout state to buttons
     

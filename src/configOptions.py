@@ -1,7 +1,7 @@
 optionalMatchOriginalColors = True
 optionalStaticBoard = True
-optionalThreeDimensionalTiles = False
-optionalThreeDimensionalTokens = False
+optionalThreeDimensionalTiles = True
+optionalThreeDimensionalTokens = True
 optionalTileBlackOutline = True
 optionalDebugMode = False
 
