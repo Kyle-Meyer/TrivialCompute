@@ -155,6 +155,7 @@ class pygameMain(object):
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
         #print(self.player.currCordinate)
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
+        self.player.pruneNeighbors(self.diceRoll)
         for i in range(len(neighbors)):
             #if this within our range
             if self.player.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
@@ -207,8 +208,9 @@ class pygameMain(object):
                     else:
                         self.boundingDraw = True
                 # Roll Dice Button
-                elif abs == 2:
+                elif abs == 2 and self.player.hasRolled == False:
                     self.testDice.rollDice(self.screen)
+                    self.testMenu.child_Dictionary[childType.BUTTON][2].lockOut = True
                     self.player.hasRolled = True 
                 # Move Token Button
                 elif abs == 3:
@@ -218,6 +220,7 @@ class pygameMain(object):
                         self.advanceToken(currentTokenPosition)
                     else:
                         self.player.updateBoardPos(self.playBoard.board[self.player.currCordinate[0]][self.player.currCordinate[1]], self.diceRoll)
+                    self.testMenu.child_Dictionary[childType.BUTTON][2].lockOut = False
                 # Get Q&A Button
                 elif abs == 4:
                     question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
