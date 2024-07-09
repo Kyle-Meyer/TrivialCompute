@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import simpledialog
 import psycopg2
 
 # Database connection
@@ -52,7 +53,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Database Manager")
-        self.geometry("1280x720")
+        self.geometry("640x720")
         
         # Frame for categories
         self.category_frame = tk.Frame(self)
