@@ -5,4 +5,4 @@ optionalThreeDimensionalTokens = True
 optionalTileBlackOutline = True
 optionalDebugMode = False
 optionalFastDice = True
-optionalPruneNeighbors = False
+optionalPruneNeighbors = True
