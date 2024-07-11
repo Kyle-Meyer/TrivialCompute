@@ -51,6 +51,8 @@ def execute_sql_scripts(conn):
         # List all .sql files in the directory
         sql_files = [file for file in os.listdir(SQL_SCRIPTS_DIR) if file.endswith('.sql')]
 
+        sql_files.sort()
+
         # Execute each SQL script
         for file in sql_files:
             script_path = os.path.join(SQL_SCRIPTS_DIR, file)
