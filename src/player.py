@@ -48,6 +48,7 @@ class player(object):
     def pruneNeighbors(self, diceRoll):
         #print(self.currentNeighbors)
         toRemove = []
+        toRemove.append(self.currCordinate)
         for entry in self.currentNeighbors:
             diff = abs((entry[0] - self.currCordinate[0])) + abs((entry[1] - self.currCordinate[1]))
             #print("\t ENTRY: ", entry, " has diff:" , diff)

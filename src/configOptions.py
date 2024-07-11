@@ -4,4 +4,5 @@ optionalThreeDimensionalTiles = True
 optionalThreeDimensionalTokens = True
 optionalTileBlackOutline = True
 optionalDebugMode = False
-
+optionalFastDice = True
+optionalPruneNeighbors = True

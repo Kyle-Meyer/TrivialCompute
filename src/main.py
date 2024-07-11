@@ -62,16 +62,17 @@ class pygameMain(object):
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
     testButton2.button_text = "locked button"
     testButton2.lockOut = True
-    testMenu = menu((250, 350), 400, 600) 
-    testMenu.title_text = "Example menu"
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "TestButton1"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
+    testMenu = menu((250, 350), 400, 650) 
+    testMenu.title_text = "Game Menu"
+    #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "TestButton1"))
+    #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "1. Roll dice"))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "2. Move Token"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "3. Get Q and A"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "4. Correct!"))
-    testMenu.addChildComponent(testButton2)
-    testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "3. Get Ques."))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "4. Show Ans."))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "5. Correct!"))
+    #testMenu.addChildComponent(testButton2)
+    #testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(questionAnswerTextWidget)
     #for dice roll in the future
     diceRoll = 0
@@ -155,7 +156,8 @@ class pygameMain(object):
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
         #print(self.player.currCordinate)
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
-        self.player.pruneNeighbors(self.diceRoll)
+        if optionalPruneNeighbors:
+            self.player.pruneNeighbors(self.diceRoll)
         for i in range(len(neighbors)):
             #if this within our range
             if self.player.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
@@ -201,32 +203,40 @@ class pygameMain(object):
                 self.testButton.isClicked(event)
                 abs = self.testMenu.listen_for_buttons(event)
                 #BUTTON CALLBACK
+                '''
                 # Bounding Box Button
-                if abs == 1:
+                if abs == 0:
                     if self.boundingDraw == True:
                         self.boundingDraw = False
                     else:
                         self.boundingDraw = True
+                '''
                 # Roll Dice Button
-                elif abs == 2 and self.player.hasRolled == False:
+                if abs == 0 and self.player.hasRolled == False:
+                    self.questionAnswerTextWidget.updateText('')
+                    question = ''
+                    answer = ''
                     self.testDice.rollDice(self.screen)
-                    self.testMenu.child_Dictionary[childType.BUTTON][2].lockOut = True
+                    self.testMenu.child_Dictionary[childType.BUTTON][0].lockOut = True
                     self.player.hasRolled = True 
                 # Move Token Button
-                elif abs == 3:
+                elif abs == 1:
                     currentTokenPosition = self.screenPosToCoord()
                     if currentTokenPosition in self.player.currentNeighbors and \
                         currentTokenPosition != self.player.currCordinate:
                         self.advanceToken(currentTokenPosition)
                     else:
                         self.player.updateBoardPos(self.playBoard.board[self.player.currCordinate[0]][self.player.currCordinate[1]], self.diceRoll)
-                    self.testMenu.child_Dictionary[childType.BUTTON][2].lockOut = False
-                # Get Q&A Button
-                elif abs == 4:
+                    self.testMenu.child_Dictionary[childType.BUTTON][0].lockOut = False
+                # Get Question Button
+                elif abs == 2:
                     question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
-                    self.questionAnswerTextWidget.updateText(question + ' ' + answer) 
+                    self.questionAnswerTextWidget.updateText(question) 
+                # Show Answer Button
+                elif abs == 3 and answer != '':
+                    self.questionAnswerTextWidget.updateText(answer)                     
                 # Correct Answer Button
-                elif abs == 5:
+                elif abs == 4:
                     if self.player.currCordinate in [(4,0),(8,4),(4,8),(0,4)]: 
                         self.updatePlayerScore(self.player.currCordinate)
                     elif self.player.currCordinate == (4,4):
