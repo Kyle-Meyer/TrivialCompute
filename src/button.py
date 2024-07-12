@@ -17,7 +17,7 @@ class button(object):
     button_font = pygame.font.init()
     button_text_size = 40
     button_text = " place holder "
-    button_text_color = base3
+    button_text_color = yellow#base3
     lockout = False
     fadeBox = alphaRect((0,0), 1, 1)
     lockOut = False
@@ -45,7 +45,7 @@ class button(object):
             self.button_inner_color = null
             self.oldColor = null
             self.button_text_color = base3
-            self.oldTextColor = base3
+            self.oldTextColor = yellow#base3
             self.fadeBox.drawAlpha(screen)
     #TODO add lockout state to buttons
     

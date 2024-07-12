@@ -38,7 +38,11 @@ class textWidget(object):
         wrapped_lines = self.wrap_text(self.title_text, self.rect.width - self.border_thickness * 2)
         y = self.rect.centery - (self.menu_height // 2) + self.title_text_size
         for line in wrapped_lines:
-            text_surf = self.title.render(line, True, base3)
+            if line == '_':
+                textCol = null
+            else:
+                textCol = yellow
+            text_surf = self.title.render(line, True, textCol)#base3)
             text_rect = text_surf.get_rect(center=(self.rect.centerx, y))
             screen.blit(text_surf, text_rect)
             y += text_rect.height  # Move to the next line

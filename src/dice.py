@@ -11,15 +11,26 @@ class dice(object):
     diceMenu = menu((0,0), 1, 1, "dice roll")
     rolling = False
     diceValue = 0
+    rollCount = 0
     current_number = 0
     update_interval = 1  # update every 1000 milliseconds (1 second)
     total_duration = 3000  # total duration of the animation (5 seconds)
     timer = 0  # track the time since the last number update
     start_time = pygame.time.get_ticks()  # get the initial time
     snap_time = pygame.time.get_ticks()
-    def drawDice(self, screen):
-        self.diceMenu.drawMenu(screen)
+    def drawDice(self, screen, movLockout):
+        # Draw the dice menu box, adjust colors conditionally
+        if movLockout == False:
+            title_color = base3
+        else:
+            title_color = null
+        self.diceMenu.drawMenu(screen,title_color)
+        if movLockout == False:
+            self.diceMenu.border_color = base3
+        else:
+            self.diceMenu.border_color = null
         self.diceText.drawWidget(screen)
+
         if self.rolling:
             current_time = pygame.time.get_ticks()
             if current_time - self.snap_time >= self.update_interval:
@@ -29,7 +40,14 @@ class dice(object):
                 self.update_interval += 5
             if current_time - self.start_time >= self.total_duration:
                 self.rolling = False
-
+                # This is just for use in demo mode to demo with a fortuitous sequence of demo rolls
+                if optionalSkeletalDemoMode:
+                    print(self.rollCount)
+                    self.diceValue = optionalSkeletalDemoRolls[self.rollCount]
+                    self.diceText.title_text = str(self.diceValue)
+                    self.rollCount += 1    
+        elif self.diceValue==0:            
+            self.diceText.title_text = '_'
     #this function is deceptive, it merely sets things up for the dice roll animation, the actual dice roll will take place in the draw call
     #the reason its done this way is to get around the thread lockout that takes place with pygame.display.update(), and I'm not going to bother
     #with concurrency for this
