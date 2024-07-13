@@ -36,9 +36,9 @@ class menu(object):
         else:
             raise ValueError("border must be >= 0")
     
-    def drawMenu(self, screen):
+    def drawMenu(self, screen, title_col):
         self.draw_rounded_rect(screen)
-        text_surf = self.title.render(self.title_text, True, base3)
+        text_surf = self.title.render(self.title_text, True, title_col)
         text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size))
         #text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery))
         #print("in ", self, " 's draw call: ")

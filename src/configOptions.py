@@ -6,3 +6,5 @@ optionalTileBlackOutline = True
 optionalDebugMode = False
 optionalFastDice = True
 optionalPruneNeighbors = True
+optionalSkeletalDemoMode = False
+optionalSkeletalDemoRolls = [4,2,6,3,5,5,3,4]
