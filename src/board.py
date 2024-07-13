@@ -148,22 +148,22 @@ class cBoard(object):
         for col in range(cols):
             for row in range(rows):
                 if configModule.optionalMatchOriginalColors:
-                    if self.board[col][row].mDistinct == tileDistinction.HQ:
+                    if self.board[col][row].mDistinct == tileDistinction.HQ or self.board[col][row].mDistinct == tileDistinction.NORMAL:
                         match self.board[col][row].mTrivia:
                             case triviaType.RED:
-                                self.board[col][row].mColor = red
+                                self.board[col][row].mColor = match_red
                                 self.board[col][row].mComplimentColor= darkRed
                             case triviaType.YELLOW:
-                                self.board[col][row].mColor = yellow
+                                self.board[col][row].mColor = match_yellow
                                 self.board[col][row].mComplimentColor = darkYellow
                             case triviaType.BLUE:
-                                self.board[col][row].mColor = blue
+                                self.board[col][row].mColor = match_blue
                                 self.board[col][row].mComplimentColor = darkBlue
                             case triviaType.GREEN:
-                                self.board[col][row].mColor = green
+                                self.board[col][row].mColor = match_green
                                 self.board[col][row].mComplimentColor = darkGreen
                     elif self.board[col][row].mDistinct == tileDistinction.CENTER:
-                        self.board[row][col].mColor = base3
+                        self.board[row][col].mColor = match_white
                         self.board[row][col].mComplimentColor = base0
                 else:
                     if self.board[col][row].mDistinct == tileDistinction.HQ:
@@ -180,6 +180,20 @@ class cBoard(object):
                             case triviaType.GREEN:
                                 self.board[col][row].mColor = HQ_green
                                 self.board[col][row].mComplimentColor = HQ_dark_green
+                    if self.board[col][row].mDistinct == tileDistinction.NORMAL:
+                        match self.board[col][row].mTrivia:
+                            case triviaType.RED:
+                                self.board[col][row].mColor = red
+                                self.board[col][row].mComplimentColor= darkRed
+                            case triviaType.YELLOW:
+                                self.board[col][row].mColor = yellow
+                                self.board[col][row].mComplimentColor = darkYellow
+                            case triviaType.BLUE:
+                                self.board[col][row].mColor = blue
+                                self.board[col][row].mComplimentColor = darkBlue
+                            case triviaType.GREEN:
+                                self.board[col][row].mColor = green
+                                self.board[col][row].mComplimentColor = darkGreen
                     elif self.board[col][row].mDistinct == tileDistinction.CENTER:
                         self.board[row][col].mColor = magenta
                         self.board[row][col].mComplimentColor =violet

@@ -159,28 +159,28 @@ class player(object):
     def updateColor(self):
         if configModule.optionalMatchOriginalColors:
             if self.circle_color == player_red:
-                self.circle_color = red
+                self.circle_color = match_red
                 self.circle_shadow_color = darkRed
             elif self.circle_color == player_blue:
-                self.circle_color = blue
+                self.circle_color = match_blue
                 self.circle_shadow_color = darkBlue
             elif self.circle_color == player_yellow:
-                self.circle_color = yellow
+                self.circle_color = match_yellow
                 self.circle_shadow_color = darkYellow
             if self.circle_color == player_green:
-                self.circle_color = green
+                self.circle_color = match_green
                 self.circle_shadow_color = darkGreen
         else:
-            if self.circle_color == red:
+            if self.circle_color == match_red:
                 self.circle_color = player_red
                 self.circle_shadow_color = player_red_dark
-            elif self.circle_color == blue:
+            elif self.circle_color == match_blue:
                 self.circle_color = player_blue
                 self.circle_shadow_color = player_dark_blue
-            elif self.circle_color == yellow:
+            elif self.circle_color == match_yellow:
                 self.circle_color = player_yellow
                 self.circle_shadow_color = player_yellow_dark
-            if self.circle_color == green:
+            if self.circle_color == match_green:
                 self.circle_color = player_green
                 self.circle_shadow_color = player_green_dark
                 
