@@ -141,7 +141,7 @@ class player(object):
         self.circle_y = inY
     
     def drawPlayer(self, screen):
-        if optionalThreeDimensionalTokens == True:
+        if configModule.optionalThreeDimensionalTokens == True:
             #draw the darker circle
             pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius)
             #draw the mid tone circle, offset by the difference
@@ -156,6 +156,34 @@ class player(object):
             diff = self.circle_radius - self.circle_inner_radius
             pygame.draw.circle(screen, black, (self.circle_x, self.circle_y), self.circle_radius+diff, 2)
 
+    def updateColor(self):
+        if configModule.optionalMatchOriginalColors:
+            if self.circle_color == player_red:
+                self.circle_color = red
+                self.circle_shadow_color = darkRed
+            elif self.circle_color == player_blue:
+                self.circle_color = blue
+                self.circle_shadow_color = darkBlue
+            elif self.circle_color == player_yellow:
+                self.circle_color = yellow
+                self.circle_shadow_color = darkYellow
+            if self.circle_color == player_green:
+                self.circle_color = green
+                self.circle_shadow_color = darkGreen
+        else:
+            if self.circle_color == red:
+                self.circle_color = player_red
+                self.circle_shadow_color = player_red_dark
+            elif self.circle_color == blue:
+                self.circle_color = player_blue
+                self.circle_shadow_color = player_dark_blue
+            elif self.circle_color == yellow:
+                self.circle_color = player_yellow
+                self.circle_shadow_color = player_yellow_dark
+            if self.circle_color == green:
+                self.circle_color = player_green
+                self.circle_shadow_color = player_green_dark
+                
     def __init__(self, inRadius = 2, inX = 100, inY = 100, inColor = player_blue):
         self.circle_radius = inRadius
         self.circle_inner_radius = inRadius - (inRadius // 10)

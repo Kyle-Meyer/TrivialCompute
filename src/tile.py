@@ -53,7 +53,7 @@ class tile(object):
     #def drawTile(self, screen):
     def drawTile(self, screen):
         #TODO move this to the tile class
-        if(optionalThreeDimensionalTiles):
+        if(configModule.optionalThreeDimensionalTiles):
             if self.mDistinct not in (tileDistinction.PLAYER1,tileDistinction.PLAYER2,
                                       tileDistinction.PLAYER3,tileDistinction.PLAYER4,
                                       tileDistinction.SPECIAL):
@@ -78,14 +78,14 @@ class tile(object):
             text_surface2 = self.etitle.render(self.etitle_text, True, self.etitle_color)
             text_rect2 = text_surface2.get_rect(center=(self.box.centerx, self.box.centery+ (self.etitle_text_size // 2)))
             screen.blit(text_surface2, text_rect2)
-        elif optionalDebugMode:
+        elif configModule.optionalDebugMode:
             self.title_color = base3
             self.title_text = str(str(self.row) + ":" + str(self.col))
             text_surface = self.title.render(self.title_text, True, self.title_color)
             text_rect = text_surface.get_rect(center=(self.box.centerx, self.box.centery))
             screen.blit(text_surface, text_rect)
         #pygame.draw.rect(screen, base3, self.box, 1)
-
+        
     def updateTile(self, inPosition, inWidth, inHeight, row, col):
         self.box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight)
         self.inner_box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight-10)

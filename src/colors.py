@@ -58,7 +58,8 @@ particle1 = (166, 170, 189)
 particle2 = (106, 110, 128)
 particle3 = (50, 53, 64)
 
-if optionalMatchOriginalColors == True:
+if configModule.optionalMatchOriginalColors == True:
+    print("UPDATE????")
     yellow = (255,236,38)
     blue = (41,173,255)
     green = (0,228,53)

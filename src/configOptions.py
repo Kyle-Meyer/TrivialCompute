@@ -1,10 +1,13 @@
-optionalMatchOriginalColors = True
-optionalStaticBoard = True
-optionalThreeDimensionalTiles = True
-optionalThreeDimensionalTokens = True
-optionalTileBlackOutline = True
-optionalDebugMode = False
-optionalFastDice = True
-optionalPruneNeighbors = True
-optionalSkeletalDemoMode = False
-optionalSkeletalDemoRolls = [4,2,6,3,5,5,3,4]
+import sys
+configModule = sys.modules[__name__]
+configModule.optionalMatchOriginalColors = False
+configModule.optionalStaticBoard = True
+configModule.optionalThreeDimensionalTiles = True
+configModule.optionalThreeDimensionalTokens = True
+configModule.optionalTileBlackOutline = True
+configModule.optionalDebugMode = False
+configModule.optionalFastDice = True
+configModule.optionalPruneNeighbors = True
+configModule.optionalSkeletalDemoMode = False
+configModule.optionalSkeletalDemoRolls = [4,2,6,3,5,5,3,4]
+
