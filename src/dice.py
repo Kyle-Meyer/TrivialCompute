@@ -41,9 +41,9 @@ class dice(object):
             if current_time - self.start_time >= self.total_duration:
                 self.rolling = False
                 # This is just for use in demo mode to demo with a fortuitous sequence of demo rolls
-                if optionalSkeletalDemoMode:
+                if configModule.optionalSkeletalDemoMode:
                     print(self.rollCount)
-                    self.diceValue = optionalSkeletalDemoRolls[self.rollCount]
+                    self.diceValue = configModule.optionalSkeletalDemoRolls[self.rollCount]
                     self.diceText.title_text = str(self.diceValue)
                     self.rollCount += 1    
         elif self.diceValue==0:            
@@ -53,7 +53,7 @@ class dice(object):
     #with concurrency for this
     def rollDice(self, screen):
         self.update_interval = 1  # update every 1000 milliseconds (1 second)
-        if(optionalFastDice):
+        if(configModule.optionalFastDice):
             self.total_duration = 300
         else:        
             self.total_duration = 3000  # total duration of the animation (5 seconds)
