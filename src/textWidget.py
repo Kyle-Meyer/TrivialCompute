@@ -11,7 +11,8 @@ class textWidget(object):
     ScreenCoords = (0,0)
     menu_width = 200    
     menu_height = 200
-    border_thickness = 3
+    border_thickness = 0
+    originalX = 0
     rect = pygame.Rect(ScreenCoords[0], ScreenCoords[1], menu_width, menu_height)
 
     def draw_rounded_rect(self, surface):
@@ -38,7 +39,11 @@ class textWidget(object):
         wrapped_lines = self.wrap_text(self.title_text, self.rect.width - self.border_thickness * 2)
         y = self.rect.centery - (self.menu_height // 2) + self.title_text_size
         for line in wrapped_lines:
-            text_surf = self.title.render(line, True, base3)
+            if line == '_':
+                textCol = null
+            else:
+                textCol = yellow
+            text_surf = self.title.render(line, True, textCol)#base3)
             text_rect = text_surf.get_rect(center=(self.rect.centerx, y))
             screen.blit(text_surf, text_rect)
             y += text_rect.height  # Move to the next line
@@ -75,12 +80,14 @@ class textWidget(object):
     def moveBox(self, inPosition):
         self.rect.centerx = inPosition[0]
         self.rect.centery = inPosition[1]
-
+        self.originalX = inPosition[0]
+        
     def updateText(self, inText):
         self.title_text = inText;        
 
     def __init__(self, position : tuple[int, ...], width = 200, height = 200, inText = "place holder"):
         self.ScreenCoords = position
+        self.originalX = position[0]
         self.menu_width = width
         self.menu_height = height
         self.rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], self.menu_width, self.menu_height)

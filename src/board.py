@@ -31,8 +31,8 @@ class cBoard(object):
     outerBoard.center = (1280/2 , 720/2)
     tileSize = 0
     def create_board(self):
-        
-        if optionalStaticBoard == True:
+        self.board = [ [tile(triviaType.RED) for j in range(9)] for i in range(9)]
+        if configModule.optionalStaticBoard == True:
             self.template= \
                     [["R","C4","C3","C2","HQ1","C4","C3","C2","R"],
                     ["C1",".",".",".","C2",".",".",".","C1"],
@@ -103,7 +103,7 @@ class cBoard(object):
                     pygame.draw.rect(screen, self.board[col][row].mColor, self.board[col][row].box)
 
                 # Add optional thin black border around tiles
-                if(optionalTileBlackOutline):
+                if(configModule.optionalTileBlackOutline):
                     if self.board[col][row].mDistinct not in (tileDistinction.NULL,tileDistinction.PLAYER1,
                                                             tileDistinction.PLAYER2,tileDistinction.PLAYER3,
                                                             tileDistinction.PLAYER4,tileDistinction.SPECIAL):
@@ -142,13 +142,48 @@ class cBoard(object):
                 cell_x = rect_x + col * cell_width + (length * .4)
                 cell_y = rect_y + row * cell_height - (length * .15)
                 self.board[col][row].updateTile((cell_x, cell_y), cell_width, cell_height, col , row)
+    
+    def updateTileColors(self):
+        cols, rows = 9, 9  # Number of columns and rows in the grid
+        for col in range(cols):
+            for row in range(rows):
+                if configModule.optionalMatchOriginalColors:
+                    if self.board[col][row].mDistinct == tileDistinction.HQ:
+                        match self.board[col][row].mTrivia:
+                            case triviaType.RED:
+                                self.board[col][row].mColor = red
+                                self.board[col][row].mComplimentColor= darkRed
+                            case triviaType.YELLOW:
+                                self.board[col][row].mColor = yellow
+                                self.board[col][row].mComplimentColor = darkYellow
+                            case triviaType.BLUE:
+                                self.board[col][row].mColor = blue
+                                self.board[col][row].mComplimentColor = darkBlue
+                            case triviaType.GREEN:
+                                self.board[col][row].mColor = green
+                                self.board[col][row].mComplimentColor = darkGreen
+                else:
+                    if self.board[col][row].mDistinct == tileDistinction.HQ:
+                        match self.board[col][row].mTrivia:
+                            case triviaType.RED:
+                                self.board[col][row].mColor = HQ_red
+                                self.board[col][row].mComplimentColor= HQ_dark_red
+                            case triviaType.YELLOW:
+                                self.board[col][row].mColor = HQ_yellow
+                                self.board[col][row].mComplimentColor = HQ_dark_yellow
+                            case triviaType.BLUE:
+                                self.board[col][row].mColor = HQ_blue
+                                self.board[col][row].mComplimentColor = HQ_dark_blue
+                            case triviaType.GREEN:
+                                self.board[col][row].mColor = HQ_green
+                                self.board[col][row].mComplimentColor = HQ_dark_green
 
     def __init__(self, width, height):
         self.width = width
         self.height = height
         self.board = [ [tile(triviaType.RED) for j in range(9)] for i in range(9)]
         self.create_board()
-        if optionalStaticBoard == False:
+        if configModule.optionalStaticBoard == False:
             self.correctBoard()
         self.initializeBoard()
         

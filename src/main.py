@@ -20,7 +20,8 @@ from dice import dice
 from particleMgr import particleManager
 from databaseConnection import databaseConnection
 from startMenu import run_start_menu
-
+from slidingMenu import slidingMenu
+from slideBarWidget import slideBarWidget
 #flesh this out later
 class mainMenu(object):
     run = True
@@ -71,9 +72,23 @@ class pygameMain(object):
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "3. Get Ques."))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "4. Show Ans."))
     testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "5. Correct!"))
+    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "6. Settings"))
+    testMenuButtons = {'Roll Dice':1, 'Move Token':2, 'Get Ques.':3, 'Show Ans.':4, 'Correct!':5}
+    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Roll Dice']-1].lockOut=False
+    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Move Token']-1].lockOut=True
+    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Get Ques.']-1].lockOut=True
+    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Show Ans.']-1].lockOut=True
+    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Correct!']-1].lockOut=True
+
     #testMenu.addChildComponent(testButton2)
-    #testMenu.addChildComponent(menu((250,250), 20, 20, "sub-menu example"))
     testMenu.addChildComponent(questionAnswerTextWidget)
+    testMenu.resizeAllButtons(150, 50)
+    #TODO clean this up
+    settingsMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
+    
+
+    #slider = slideBarWidget((300, 200), 300, 100)
+    #settingsMenu = slidingMenu((10, 300), 100, 100)
     #for dice roll in the future
     diceRoll = 0
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -89,7 +104,37 @@ class pygameMain(object):
         self.testButton.changeTextSize(20)
         self.testButton.button_text_color = base3
         self.testButton.draw_button(self.screen)
-        
+    
+    def createSettingsMenu(self):
+        self.settingsMenu.menuDuration = 750
+        self.settingsMenu.fadeBox.alpha = 200
+        #self.settingsMenu.addChildComponent(button((-640, 500),  100, 50, "Exit"))
+        self.settingsMenu.addChildComponent(textWidget((-810, 260),  50, 50, "Match Colors: "))
+        self.settingsMenu.addChildComponent(textWidget((-810, 310),  50, 50, "Static Board: "))
+        self.settingsMenu.addChildComponent(textWidget((-810, 360),  50, 50, "3d Tiles: "))
+        self.settingsMenu.addChildComponent(textWidget((-810, 410),  50, 50, "3d Players: "))
+        self.settingsMenu.addChildComponent(textWidget((-540, 260),  50, 50, "Outline Tiles: "))
+        self.settingsMenu.addChildComponent(textWidget((-540, 310),  50, 50, "Debug Mode: "))
+        self.settingsMenu.addChildComponent(textWidget((-540, 360),  50, 50, "Fast Dice: "))
+        self.settingsMenu.addChildComponent(textWidget((-540, 410),  50, 50, "Prune Neighbors: "))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-750, 260), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-750, 310), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-750, 360), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-750, 410), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-480, 260), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-480, 310), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-480, 360), 20, 20))
+        self.settingsMenu.addChildComponent(checkBoxWidget((-480, 410), 20, 20))
+        #settingsMenu.addChildComponent(slideBarWidget((-1280, HEIGHT//2), 200, 200))
+        for entry in self.settingsMenu.child_Dictionary[childType.TEXT]:
+            entry.changeTextSize(20)
+        self.settingsMenu.title_text = "Settings"
+        self.settingsMenu.bindCheckBoxes()
+        #add another menu state
+        self.settingsMenu.addDictionary()
+        self.settingsMenu.switchActiveDictionary(1)
+        self.settingsMenu.switchActiveDictionary(0)
+
    #TODO encapsulate this so that it can draw mutliple players
     def initiatePlayers(self):
         self.player = player(15, self.WIDTH // 2, self.HEIGHT // 2, player_red)
@@ -156,7 +201,7 @@ class pygameMain(object):
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
         #print(self.player.currCordinate)
         self.player.getNeighbors(self.playBoard, self.player.currCordinate, self.diceRoll + 1, neighbors)
-        if optionalPruneNeighbors:
+        if configModule.optionalPruneNeighbors:
             self.player.pruneNeighbors(self.diceRoll)
         for i in range(len(neighbors)):
             #if this within our range
@@ -195,13 +240,19 @@ class pygameMain(object):
     #SETTING UP INTERACTIVTY
     def mainLoop(self):
         while self.run:
+            
             #event chain
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    self.run= False               
+                    self.run= False 
+                #listen for board redraw
+                shouldRedraw = configModule.optionalMatchOriginalColors              
                 self.player.checkIfHeld(event)              
                 self.testButton.isClicked(event)
                 abs = self.testMenu.listen_for_buttons(event)
+                rbs = self.settingsMenu.listen_for_checkBox(event)
+                dbs = self.settingsMenu.listen_for_buttons(event)
+                #self.slider.listen(event)
                 #BUTTON CALLBACK
                 '''
                 # Bounding Box Button
@@ -212,40 +263,58 @@ class pygameMain(object):
                         self.boundingDraw = True
                 '''
                 # Roll Dice Button
-                if abs == 0 and self.player.hasRolled == False:
+                if abs == self.testMenuButtons['Roll Dice']-1 and self.player.hasRolled == False:
                     self.questionAnswerTextWidget.updateText('')
                     question = ''
                     answer = ''
                     self.testDice.rollDice(self.screen)
-                    self.testMenu.child_Dictionary[childType.BUTTON][0].lockOut = True
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False
                     self.player.hasRolled = True 
                 # Move Token Button
-                elif abs == 1:
+                elif abs == self.testMenuButtons['Move Token']-1:
                     currentTokenPosition = self.screenPosToCoord()
                     if currentTokenPosition in self.player.currentNeighbors and \
                         currentTokenPosition != self.player.currCordinate:
                         self.advanceToken(currentTokenPosition)
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Get Ques.']-1].lockOut = False
                     else:
                         self.player.updateBoardPos(self.playBoard.board[self.player.currCordinate[0]][self.player.currCordinate[1]], self.diceRoll)
-                    self.testMenu.child_Dictionary[childType.BUTTON][0].lockOut = False
                 # Get Question Button
-                elif abs == 2:
+                elif abs == self.testMenuButtons['Get Ques.']-1:
                     question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
                     self.questionAnswerTextWidget.updateText(question) 
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Get Ques.']-1].lockOut = True
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Show Ans.']-1].lockOut = False
                 # Show Answer Button
-                elif abs == 3 and answer != '':
-                    self.questionAnswerTextWidget.updateText(answer)                     
+                elif abs == self.testMenuButtons['Show Ans.']-1 and answer != '':
+                    self.questionAnswerTextWidget.updateText(answer)   
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Show Ans.']-1].lockOut = True                 
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Correct!']-1].lockOut = False
                 # Correct Answer Button
-                elif abs == 4:
+                elif abs == self.testMenuButtons['Correct!']-1:
                     if self.player.currCordinate in [(4,0),(8,4),(4,8),(0,4)]: 
                         self.updatePlayerScore(self.player.currCordinate)
                     elif self.player.currCordinate == (4,4):
                         if self.checkIfPlayerJustWon():
                             self.crownVictor()
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Correct!']-1].lockOut = True
+                    self.questionAnswerTextWidget.updateText('')
+                elif abs == 5 or dbs == -2:
+                    self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    self.testMenu.lockOut = not self.testMenu.lockOut
+                if shouldRedraw != configModule.optionalMatchOriginalColors:
+                    #self.playBoard.create_board()
+                    self.playBoard.updateTileColors()
+                    self.player.updateColor()
 
             if not self.testDice.rolling and self.player.hasRolled:
                 self.diceRoll = self.testDice.diceValue
                 self.player.updateBoxByDice(self.diceRoll, self.playBoard.board[0][0].box.size[0])
+            
+            
             #get the press hold event for the player
             self.player.clampPlayer(self.WIDTH, self.HEIGHT)
             self.handleCurrentPlayerMoves()
@@ -255,10 +324,16 @@ class pygameMain(object):
             self.testParticle.drawParticles(self.screen)
             self.playBoard.drawBoard(self.screen, self.player.currentNeighbors)
             #self.debugButton()
-            self.testMenu.drawMenu(self.screen)
+
+            self.testMenu.drawMenu(self.screen, base3)
             # self.questionAnswerTextWidget.drawWidget(self.screen)
-            self.testDice.drawDice(self.screen)
+            self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut)
+
             self.player.drawPlayer(self.screen)
+            self.testMenu.drawMenu(self.screen, base3)
+            self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut)
+            self.settingsMenu.drawMenu(self.screen)
+            #self.slider.draw(self.screen)
             #bounding box draw
             if self.boundingDraw:
                 pygame.draw.rect(self.screen, debug_red, self.player.clampBox.box, 2)
@@ -278,6 +353,7 @@ def main():
         # print(f"test retrieving answer from db: {answer}")
         demo = pygameMain(database)
         #demo.mainMenuLoop()
+        demo.createSettingsMenu()
         demo.initiatePlayers()
         demo.mainLoop()
         #database.close()

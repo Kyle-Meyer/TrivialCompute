@@ -17,10 +17,11 @@ class button(object):
     button_font = pygame.font.init()
     button_text_size = 40
     button_text = " place holder "
-    button_text_color = base3
+    button_text_color = yellow#base3
     lockout = False
     fadeBox = alphaRect((0,0), 1, 1)
     lockOut = False
+    originalX = 0
     def draw_rounded_rect(self, surface):
         """ Draw a rectangle with rounded corners.
         If border_thickness is set, it will draw both the border and the fill color.
@@ -45,7 +46,7 @@ class button(object):
             self.button_inner_color = null
             self.oldColor = null
             self.button_text_color = base3
-            self.oldTextColor = base3
+            self.oldTextColor = yellow#base3
             self.fadeBox.drawAlpha(screen)
     #TODO add lockout state to buttons
     
@@ -83,10 +84,15 @@ class button(object):
 
     def moveBox(self, inPosition):
         self.button_rect.centerx = inPosition[0]
+        self.originalX = self.button_rect.centerx
         self.button_rect.centery = inPosition[1]
         self.fadeBox.x = self.button_rect.x - int(self.button_rect.width * .05)
         self.fadeBox.y = self.button_rect.y - int(self.button_rect.height * .05)
-
+        
+    def updateFadeBox(self):
+        self.fadeBox.x = self.button_rect.x - int(self.button_rect.width * .05)
+        self.fadeBox.y = self.button_rect.y - int(self.button_rect.height * .05)
+        
     def __init__(self, inPosition, width = 300, height = 100, inText = "place holder"):
         self.button_Position_Screen = inPosition
         self.button_width = width
