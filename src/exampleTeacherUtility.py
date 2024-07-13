@@ -31,7 +31,6 @@ def get_category_name_by_category_id(cur, category_id):
 def add_category(cur, conn, name):
     try:
         cur.execute("INSERT INTO categories (name) VALUES (%s)", (name,))
-        conn.commit()
         messagebox.showinfo("Success", "Category added successfully!")
     except psycopg2.Error as e:
         messagebox.showerror("Error", f"Failed to add category: {e}")
@@ -40,7 +39,6 @@ def add_category(cur, conn, name):
 def add_question(cur, conn, question, answer, category):
     try:
         cur.execute("INSERT INTO questions (question, answer, category) VALUES (%s, %s, %s)", (question, answer, category))
-        conn.commit()
         messagebox.showinfo("Success", "Question added successfully!")
     except psycopg2.Error as e:
         messagebox.showerror("Error", f"Failed to add question: {e}")
@@ -49,7 +47,6 @@ def add_question(cur, conn, question, answer, category):
 def remove_question(cur, conn, question_id):
     try:
         cur.execute("DELETE FROM questions WHERE id=%s", (question_id,))
-        conn.commit()
         messagebox.showinfo("Success", "Question removed successfully!")
     except psycopg2.Error as e:
         messagebox.showerror("Error", f"Failed to remove question: {e}")
@@ -60,7 +57,6 @@ def remove_category(cur, conn, category_id):
         name = get_category_name_by_category_id(cur,category_id)[0][0]
         cur.execute("DELETE FROM questions WHERE category=%s", (name,)) 
         cur.execute("DELETE FROM categories WHERE id=%s", (category_id,)) 
-        conn.commit() 
         messagebox.showinfo("Success", "Category and associated questions removed successfully!") 
     except psycopg2.Error as e: 
         messagebox.showerror("Error", f"Failed to remove category and associated questions: {e}") 
@@ -173,7 +169,7 @@ class App(tk.Tk):
     def submit_category(self):
         category_name = self.new_category_entry.get()
         if category_name:
-            add_category(self.conn[1], self.conn, category_name)
+            add_category(self.conn[1], self.conn[0], category_name)
             self.new_category_entry.delete(0, tk.END)
             self.display_categories()
         else:
@@ -198,7 +194,7 @@ class App(tk.Tk):
         question_text = self.new_question_entry.get()
         answer_text = self.new_answer_entry.get()
         if question_text and answer_text:
-            add_question(self.conn[1], self.conn, question_text, answer_text, self.selected_category)
+            add_question(self.conn[1], self.conn[0], question_text, answer_text, self.selected_category)
             self.display_questions(self.selected_category)
         else:
             messagebox.showerror("Error", "Question and answer cannot be empty!")
@@ -206,7 +202,7 @@ class App(tk.Tk):
     def show_remove_question(self):
         selected_question = simpledialog.askinteger("Remove Question", "Enter the ID of the question to remove:")
         if selected_question is not None:
-            remove_question(self.conn[1], self.conn, selected_question)
+            remove_question(self.conn[1], self.conn[0], selected_question)
             self.display_questions(self.selected_category)
 
     def show_remove_category(self): 
@@ -215,7 +211,7 @@ class App(tk.Tk):
         else:
             category_id = simpledialog.askinteger("Remove Category", "Enter the ID of the category to remove:") 
             if category_id is not None: 
-                remove_category(self.conn[1], self.conn, category_id) 
+                remove_category(self.conn[1], self.conn[0], category_id) 
                 self.display_categories() 
                 self.selected_category = None 
                 for widget in self.action_frame.winfo_children(): 
