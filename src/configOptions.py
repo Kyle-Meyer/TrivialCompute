@@ -1,6 +1,6 @@
 import sys
 configModule = sys.modules[__name__]
-configModule.optionalMatchOriginalColors = False
+configModule.optionalMatchOriginalColors = True
 configModule.optionalStaticBoard = True
 configModule.optionalThreeDimensionalTiles = True
 configModule.optionalThreeDimensionalTokens = True

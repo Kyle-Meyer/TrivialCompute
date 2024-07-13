@@ -162,6 +162,9 @@ class cBoard(object):
                             case triviaType.GREEN:
                                 self.board[col][row].mColor = green
                                 self.board[col][row].mComplimentColor = darkGreen
+                    elif self.board[col][row].mDistinct == tileDistinction.CENTER:
+                        self.board[row][col].mColor = base3
+                        self.board[row][col].mComplimentColor = base0
                 else:
                     if self.board[col][row].mDistinct == tileDistinction.HQ:
                         match self.board[col][row].mTrivia:
@@ -177,6 +180,9 @@ class cBoard(object):
                             case triviaType.GREEN:
                                 self.board[col][row].mColor = HQ_green
                                 self.board[col][row].mComplimentColor = HQ_dark_green
+                    elif self.board[col][row].mDistinct == tileDistinction.CENTER:
+                        self.board[row][col].mColor = magenta
+                        self.board[row][col].mComplimentColor =violet
 
     def __init__(self, width, height):
         self.width = width
@@ -186,4 +192,5 @@ class cBoard(object):
         if configModule.optionalStaticBoard == False:
             self.correctBoard()
         self.initializeBoard()
+        self.updateTileColors()
         
