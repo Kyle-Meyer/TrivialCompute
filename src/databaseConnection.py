@@ -47,3 +47,7 @@ class databaseConnection(object):
     def getRandomQuestionAndAnswer(self):
         query = "SELECT question, answer FROM questions ORDER BY RANDOM() LIMIT 1"
         return self.executeQueryFetchOne(query)       
+    
+    def getCategories(self):
+        query = "SELECT id, name FROM categories"
+        return self.executeQueryFetchAll(query)

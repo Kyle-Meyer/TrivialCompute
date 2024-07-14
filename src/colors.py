@@ -58,7 +58,14 @@ particle1 = (166, 170, 189)
 particle2 = (106, 110, 128)
 particle3 = (50, 53, 64)
 
-if configModule.optionalMatchOriginalColors == True:
+#assignment match colors
+match_yellow = (255,236,38)
+match_blue = (41,173,255)
+match_green = (0,228,53)
+match_red = (255,0,76)
+match_white = (255,255,255)
+
+'''if configModule.optionalMatchOriginalColors == True:
     print("UPDATE????")
     yellow = (255,236,38)
     blue = (41,173,255)
@@ -74,3 +81,4 @@ if configModule.optionalMatchOriginalColors == True:
     player_blue = blue
     player_green = green
     player_yellow = yellow
+'''
