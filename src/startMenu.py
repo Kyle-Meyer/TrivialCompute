@@ -3,6 +3,7 @@ import sys
 import numpy as np
 from databaseSetup import setup_database_and_execute_scripts
 from colors import *
+import configMenu as cm
 
 # Function to run the start menu
 def run_start_menu():
@@ -63,18 +64,18 @@ def run_start_menu():
         print("Exit Game button clicked")
         return "exit"
 
-    def setup_database():
-        print("Database Setup button clicked")
-        setup_database_and_execute_scripts()
+    def config_game():
+        print("Configuraiton button clicked")
+        cm.config_menu()
 
 
     # Create buttons
-    setup_database_button = Button("Setup Database", 850, 100, 300, 100, blue, setup_database)
-    start_button = Button("Start Game", 850, 300, 300, 100, green, start_game)
-    exit_button = Button("Exit Game", 850, 500, 300, 100, red, exit_game)
+    config_button = Button("Configure", 850, 100, 300, 100, (41,173,255), config_game)
+    start_button = Button("Start Game", 850, 300, 300, 100, (0,228,53), start_game)
+    exit_button = Button("Exit Game", 850, 500, 300, 100, (255,0,76), exit_game)
 
 
-    buttons = [setup_database_button, start_button, exit_button]
+    buttons = [config_button, start_button, exit_button]
 
     # Main loop
     running = True
