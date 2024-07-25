@@ -1,0 +1,18 @@
+' Use Case 2: Determine Player Order
+
+@startuml
+actor Player
+participant pygameMain
+participant playerManager
+participant dice
+participant gameMenu
+
+Player -> pygameMain: initiatePlayerOrder()
+pygameMain -> playerManager: getPlayers()
+playerManager -> pygameMain: returnPlayers()
+pygameMain -> dice: rollDice()
+dice -> pygameMain: returnDiceValue()
+pygameMain -> playerManager: updatePlayerOrder(diceValue)
+playerManager -> pygameMain: returnUpdatedOrder()
+pygameMain -> gameMenu: displayPlayerOrder(order)
+@enduml

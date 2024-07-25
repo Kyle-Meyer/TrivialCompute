@@ -1,0 +1,28 @@
+' Use Case 3: Gameplay
+
+@startuml
+actor Player
+participant pygameMain
+participant playerManager
+participant dice
+participant cBoard
+participant tile
+participant triviaManager
+
+Player -> pygameMain: rollDice()
+pygameMain -> dice: roll()
+dice -> pygameMain: returnDiceValue()
+pygameMain -> playerManager: movePlayer(diceValue)
+playerManager -> cBoard: getTileAtPosition()
+cBoard -> playerManager: returnTile(tile)
+playerManager -> pygameMain: landOnTile(tile)
+pygameMain -> triviaManager: getQuestionForTile(tile)
+triviaManager -> pygameMain: returnQuestion(question)
+pygameMain -> Player: displayQuestion(question)
+Player -> pygameMain: submitAnswer(answer)
+pygameMain -> triviaManager: validateAnswer(answer)
+triviaManager -> pygameMain: returnValidationResult()
+pygameMain -> playerManager: updateScore(validationResult)
+playerManager -> pygameMain: returnUpdatedScore()
+pygameMain -> Player: displayScore(score)
+@enduml
