@@ -38,11 +38,10 @@ class textWidget(object):
         # Render text with word wrap
         wrapped_lines = self.wrap_text(self.title_text, self.rect.width - self.border_thickness * 2)
         y = self.rect.centery - (self.menu_height // 2) + self.title_text_size
+        textCol = self.textCol
         for line in wrapped_lines:
             if line == '_':
                 textCol = null
-            else:
-                textCol = yellow
             text_surf = self.title.render(line, True, textCol)#base3)
             text_rect = text_surf.get_rect(center=(self.rect.centerx, y))
             screen.blit(text_surf, text_rect)
@@ -81,6 +80,7 @@ class textWidget(object):
         self.rect.centerx = inPosition[0]
         self.rect.centery = inPosition[1]
         self.originalX = inPosition[0]
+        self.originalY = inPosition[1]
         
     def updateText(self, inText):
         self.title_text = inText;        
@@ -88,8 +88,10 @@ class textWidget(object):
     def __init__(self, position : tuple[int, ...], width = 200, height = 200, inText = "place holder"):
         self.ScreenCoords = position
         self.originalX = position[0]
+        self.originalY = position[1]
         self.menu_width = width
         self.menu_height = height
+        self.textCol = yellow
         self.rect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], self.menu_width, self.menu_height)
         self.title_text = inText
         self.changeTextSize(height // 4)

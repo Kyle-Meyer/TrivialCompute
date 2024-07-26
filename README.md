@@ -27,6 +27,8 @@ NO WHEEL FILE OR INIT.PY<br />
     - (from your venv terminal) pip install numpy<br />
 10.) install psycopg2<br />
     - (from your venv terminal) pip install psycopg2-binary<br />
+11>) install cv2<br />
+    - (from your venv terminal) pip install opencv-python<br />
 <br />
 =======Running========<br />
 (from your venv terminal) python src/main.py<br />
