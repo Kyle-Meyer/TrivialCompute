@@ -1,0 +1,356 @@
+@startuml trivialCompute
+
+' Define the pygameMain class
+class pygameMain {
+    - WIDTH: int = 1280
+    - HEIGHT: int = 720
+    - LENGTH: int = min(WIDTH, HEIGHT)
+    - OFFSET: int = max(WIDTH, HEIGHT)
+    - run: bool = true
+    - moving: bool = false
+    - color: any
+    - playBoard: cBoard
+    - player: player
+    - boundingDraw: bool = false
+    - dice: dice
+    - questionAnswerTextWidget: textWidget
+    - gameMenu: gameMenu
+    - menuButtons: map[string, int]
+    - settingsMenu: configMenu
+    - diceRoll: int = 0
+    - screen: pygame.Surface
+    - bounding_box: pygame.Rect
+    - bounding_box2: pygame.Rect
+    - clock: pygame.time.Clock
+
+    ' + __init__(databaseConnection: databaseConnection)
+    + debugButton()
+    + createSettingsMenu()
+    + initiatePlayers()
+    + drawPlayers()
+    + screenPosToCoord(): tuple[int, int]
+    + advanceToken(position: tuple[int, int])
+    + updatePlayerScore(coord: tuple[int, int])
+    + checkIfPlayerJustWon(): bool
+    + crownVictor()
+    + handleCurrentPlayerMoves()
+    + calculateBoundingBox()
+    + mainMenuLoop()
+    + mainLoop()
+}
+
+' Define the cBoard class
+class cBoard {
+    - template: list<list<string>>
+    - HQs: list<triviaType>
+    - outerBoard: pygame.Rect
+    - tileSize: int
+    - board: list<list<tile>>
+    - width: int
+    - height: int
+    
+    ' + __init__(width: int, height: int)
+    + create_board()
+    + drawBoard(screen: pygame.Surface, currentNeighbors: set<tuple<int, int>>)
+    + correctBoard()
+    + initializeBoard()
+    + updateTileColors()
+}
+
+' Define the tile class
+class tile {
+    - size: int = 50
+    - mColor: color = (base0)
+    - mComplimentColor: color = (base0)
+    - mDistinct: tileDistinction = tileDistinction.NORMAL
+    - mTrivia: triviaType = triviaType.RED
+    - title: pygame.font.Font = pygame.font.init()
+    - title_text: str = ""
+    - title_text_size: int = 40
+    - title_color: color = (base0)
+    - row: int = 0
+    - col: int = 0
+    - etitle: pygame.font.Font = pygame.font.init()
+    - etitle_text: str = ""
+    - etitle_text_size: int = 40
+    - etitle_color: color = (base0)
+    - box: pygame.Rect
+    - inner_box: pygame.Rect
+
+    + is_inside_bounding_box(point_or_rect: Union[pygame.Rect, tuple[int, int]]): bool
+    + drawTile(screen: pygame.Surface): void
+    + updateTile(inPosition: tuple[int, int], inWidth: int, inHeight: int, row: int, col: int): void
+    ' + __init__(inColor: triviaType, dist: tileDistinction = tileDistinction.NORMAL, inSize: int = 10, row: int = 0, col: int = 0): void
+}
+
+' Define the dice class
+class dice {
+    - diceText: textWidget
+    - diceMenu: menu
+    - rolling: bool
+    - diceValue: int
+    - rollCount: int
+    - current_number: int
+    - update_interval: int = 1
+    - total_duration: int = 3000
+    - timer: int
+    - start_time: int
+    - snap_time: int
+    ' + __init__(position: tuple[int, ...], width: int = 200, height: int = 200)
+    + drawDice(screen: any, movLockout: bool)
+    + rollDice(screen: any)
+}
+
+' Define the PlayerManager class
+class playerManager {
+    - players: list[player]
+    - currentPlayerIndex: int
+
+    ' + __init__(numPlayers: int)
+    + getCurrentPlayer(): player
+    + nextPlayer()
+    + updateScores()
+    + resetGame()
+}
+
+' Define the player class
+class player {
+    - circle_radius: int = 30
+    - circle_inner_radius: int = 20
+    - circle_highlight_radius: int = 5
+    - circle_x: int = 0
+    - circle_y: int = 0
+    - circle_color: Color = blue
+    - circle_shadow_color: Color = blue
+    - circle_highlight_color: Color = blue
+    - currCordinate: tuple = (0, 0)
+    - dragging: bool = False
+    - playerScore: dict = {"c1": "_", "c2": "_", "c3": "_", "c4": "_"}
+    - isTurn: bool = True
+    - hasRolled: bool = False
+    - clampBox: boundingBox
+    - currentNeighbors: list
+
+    + getNeighbors(inboard: cBoard, curPosition: tuple, diceRolls: int, possibleNeighbors: list): list
+    + pruneNeighbors(diceRoll: int): void
+    + checkIfHeld(inEvent: pygame.event): bool
+    + checkValidMove(inTile: tile): bool
+    + clampPlayer(screenWidth: int, screenHeight: int): void
+    + updateBox(inX: int, inY: int, size: int = 120): void
+    + updateBoxByDice(diceRoll: int, tileSize: int): void
+    + updateBoardPos(inTile: tile, diceRoll: int): void
+    + setScreenCoords(inX: int, inY: int): void
+    + drawPlayer(screen: pygame.Surface): void
+    + updateColor(): void
+    ' + __init__(inRadius: int = 2, inX: int = 100, inY: int = 100, inColor: Color = player_blue): void
+}
+
+' Define the gameMenu class
+class gameMenu {
+  - border_color: Color
+  - title: pygame.font.Font
+  - title_text: str
+  - title_text_size: int
+  - child_Dictionary: dict<childType, list>
+  - ScreenCoords: tuple<int, int>
+  - menu_width: int
+  - menu_height: int
+  - border_thickness: int
+  - rect: pygame.Rect
+  - fadeBox: alphaRect
+  - slidingIn: bool
+  - slidingOut: bool
+  - start_time: int
+  - slideDuration: int
+  - overlayTarget: tuple<int, int>
+  - button_start_pos: tuple<int, int>
+  - currButtonWidth: int
+  - currButtonHeight: int
+  - lockOut: bool
+  
+  ' + __init__(position: tuple<int, ...>, width: int = 200, height: int = 200, titleText: str = "place holder")
+  + draw_rounded_rect(surface: pygame.Surface)
+  + drawMenu(screen: pygame.Surface, title_col: Color)
+  + changeTextSize(inSize: int)
+  + resizeBox(width: int, height: int)
+  + moveBox(inPosition: tuple<int, int>)
+  + reOrientButtons(inPosition: tuple<int, int>, width: int, height: int)
+  + ease_in(current_time: int, start_value: int, change_in_value: int, duration: int) : int
+  + ease_out(current_time: int, start_value: int, change_in_value: int, duration: int) : int
+  + slideIn(target: tuple<int, int>, inTime: int = 350)
+  + resizeAllButtons(inWidth: int, inHeight: int)
+  + addChildComponent(inComponent: object)
+  + listen_for_slider(event: pygame.event.Event, index: int) : int
+  + listen_for_checkBox(event: pygame.event.Event) : int
+  + listen_for_buttons(event: pygame.event.Event) : int
+}
+
+' Define the configMenu class
+class configMenu {
+    - toDraw: bool = False
+    - startX: int = 0
+    - startY: int = 0
+    - menuDuration: int = 0
+    - newCent: int = 0
+    - isOut: bool = False
+    - stateList: list = []
+    - activeDictionary: dict = {}
+    - exitButton: button
+    - rightButton: button
+    - leftButton: button
+    - activeIndex: int = 0
+
+    + addChildComponent(inComponent: object): void
+    + updateButtonFadeBoxes(): void
+    + addDictionary(): void
+    + switchActiveDictionary(index: int): void
+    + slideFadeBox(): void
+    + slideMenu(): void
+    + slideButtons(): void
+    + slideSliders(): void
+    + slideTextWidgets(): void
+    + slideCheckBoxes(): void
+    + slideAll(): void
+    + bindCheckBoxes(): void
+    + listen_for_checkBox(event: pygame.event): void
+    + listen_for_buttons(event: pygame.event): int
+    + drawMenu(screen: pygame.Surface): void
+    ' + __init__(position: tuple[int, ...], width: int = 200, height: int = 200, titleText: str = "place holder"): void
+}
+
+' Define the textWidget class
+class textWidget {
+    - border_color: color = base3
+    - title: pygame.font.Font = pygame.font.init()
+    - title_text: str = "place holder"
+    - title_text_size: int = 40
+    - ScreenCoords: tuple[int, int] = (0,0)
+    - menu_width: int = 200
+    - menu_height: int = 200
+    - border_thickness: int = 0
+    - originalX: int = 0
+    - rect: pygame.Rect = pygame.Rect(ScreenCoords[0], ScreenCoords[1], menu_width, menu_height)
+
+    + draw_rounded_rect(surface: pygame.Surface): void
+    + drawWidget(screen: pygame.Surface): void
+    + wrap_text(text: str, max_width: int): list[str]
+    + changeTextSize(inSize: int): void
+    + resizeBox(width: int, height: int): void
+    + moveBox(inPosition: tuple[int, int]): void
+    + updateText(inText: str): void
+    ' + __init__(position: tuple[int, ...], width: int = 200, height: int = 200, inText: str = "place holder"): void
+}
+
+' Define the checkBoxWidget class
+class checkBoxWidget {
+    - checkbox_rect: pygame.Rect = pygame.Rect(150, 100, 40, 40)
+    - outer_rect: pygame.Rect = pygame.Rect(160, 110, 50, 50)
+    - checked: bool = False
+    - originalX: int = 0
+    + listen(event: pygame.event.Event) : bool
+    + drawWidget(screen: pygame.Surface)
+    ' + __init__(inPosition: tuple<int, int>, inWidth: int, inHeight: int)
+}
+
+' Define the button class
+class button {
+    - button_width: int = 100
+    - button_height: int = 50
+    - button_Position_Screen: tuple<int, int> = (0, 0)
+    - button_inner_color: color = null
+    - button_outline_color: color = base3
+    - button_rect: pygame.Rect = pygame.Rect(100, 100, button_width, button_height)
+    - border_thickness: int = 0
+    - border_radius: int = 10
+    - button_font: pygame.font.Font = pygame.font.init()
+    - button_text_size: int = 40
+    - button_text: str = "place holder"
+    - button_text_color: color = yellow
+    - lockout: bool = False
+    - fadeBox: alphaRect = alphaRect((0,0), 1, 1)
+    - lockOut: bool = False
+    - originalX: int = 0
+    - oldColor: color
+    - oldTextColor: color
+    + draw_rounded_rect(surface: pygame.Surface)
+    + draw_button(screen: pygame.Surface)
+    + isClicked(event: pygame.event.Event) : bool
+    + updateInnerColor(inColor: color)
+    + changeTextSize(inSize: int)
+    + resizeBox(width: int, height: int)
+    + moveBox(inPosition: tuple<int, int>)
+    + updateFadeBox()
+    ' + __init__(inPosition: tuple<int, int>, width: int = 300, height: int = 100, inText: str = "place holder")
+}
+
+' Define the Question class
+class Question {
+  - questionText: str
+  - multimediaContent: any
+  - category: Category
+  - answer: Answer
+  ' + __init__(questionText: str, multimediaContent: any, category: Category)
+  + getQuestionText() : str
+  + getMultimediaContent() : any
+}
+
+' Define the Answer class
+class Answer {
+  - answerText: str
+  - multimediaContent: any
+  - isCorrect: bool
+  ' + __init__(answerText: str, multimediaContent: any, isCorrect: bool)
+  + getAnswerText() : str
+  + getMultimediaContent() : any
+}
+
+' Define the triviaManager class
+class triviaManager {
+    - selectedCategories: list[str]
+    - currentQuestion: str
+    - currentAnswer: str
+    - previousQuestions: list[str]
+    - dbConnection: databaseConnection
+
+    '+ __init__(dbConnection: databaseConnection)
+    + setSelectedCategories(categories: list[str])
+    + getNextQuestion() : tuple[str, str]
+    + getPreviousQuestions() : list[str]
+}
+
+' Define the databaseConnection class
+class databaseConnection {
+    - dbname: str
+    - user: str
+    - password: str
+    - host: str = 'localhost'
+    - port: str = '5432'
+    - conn: any = None
+    ' + __init__(dbname: str, user: str, password: str, host: str = 'localhost', port: str = '5432')
+    + connect()
+    + close()
+    + executeQueryFetchAll(query: str, params: list = None) : list
+    + executeQueryFetchOne(query: str, params: list = None) : any
+    + getQuestionAndAnswerByCategory(category: str) : any
+    + getRandomQuestionAndAnswer() : any
+    + getCategories() : list
+}
+
+pygameMain --> cBoard
+pygameMain --> dice
+pygameMain --> textWidget
+pygameMain --> gameMenu
+pygameMain --> configMenu
+pygameMain --> databaseConnection
+pygameMain --> playerManager
+pygameMain --> triviaManager
+triviaManager --> Question
+Question --> Answer
+cBoard *-- tile
+gameMenu *-- button
+gameMenu *-- textWidget
+configMenu *-- checkBoxWidget
+configMenu *-- textWidget
+playerManager o-- player
+
+@enduml

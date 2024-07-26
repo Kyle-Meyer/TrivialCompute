@@ -1,0 +1,85 @@
+@startuml trivialCompute
+
+' Define the pygameMain class
+class pygameMain {
+
+}
+
+' Define the cBoard class
+class cBoard {
+
+}
+
+' Define the tile class
+class tile {
+
+}
+
+' Define the dice class
+class dice {
+
+}
+
+' Define the PlayerManager class
+class playerManager {
+
+}
+
+' Define the player class
+class player {
+}
+
+' Define the gameMenu class
+class gameMenu {
+}
+
+' Define the configMenu class
+class configMenu {
+}
+
+' Define the textWidget class
+class textWidget {
+}
+
+' Define the checkBoxWidget class
+class checkBoxWidget {
+}
+
+' Define the button class
+class button {
+}
+
+' Define the Question class
+class Question {
+}
+
+' Define the Answer class
+class Answer {
+}
+
+' Define the triviaManager class
+class triviaManager {
+}
+
+' Define the databaseConnection class
+class databaseConnection {
+}
+
+pygameMain --> cBoard
+pygameMain --> dice
+pygameMain --> textWidget
+pygameMain --> gameMenu
+pygameMain --> configMenu
+pygameMain --> databaseConnection
+pygameMain --> playerManager
+pygameMain --> triviaManager
+triviaManager --> Question
+Question --> Answer
+cBoard *-- tile
+gameMenu *-- button
+gameMenu *-- textWidget
+configMenu *-- checkBoxWidget
+configMenu *-- textWidget
+playerManager o-- player
+
+@enduml

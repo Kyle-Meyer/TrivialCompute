@@ -1,0 +1,25 @@
+' Use Case 1: Initialize Game Setup with Player Information and Category Selection
+
+@startuml
+actor Player
+participant pygameMain
+participant gameMenu
+participant playerManager
+participant databaseConnection
+participant configMenu
+participant triviaManager
+
+Player -> pygameMain: startGame()
+pygameMain -> gameMenu: displayStartMenu()
+gameMenu -> Player: selectNumberOfPlayers()
+Player -> gameMenu: providePlayerInfo()
+gameMenu -> playerManager: initializePlayers(playerInfo)
+playerManager -> pygameMain: updatePlayerManager()
+pygameMain -> databaseConnection: getCategories()
+databaseConnection -> pygameMain: returnCategories()
+pygameMain -> configMenu: displayCategorySelection(categories)
+Player -> configMenu: selectCategories()
+configMenu -> triviaManager: setSelectedCategories(categories)
+triviaManager -> pygameMain: categoriesUpdated()
+pygameMain -> gameMenu: displaySelectedCategories(categories)
+@enduml
