@@ -65,6 +65,7 @@ match_green = (0,228,53)
 match_red = (255,0,76)
 match_white = (255,255,255)
 
+player_highlight_color = (224, 101, 13)
 '''if configModule.optionalMatchOriginalColors == True:
     print("UPDATE????")
     yellow = (255,236,38)

@@ -18,10 +18,10 @@ class button(object):
     button_text_size = 40
     button_text = " place holder "
     button_text_color = yellow#base3
-    lockout = False
     fadeBox = alphaRect((0,0), 1, 1)
     lockOut = False
     originalX = 0
+    originalY = 0
     def draw_rounded_rect(self, surface):
         """ Draw a rectangle with rounded corners.
         If border_thickness is set, it will draw both the border and the fill color.
@@ -85,6 +85,7 @@ class button(object):
     def moveBox(self, inPosition):
         self.button_rect.centerx = inPosition[0]
         self.originalX = self.button_rect.centerx
+        self.originalY = self.button_rect.centery
         self.button_rect.centery = inPosition[1]
         self.fadeBox.x = self.button_rect.x - int(self.button_rect.width * .05)
         self.fadeBox.y = self.button_rect.y - int(self.button_rect.height * .05)
@@ -106,5 +107,7 @@ class button(object):
         self.moveBox(inPosition)
         #setup the fade out box
         self.fadeBox = alphaRect((self.button_rect.x - int(width * .05), self.button_rect.y - int(height * .05)), width + int(width * .1), height + int(height * .1), 128)
+        self.originalX = self.button_rect.centerx
+        self.originalY = self.button_rect.centery
         
     

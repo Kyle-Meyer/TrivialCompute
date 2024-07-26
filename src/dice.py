@@ -20,16 +20,9 @@ class dice(object):
     snap_time = pygame.time.get_ticks()
     def drawDice(self, screen, movLockout):
         # Draw the dice menu box, adjust colors conditionally
-        if movLockout == False:
-            title_color = base3
-        else:
-            title_color = null
-        self.diceMenu.drawMenu(screen,title_color)
-        if movLockout == False:
-            self.diceMenu.border_color = base3
-        else:
-            self.diceMenu.border_color = null
-        self.diceText.drawWidget(screen)
+        if movLockout:
+            self.diceMenu.drawMenu(screen, base3)
+            self.diceText.drawWidget(screen)
 
         if self.rolling:
             current_time = pygame.time.get_ticks()

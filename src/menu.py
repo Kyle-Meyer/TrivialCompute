@@ -12,7 +12,8 @@ class childType(Enum):
     MENU = 1,
     TEXT = 2,
     SLIDER = 3,
-    CHECK = 4
+    CHECK = 4,
+    VOTE = 5
 class menu(object):
 
     #member vars
@@ -191,10 +192,8 @@ class menu(object):
             inComponent.moveBox((x_offset, y_offset))
             self.child_Dictionary[childType.TEXT].append(inComponent)
         elif isinstance(inComponent, slideBarWidget):
-            print("!!!!!!!!!!added slider!!!!!!!!!!!!!!!")
             self.child_Dictionary[childType.SLIDER].append(inComponent)
         elif isinstance(inComponent, checkBoxWidget):
-            print("is parent called?")
             self.child_Dictionary[childType.CHECK].append(inComponent)
 
     def listen_for_slider(self, event, index):
@@ -230,6 +229,7 @@ class menu(object):
         self.child_Dictionary[childType.TEXT] = []
         self.child_Dictionary[childType.SLIDER] = []
         self.child_Dictionary[childType.CHECK] = []
+        self.child_Dictionary[childType.VOTE] = []
         if width > 100:
             self.changeTextSize(width // 10)
         else:
