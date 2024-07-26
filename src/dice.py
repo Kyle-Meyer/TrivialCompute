@@ -18,6 +18,7 @@ class dice(object):
     timer = 0  # track the time since the last number update
     start_time = pygame.time.get_ticks()  # get the initial time
     snap_time = pygame.time.get_ticks()
+
     def drawDice(self, screen, movLockout):
         # Draw the dice menu box, adjust colors conditionally
         if movLockout:

@@ -63,9 +63,10 @@ class pygameMain(object):
     #the playground
     boundingDraw = False
     testParticle = particleManager(WIDTH, HEIGHT)
-    testDice = dice((350, 450), 150, 100)
-    testDice.diceMenu.changeTextSize(25)
+    testDice = dice((300, 280), 80, 80)
+    testDice.diceMenu.changeTextSize(0)
     testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
+    testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery - 20))
     testDice.diceText.changeTextSize(30)
     testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery + 60))
     questionAnswerTextWidget = textWidget((350, 400), 100, 100, "")
@@ -74,26 +75,16 @@ class pygameMain(object):
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
     testButton2.button_text = "locked button"
     testButton2.lockOut = True
-    testMenu = menu((250, 350), 400, 650) 
+    testMenu = menu((200, 350), 300, 450) 
     testMenu.title_text = "Game Menu"
     
+   
     #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "TestButton1"))
     #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "1. Roll dice"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "2. Move Token"))
-    '''testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "3. Get Ques."))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "4. Show Ans."))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "5. Correct!"))'''
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "6. Settings"))
-    testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "7. Test"))
-    testMenuButtons = {'Roll Dice':1, 'Move Token':2, 'Get Ques.':3, 'Show Ans.':4, 'Correct!':5}
-    '''testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Get Ques.']-1].lockOut=True
-    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Show Ans.']-1].lockOut=True
-    testMenu.child_Dictionary[childType.BUTTON][testMenuButtons['Correct!']-1].lockOut=True'''
-
-    #testMenu.addChildComponent(testButton2)
-    testMenu.addChildComponent(questionAnswerTextWidget)
-    testMenu.resizeAllButtons(150, 50)
+    testMenu.addChildComponent(button((150, 250),  180, 90, "1. Roll dice"))
+    testMenu.addChildComponent(button((150, 350),  180, 90, "2. Move Token"))
+    testMenu.addChildComponent(button((150, 450),  180, 90, "6. Settings"))
+    testMenuButtons = {'Roll Dice':1, 'Move Token':2}
     #TODO clean this up
     settingsMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
     trivMenu = triviaMenu((WIDTH//2, -720), 700, 600)
@@ -123,8 +114,10 @@ class pygameMain(object):
         self.trivMenu.addDictionary()
         self.trivMenu.switchActiveDictionary(1)
         self.trivMenu.addChildComponent(textWidget((640, 1160),  200, 200, "Answer PlaceHolder"))
-        self.trivMenu.addChildComponent(button((540, 1300),  200, 70, "Correct!"))
-        self.trivMenu.addChildComponent(button((740, 1300),  200, 70, "InCorrect!"))
+        self.trivMenu.addChildComponent(button((500, 1300),  200, 70, "Correct!"))
+        self.trivMenu.addChildComponent(button((800, 1300),  200, 70, "InCorrect!"))
+        self.trivMenu.activeDictionary[childType.BUTTON][0].updateTextColor(green)
+        self.trivMenu.activeDictionary[childType.BUTTON][1].updateTextColor(red)
         offset = 0
         tempList = copy.deepcopy(self.playerList)
         del tempList[self.clientNumber]
@@ -204,11 +197,12 @@ class pygameMain(object):
                 pygame.draw.circle(self.screen, base3, (play.circle_x, play.circle_y), play.circle_radius+diff, diff*2)
     
     # Convert token position to tile coordinates
+    #TODO redo all of this, its bad
     def screenPosToCoord(self): 
-        leftEdgeOfTiles = int(self.WIDTH // 4 + 0.4 * self.LENGTH) 
-        topEdgeOfTiles = int(self.HEIGHT // 4 - 0.15 * self.LENGTH) 
-        playerXCoord = int((self.currPlayer.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.1 * self.OFFSET))//9)) 
-        playerYCoord = int((self.currPlayer.circle_y - topEdgeOfTiles)//((self.LENGTH - (.1 * self.OFFSET))//9)) 
+        leftEdgeOfTiles = int(140 + 0.4 * self.LENGTH) 
+        topEdgeOfTiles = int(130 - 0.15 * self.LENGTH) 
+        playerXCoord = int((self.currPlayer.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.02 * self.OFFSET))//9)) 
+        playerYCoord = int((self.currPlayer.circle_y - topEdgeOfTiles)//((self.LENGTH - (.08 * self.OFFSET))//9))
         return(playerXCoord,playerYCoord) 
     
     # Locks in the player's move
@@ -262,6 +256,7 @@ class pygameMain(object):
         neighbors = self.currPlayer.currentNeighbors
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
         #print(self.currPlayer.currCordinate)
+        oldCoord = self.currPlayer.currCordinate
         self.currPlayer.getNeighbors(self.playBoard, self.currPlayer.currCordinate, self.diceRoll + 1, neighbors)
         if configModule.optionalPruneNeighbors:
             self.currPlayer.pruneNeighbors(self.diceRoll)
@@ -272,10 +267,12 @@ class pygameMain(object):
                 if self.currPlayer.currCordinate != neighbors[i]:
                     #TODO make the call from here to spawn the end turn button
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False
+                    #self.currPlayer.currCordinate = neighbors[i]
                 break
         #reset player position if its invalid
         else:
             self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
+            #self.currPlayer.currCordinate = oldCoord
 
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
@@ -328,20 +325,13 @@ class pygameMain(object):
                     
                 #self.slider.listen(event)
                 #BUTTON CALLBACK
-                '''
-                # Bounding Box Button
-                if abs == 0:
-                    if self.boundingDraw == True:
-                        self.boundingDraw = False
-                    else:
-                        self.boundingDraw = True
-                '''
                 # Roll Dice Button
                 if abs == self.testMenuButtons['Roll Dice']-1 and self.currPlayer.hasRolled == False:
                     self.testDice.rollDice(self.screen)
                     self.currState = 1 #TODO change this to send to server
                 # Move Token Button
                 elif abs == self.testMenuButtons['Move Token']-1:
+                    print("WHAT THE FUCK")
                     self.currState = 2
                 if abs == 2 or dbs == -2:
                     self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
@@ -389,7 +379,6 @@ class pygameMain(object):
                 self.questionAnswerTextWidget.updateText('')
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
-                '''self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False'''
                 self.currPlayer.hasRolled = True 
                 self.drawDice = True
 
@@ -455,12 +444,13 @@ class pygameMain(object):
             self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
             #self.debugButton()
 
-            self.testMenu.drawMenu(self.screen, base3)
+        
             # self.questionAnswerTextWidget.drawWidget(self.screen)
             #self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut)
 
             self.drawPlayers()
             self.testMenu.drawMenu(self.screen, base3)
+            
             self.testDice.drawDice(self.screen, self.drawDice)
             self.settingsMenu.drawMenu(self.screen)
             self.trivMenu.drawMenu(self.screen)
@@ -479,9 +469,9 @@ def main():
 
         #tests db connection by retrieving a question/answer of a certain category
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-        question, answer = database.getQuestionAndAnswerByCategory('Chemistry')
+        '''question, answer = database.getQuestionAndAnswerByCategory('Chemistry')
         print(f"test retrieving question from db: {question}")
-        print(f"test retrieving answer from db: {answer}")
+        print(f"test retrieving answer from db: {answer}")'''
         demo = pygameMain(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
