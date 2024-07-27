@@ -1,0 +1,16 @@
+' Use Case 4: Configure New Category
+
+@startuml
+actor Teacher
+participant configMenu
+participant databaseConnection
+
+Teacher -> configMenu: selectCategoriesOption()
+configMenu -> databaseConnection: getCategories()
+databaseConnection -> configMenu: returnCategories()
+configMenu -> Teacher: displayCategories()
+Teacher -> configMenu: addNewCategory(categoryName)
+configMenu -> databaseConnection: saveNewCategory(categoryName)
+databaseConnection -> configMenu: confirmSave()
+configMenu -> Teacher: displayUpdatedCategories()
+@enduml

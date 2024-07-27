@@ -207,5 +207,6 @@ class player(object):
         self.circle_y = inY
         self.playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
         self.clampBox = boundingBox()
+        self.tileOffset =(0,0)
         self.updateColor()
     

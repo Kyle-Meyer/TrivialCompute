@@ -1,0 +1,16 @@
+' Use Case 6: Delete Category
+
+@startuml
+actor Teacher
+participant configMenu
+participant databaseConnection
+
+Teacher -> configMenu: selectCategoriesOption()
+configMenu -> databaseConnection: getCategories()
+databaseConnection -> configMenu: returnCategories()
+configMenu -> Teacher: displayCategories()
+Teacher -> configMenu: deleteCategory(category)
+configMenu -> databaseConnection: deleteCategory(category)
+databaseConnection -> configMenu: confirmDeletion()
+configMenu -> Teacher: displayUpdatedCategories()
+@enduml

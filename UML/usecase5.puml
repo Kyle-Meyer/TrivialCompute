@@ -1,0 +1,20 @@
+' Use Case 5: Configure New Question and Answer Pair
+
+@startuml
+actor Teacher
+participant configMenu
+participant databaseConnection
+
+Teacher -> configMenu: selectQuestionsAndAnswersOption()
+configMenu -> databaseConnection: getCategories()
+databaseConnection -> configMenu: returnCategories()
+configMenu -> Teacher: displayCategories()
+Teacher -> configMenu: selectCategory(category)
+configMenu -> databaseConnection: getQuestions(category)
+databaseConnection -> configMenu: returnQuestions(questions)
+configMenu -> Teacher: displayQuestions()
+Teacher -> configMenu: addNewQuestionAndAnswer(question, answer)
+configMenu -> databaseConnection: saveNewQuestionAndAnswer(question, answer)
+databaseConnection -> configMenu: confirmSave()
+configMenu -> Teacher: displayUpdatedQuestions()
+@enduml

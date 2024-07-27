@@ -130,10 +130,10 @@ class cBoard(object):
                     #add weight scoring to make sure we get a more even distribution of tiles
                     self.board[i][j] = tile(random.choice(possibleColors))
     def initializeBoard(self):
-        rect_x, rect_y = self.width//4, self.height//4  # Position of the rectangle we always work in quadrants
+        rect_x, rect_y = 140, 130  # Position of the rectangle we always work in quadrants
         length = min(self.width, self.height)
         offset = max(self.width, self.height)
-        rect_width, rect_height = length - (.1 * offset), length - (.1 * offset)  # Size of the rectangle
+        rect_width, rect_height = length - (.02 * offset), length - (.08 * offset)  # Size of the rectangle
         cols, rows = 9, 9  # Number of columns and rows in the grid
         cell_width = rect_width // cols
         cell_height = rect_height // rows
