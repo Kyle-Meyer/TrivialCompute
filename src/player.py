@@ -13,7 +13,7 @@ class player(object):
     circle_color = blue
     circle_shadow_color = blue
     circle_highlight_color = blue
-    currCordinate = (0,0)
+    currCoordinate = (0,0)
     dragging = False  # This flag checks if the circle is being dragged
     playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
     isTurn = True
@@ -48,9 +48,9 @@ class player(object):
     def pruneNeighbors(self, diceRoll):
         #print(self.currentNeighbors)
         toRemove = []
-        toRemove.append(self.currCordinate)
+        toRemove.append(self.currCoordinate)
         for entry in self.currentNeighbors:
-            diff = abs((entry[0] - self.currCordinate[0])) + abs((entry[1] - self.currCordinate[1]))
+            diff = abs((entry[0] - self.currCoordinate[0])) + abs((entry[1] - self.currCoordinate[1]))
             #print("\t ENTRY: ", entry, " has diff:" , diff)
             if(diff != diceRoll) and diff != 0:
                 #print("\t removing: ", entry, " because diff was: ", diff)
@@ -128,7 +128,7 @@ class player(object):
     def updateBoardPos(self, inTile : tile, diceRoll : int):
         print(inTile.row," ", inTile.col)
         self.hasRolled = False
-        self.currCordinate = (inTile.row, inTile.col)
+        self.currCoordinate = (inTile.row, inTile.col)
         self.setScreenCoords(inTile.box.centerx, inTile.box.centery)
         self.updateBox(inTile.box.centerx, #x position
                        inTile.box.centery, #y position

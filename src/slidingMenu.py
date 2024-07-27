@@ -281,7 +281,7 @@ class slidingMenu(menu):
             self.rightButton.lockOut = False
 
         if self.exitButton.isClicked(event):
-           return -2
+           return -3
         elif self.rightButton.isClicked(event):
             if self.activeIndex < len(self.stateList):
                 self.switchActiveDictionary(self.activeIndex+1)

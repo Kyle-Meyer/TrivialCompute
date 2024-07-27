@@ -25,6 +25,7 @@ from slideBarWidget import slideBarWidget
 from triviaMenu import triviaMenu
 from timerClock import timerClock
 from voteWidget import voteWidget
+import json
 
 import os
 import copy
@@ -75,16 +76,17 @@ class pygameMain(object):
     testButton2 = button((WIDTH // 2, HEIGHT // 2))
     testButton2.button_text = "locked button"
     testButton2.lockOut = True
-    testMenu = menu((200, 350), 300, 450) 
+    testMenu = menu((200, 350), 300, 550) 
     testMenu.title_text = "Game Menu"
     
    
     #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "TestButton1"))
     #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
-    testMenu.addChildComponent(button((150, 250),  180, 90, "1. Roll dice"))
-    testMenu.addChildComponent(button((150, 350),  180, 90, "2. Move Token"))
-    testMenu.addChildComponent(button((150, 450),  180, 90, "6. Settings"))
-    testMenuButtons = {'Roll Dice':1, 'Move Token':2}
+    testMenu.addChildComponent(button((150, 200),  180, 90, "1. Roll dice"))
+    testMenu.addChildComponent(button((150, 300),  180, 90, "2. Move Token"))
+    testMenu.addChildComponent(button((150, 400),  180, 90, "3. Save Game"))
+    testMenu.addChildComponent(button((150, 500),  180, 90, "6. Settings"))
+    testMenuButtons = {'Roll Dice':1, 'Move Token':2, 'Save Game':3}
     #TODO clean this up
     settingsMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
     trivMenu = triviaMenu((WIDTH//2, -720), 700, 600)
@@ -161,7 +163,7 @@ class pygameMain(object):
         self.settingsMenu.switchActiveDictionary(0)
 
    #TODO encapsulate this so that it can draw mutliple players
-    def initiatePlayers(self):
+    def initializePlayersForNewGame(self):
         localColorList = [player_red, player_blue, player_green, player_yellow]
         count = 0
         offset = 17
@@ -188,6 +190,35 @@ class pygameMain(object):
         #set player relative to the coords of the board
         #this takes in a tile object from the board
         #self.currPlayer.updateBoardPos(self.playBoard.board[4][4], self.diceRoll)
+
+    def initializePlayersForRestoreGame(self, convertedPlayerPositionsTuple):
+        localColorList = [player_red, player_blue, player_green, player_yellow]
+        count = 0
+        offset = 17
+
+        for play in self.playerList:
+            play = player(11, self.WIDTH // 2, self.HEIGHT // 2, localColorList[count])
+            
+            (playerName, (x, y)) = convertedPlayerPositionsTuple[count]
+            play.updateBoardPos(self.playBoard.board[x][y], self.diceRoll)
+            
+            self.playerList[count] = play
+            match count:
+                case 0:
+                    self.playerList[count].tileOffset=(-offset, 0)
+                    self.playerList[count].circle_x += -offset
+                case 1:
+                    self.playerList[count].tileOffset=(0, -offset)
+                    self.playerList[count].circle_y += -offset
+                case 2:
+                    self.playerList[count].tileOffset=(offset, 0)
+                    self.playerList[count].circle_x += offset
+                case 3:
+                    self.playerList[count].tileOffset=(0, offset)
+                    self.playerList[count].circle_y += offset
+            count += 1
+        #TODO change this so that it sets respective player to what the server dictates the client should be
+        self.currPlayer = self.playerList[0]
 
     def drawPlayers(self):
         for play in self.playerList:
@@ -237,7 +268,7 @@ class pygameMain(object):
     
     # Check for game winner
     def checkIfPlayerJustWon(self):
-        if self.currPlayer.currCordinate == (4,4):
+        if self.currPlayer.currCoordinate == (4,4):
             if '_' in self.currPlayer.playerScore.values():
                 return False
             else:
@@ -255,24 +286,24 @@ class pygameMain(object):
         self.currPlayer.currentNeighbors.clear()
         neighbors = self.currPlayer.currentNeighbors
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
-        #print(self.currPlayer.currCordinate)
-        oldCoord = self.currPlayer.currCordinate
-        self.currPlayer.getNeighbors(self.playBoard, self.currPlayer.currCordinate, self.diceRoll + 1, neighbors)
+        #print(self.currPlayer.currCoordinate)
+        oldCoord = self.currPlayer.currCoordinate
+        self.currPlayer.getNeighbors(self.playBoard, self.currPlayer.currCoordinate, self.diceRoll + 1, neighbors)
         if configModule.optionalPruneNeighbors:
             self.currPlayer.pruneNeighbors(self.diceRoll)
         for i in range(len(neighbors)):
             #if this within our range
             if self.currPlayer.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
                 #check if the player has moved beyond their starting square
-                if self.currPlayer.currCordinate != neighbors[i]:
+                if self.currPlayer.currCoordinate != neighbors[i]:
                     #TODO make the call from here to spawn the end turn button
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False
-                    #self.currPlayer.currCordinate = neighbors[i]
+                    #self.currPlayer.currCoordinate = neighbors[i]
                 break
         #reset player position if its invalid
         else:
             self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
-            #self.currPlayer.currCordinate = oldCoord
+            #self.currPlayer.currCoordinate = oldCoord
 
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
@@ -333,7 +364,10 @@ class pygameMain(object):
                 elif abs == self.testMenuButtons['Move Token']-1:
                     print("WHAT THE FUCK")
                     self.currState = 2
-                if abs == 2 or dbs == -2:
+                elif abs == self.testMenuButtons['Save Game']-1:
+                    print('Save Game')
+                    self.databaseConnection.saveCurrentGameState(self.playerList, self.currPlayer, [])
+                if abs == 3 or dbs == -3:
                     self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.testMenu.lockOut = not self.testMenu.lockOut
                 elif abs == 1:
@@ -344,7 +378,7 @@ class pygameMain(object):
                     #self.playBoard.create_board()
                     self.playBoard.updateTileColors()
                     self.currPlayer.updateColor()
-                if mbs == -2:
+                if mbs == -3:
                     #change the trivia button to accurately reflect what stage you are in
                     if self.currState < 3:
                         self.currState = 3
@@ -357,9 +391,9 @@ class pygameMain(object):
                     #check if correct
                     if mbs == 0:
                         print("correct clicked")
-                        if self.currPlayer.currCordinate in [(4,0),(8,4),(4,8),(0,4)]: 
-                            self.updatePlayerScore(self.currPlayer.currCordinate)
-                        elif self.currPlayer.currCordinate == (4,4):
+                        if self.currPlayer.currCoordinate in [(4,0),(8,4),(4,8),(0,4)]: 
+                            self.updatePlayerScore(self.currPlayer.currCoordinate)
+                        elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
             #game state logic
@@ -386,7 +420,7 @@ class pygameMain(object):
                 currentTokenPosition = self.screenPosToCoord()
                 self.trivMenu.startButton.button_text = "Get Question"
                 if currentTokenPosition in self.currPlayer.currentNeighbors and \
-                    currentTokenPosition != self.currPlayer.currCordinate:
+                    currentTokenPosition != self.currPlayer.currCoordinate:
                     self.advanceToken(currentTokenPosition)
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
@@ -465,18 +499,35 @@ class pygameMain(object):
 
 def main(): 
     pygame.init()
-    if run_start_menu() == "start":
+    selected_menu_action = run_start_menu()
 
-        #tests db connection by retrieving a question/answer of a certain category
+    if selected_menu_action == "start":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-        '''question, answer = database.getQuestionAndAnswerByCategory('Chemistry')
-        print(f"test retrieving question from db: {question}")
-        print(f"test retrieving answer from db: {answer}")'''
         demo = pygameMain(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
         demo.createTriviaMenu()
-        demo.initiatePlayers()
+        demo.initializePlayersForNewGame()
+        demo.mainLoop()
+        #database.close()
+    elif selected_menu_action == "restore":
+        database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
+        demo = pygameMain(database)
+        #demo.mainMenuLoop()
+        demo.createSettingsMenu()
+        demo.createTriviaMenu()
+
+        playerPostionsOfLastSavedGameFromDB = database.getPlayerPositionsOfLastSavedGame()
+
+        if playerPostionsOfLastSavedGameFromDB is None:
+            print("No saved game state found.")
+            demo.initializePlayersForNewGame()
+        else:
+            print("Previous game state found.")
+            playerPositionsDictionary = playerPostionsOfLastSavedGameFromDB[0]
+            convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositionsDictionary.items())
+            demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
+
         demo.mainLoop()
         #database.close()
     else:
