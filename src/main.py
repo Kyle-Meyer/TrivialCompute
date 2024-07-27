@@ -395,6 +395,11 @@ class pygameMain(object):
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                    else:
+                        self.clientNumber +=1
+                        if self.clientNumber >= 4:
+                            self.clientNumber = 0
+                        self.currPlayer = self.playerList[self.clientNumber]
             #game state logic
             if self.currState == 0:
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=False
@@ -452,10 +457,6 @@ class pygameMain(object):
                     ent.voteSubmitted = True
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.resetTimer()
-                self.clientNumber +=1
-                if self.clientNumber >= 4:
-                    self.clientNumber = 0
-                self.currPlayer = self.playerList[self.clientNumber]
                 question = ''
                 answer = ''
                 self.currState = 0
