@@ -115,7 +115,7 @@ class pygameMain(object):
         self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Question PlaceHolder"))
         self.trivMenu.addDictionary()
         self.trivMenu.switchActiveDictionary(1)
-        self.trivMenu.addChildComponent(textWidget((640, 1160),  200, 200, "Answer PlaceHolder"))
+        self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Answer PlaceHolder"))
         self.trivMenu.addChildComponent(button((500, 1300),  200, 70, "Correct!"))
         self.trivMenu.addChildComponent(button((800, 1300),  200, 70, "InCorrect!"))
         self.trivMenu.activeDictionary[childType.BUTTON][0].updateTextColor(green)
@@ -382,12 +382,11 @@ class pygameMain(object):
                     #change the trivia button to accurately reflect what stage you are in
                     if self.currState < 3:
                         self.currState = 3
-                    elif self.currState == 3:
-                        self.currState = 4
                     else:
-                        self.currState = 5
+                        self.currState = 4
+
                 elif mbs >= 0:
-                    self.currState = 6
+                    self.currState = 5
                     #check if correct
                     if mbs == 0:
                         print("correct clicked")
@@ -428,35 +427,33 @@ class pygameMain(object):
                     self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.drawDice = False
 
-            elif self.currState == 3:
-                #self.trivMenu.currState += 1
-                self.trivMenu.triviaClock.shouldDraw = True
-                if not hasPulled:
-                    print("HAS NOT PULLED")
-                    question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
-                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    hasPulled = True
-                self.trivMenu.startButton.button_text = "Ready?"
+                    self.trivMenu.triviaClock.shouldDraw = True
+                    if not hasPulled:
+                        print("HAS NOT PULLED")
+                        question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        hasPulled = True
 
-            elif self.currState == 4:
+
+            elif self.currState == 3:
                 self.trivMenu.triviaClock.startCounting = True
                 self.trivMenu.haltWidgetDraw = True
                 self.trivMenu.startButton.button_text = "Reveal Answer"
                 
-            elif self.currState == 5:
+            elif self.currState == 4:
                 self.trivMenu.haltWidgetDraw = False
                 if self.trivMenu.away == False and self.trivMenu.activeIndex == 0:
                     self.trivMenu.switchActiveDictionary(1)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
                 self.trivMenu.startButton.lockOut = True
-            elif self.currState == 6:
+            elif self.currState == 5:
                 #self.trivMenu.canVote = True TURN THIS BACK ON FOR SERVER STUFF
                 for ent in self.trivMenu.activeDictionary[childType.VOTE]:
                     ent.voteSubmitted = True
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.resetTimer()
                 self.clientNumber +=1
-                if self.clientNumber > 4:
+                if self.clientNumber >= 4:
                     self.clientNumber = 0
                 self.currPlayer = self.playerList[self.clientNumber]
                 question = ''
