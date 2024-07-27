@@ -1,4 +1,5 @@
 import psycopg2
+import json
 
 class databaseConnection(object):
     def __init__(self, dbname, user, password, host='localhost', port='5432'):
@@ -37,7 +38,19 @@ class databaseConnection(object):
 
         with self.conn.cursor() as cursor:
             cursor.execute(query, params)
-            return cursor.fetchone()        
+            return cursor.fetchone()   
+
+    def executeQueryInsert(self, query, params=None):
+        if not self.conn:
+            self.connect()
+
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, params)
+                self.conn.commit()  # Commit the transaction
+        except Exception as e:
+            self.conn.rollback()  # Rollback in case of error
+            print(f"An error occurred: {e}")             
 
     def getQuestionAndAnswerByCategory(self, category):
         query = "SELECT question, answer FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
@@ -51,3 +64,27 @@ class databaseConnection(object):
     def getCategories(self):
         query = "SELECT id, name FROM categories"
         return self.executeQueryFetchAll(query)
+
+    def getPlayerPositionsOfLastSavedGame(self):
+        query = "SELECT \"playerPositions\" FROM saved_game_states ORDER BY date DESC"
+        return self.executeQueryFetchOne(query)
+
+    def saveCurrentGameState(self, playerList, currPlayer, playerOrder):
+        count = 0
+
+        # Initialize dictionary
+        player_position_data = {}
+
+        # Populate dictionary with incrementing count
+        for player in playerList:
+            player_position_data[f'player{count}'] = player.currCoordinate
+            count += 1
+
+        # Convert the dictionary to a JSON string
+        json_player_position_data = json.dumps(player_position_data)
+        
+        #TODO format currPlayer and playerOrder and use those values in the insert statement instead of the test values
+        
+        query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"playerOrder\", \"currentPlayer\", \"date\") VALUES (%s , %s, %s, %s, current_timestamp)"
+        params = (json_player_position_data, [], [], 'testCurrPlayer',)
+        return self.executeQueryInsert(query, params)

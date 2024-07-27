@@ -202,7 +202,7 @@ class triviaMenu(menu):
         selfSet = -1
         
         if self.startButton.isClicked(event):
-           return -2
+           return -3
         else:
             for i in range(len(self.activeDictionary[childType.BUTTON])):
                 if self.activeDictionary[childType.BUTTON][i].isClicked(event):
