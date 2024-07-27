@@ -20,6 +20,7 @@ from dice import dice
 from particleMgr import particleManager
 from databaseConnection import databaseConnection
 from startMenu import run_start_menu
+from gameSetupMenu import runSetupMenu
 from slidingMenu import slidingMenu
 from slideBarWidget import slideBarWidget
 from triviaMenu import triviaMenu
@@ -90,6 +91,7 @@ class pygameMain(object):
     #TODO clean this up
     settingsMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
     trivMenu = triviaMenu((WIDTH//2, -720), 700, 600)
+    gameSetupMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
 
     #slider = slideBarWidget((300, 200), 300, 100)
     #settingsMenu = slidingMenu((10, 300), 100, 100)
@@ -108,6 +110,96 @@ class pygameMain(object):
         self.testButton.changeTextSize(20)
         self.testButton.button_text_color = base3
         self.testButton.draw_button(self.screen)
+
+    # Area for intermediary screen to define player settings
+    def createGameSetupMenu(self, db):
+        """ select number of players, 
+            enter names for the players, 
+            select colors for the players, 
+            select the 4 categories they want to use, 
+            select which color for each category
+            submit their selection """
+        self.gameSetupMenu.menuDuration = 750
+        self.gameSetupMenu.fadeBox.alpha = 200
+        #self.settingsMenu.addChildComponent(button((-640, 500),  100, 50, "Exit"))
+        self.gameSetupMenu.addChildComponent(slideBarWidget((-1280, self.HEIGHT//2), 200, 200))
+        self.gameSetupMenu.addChildComponent(textWidget((-810, 310),  50, 50, "Static Board: "))
+        self.gameSetupMenu.addChildComponent(textWidget((-810, 360),  50, 50, "3d Tiles: "))
+        self.gameSetupMenu.addChildComponent(textWidget((-810, 410),  50, 50, "3d Players: "))
+        self.gameSetupMenu.addChildComponent(textWidget((-540, 260),  50, 50, "Outline Tiles: "))
+        self.gameSetupMenu.addChildComponent(textWidget((-540, 310),  50, 50, "Debug Mode: "))
+        self.gameSetupMenu.addChildComponent(textWidget((-540, 360),  50, 50, "Fast Dice: "))
+        self.gameSetupMenu.addChildComponent(textWidget((-540, 410),  50, 50, "Prune Neighbors: "))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-750, 260), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-750, 310), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-750, 360), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-750, 410), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-480, 260), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-480, 310), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-480, 360), 20, 20))
+        self.gameSetupMenu.addChildComponent(checkBoxWidget((-480, 410), 20, 20))
+        #settingsMenu.addChildComponent(slideBarWidget((-1280, HEIGHT//2), 200, 200))
+        for entry in self.settingsMenu.child_Dictionary[childType.TEXT]:
+            entry.changeTextSize(20)
+        self.settingsMenu.title_text = "Settings"
+        self.settingsMenu.bindCheckBoxes()
+        #add another menu state
+        self.settingsMenu.addDictionary()
+        self.settingsMenu.switchActiveDictionary(1)
+        self.settingsMenu.switchActiveDictionary(0)
+
+
+        # self.screen.fill((25, 28, 38)) 
+
+        # #Define UI
+        # font = pygame.font.Font(None, 36)
+        # num_players_text = font.render("Number of Players:", True, (255, 255, 255))
+        # player_name_text = font.render("Player Names:", True, (255, 255, 255))
+        # color_selection_text = font.render("Select Colors:", True, (255, 255, 255))
+        # category_selection_text = font.render("Select Categories:", True, (255, 255, 255))
+        
+        # self.screen.blit(num_players_text, (50, 50))
+        # self.screen.blit(player_name_text, (50, 150))
+        # self.screen.blit(color_selection_text, (50, 250))
+        # self.screen.blit(category_selection_text, (50, 350))
+
+        # #TODO: Slider for number of players
+        
+        # #Num players
+        # num_players = 1  # Defaults to 1
+        # player_names = ["", "", "", ""]
+        # player_colors = ["", "", "", ""]
+
+        # num_players_display = font.render(str(num_players), True, (255, 255, 255))
+        # self.screen.blit(num_players_display, (300, 50))
+
+        # # TODO: Player Names Input
+        
+        # for i in range(num_players):
+        #     player_name_input = font.render(player_names[i], True, (255, 255, 255))
+        #     self.screen.blit(player_name_input, (300, 150 + (i * 50)))
+        
+        # # Color selection input
+        # colors = ["Red", "Blue", "Green", "Yellow"]
+        # for i in range(num_players):
+        #     color_display = font.render(colors[i], True, (255, 255, 255))
+        #     self.screen.blit(color_display, (300, 250 + (i * 50)))
+
+        # # Fetch categories from the database and display them
+        # categories = db.getCategories()  # Replace with actual method to fetch categories
+
+        # # Display Category Selection
+        # for i, category in enumerate(categories):
+        #     print(category)
+        #     category_display = font.render(str(category), True, (255, 255, 255))
+        #     self.screen.blit(category_display, (300, 350 + (i * 50)))
+
+        # # Add a submit button
+        # submit_button = button((self.WIDTH - 150, self.HEIGHT - 100))
+        # submit_button.button_text = "Start Game"
+        # submit_button.draw_button(self.screen)
+        
+        # #pygame.display.update()
 
     def createTriviaMenu(self):
         self.trivMenu.menuDuration = 750
@@ -332,6 +424,7 @@ class pygameMain(object):
         hasPulled = False
         while self.run:
             #event chain
+            
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self.run= False 
@@ -501,7 +594,9 @@ def main():
 
     if selected_menu_action == "start":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
+        runSetupMenu()
         demo = pygameMain(database)
+        #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
         demo.createTriviaMenu()
