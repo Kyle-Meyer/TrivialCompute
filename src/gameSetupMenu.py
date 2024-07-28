@@ -39,7 +39,9 @@ def runSetupMenu(database):
     
     def categorySelection():
         categories = database.getCategories()
-        selected_categories = []
+        selected_categories = {}
+        colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+        color_index = {category[1]: 0 for category in categories}
 
         selecting = True
         while selecting:
@@ -50,38 +52,75 @@ def runSetupMenu(database):
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         for i, (rect, category) in enumerate(category_buttons):
-                            if rect.collidepoint(event.pos):
-                                if category not in selected_categories:
+                            category_name = category[1]
+                            checkmark_rect = checkmark_buttons[i]
+                            if checkmark_rect.collidepoint(event.pos):
+                                # Toggle selection
+                                if category_name not in selected_categories:
                                     if len(selected_categories) < 4:
-                                        selected_categories.append(category[1])
+                                        selected_categories[category_name] = colors[color_index[category_name]]
                                 else:
-                                    selected_categories.remove(category[1])
+                                    selected_categories.pop(category_name)
 
-                                # # Update button color
-                                button_colors[i] = (0, 255, 0) if category in selected_categories else (255, 0, 0)
+                        # Handle color change arrows
+                        for i, (left_rect, right_rect, category_name) in enumerate(color_arrows):
+                            if category_name in selected_categories:
+                                if left_rect.collidepoint(event.pos):
+                                    color_index[category_name] = (color_index[category_name] - 1) % len(colors)
+                                    selected_categories[category_name] = colors[color_index[category_name]]
+                                elif right_rect.collidepoint(event.pos):
+                                    color_index[category_name] = (color_index[category_name] + 1) % len(colors)
+                                    selected_categories[category_name] = colors[color_index[category_name]]
 
             # Draw background
             screen.blit(background_image, (0, 0))
 
-            # Draw category buttons
+            # Draw category buttons and checkmarks
             category_buttons = []
-            button_colors = []
+            checkmark_buttons = []
+            color_arrows = []
             for i, category in enumerate(categories):
                 button_rect = pygame.Rect(800, 100 + i * 60, 300, 50)
-                button_color = (0, 255, 0) if category[1] in selected_categories else (255, 0, 0)
+                category_name = category[1]
+                button_color = selected_categories.get(category_name, (255, 0, 0))
                 pygame.draw.rect(screen, button_color, button_rect)
-                text_surf = font.render(category[1], True, black)
+                text_surf = font.render(category_name, True, black)
                 text_rect = text_surf.get_rect(center=button_rect.center)
                 screen.blit(text_surf, text_rect)
                 category_buttons.append((button_rect, category))
-                button_colors.append(button_color)
+
+                # Checkmark button
+                checkmark_rect = pygame.Rect(760, 100 + i * 60, 30, 50)
+                checkmark_buttons.append(checkmark_rect)
+                checkmark_color = (0, 255, 0) if category_name in selected_categories else (255, 0, 0)
+                pygame.draw.rect(screen, checkmark_color, checkmark_rect)
+
+                # Arrows for changing colors
+                if category_name in selected_categories:
+                    left_arrow_rect = pygame.Rect(1110, 100 + i * 60, 30, 50)
+                    right_arrow_rect = pygame.Rect(1150, 100 + i * 60, 30, 50)
+                    pygame.draw.polygon(screen, (255, 255, 255), [(1110, 125 + i * 60), (1130, 110 + i * 60), (1130, 140 + i * 60)])
+                    pygame.draw.polygon(screen, (255, 255, 255), [(1150, 125 + i * 60), (1130, 110 + i * 60), (1130, 140 + i * 60)])
+                    color_arrows.append((left_arrow_rect, right_arrow_rect, category_name))
+
+            # Check if all selected categories have unique colors
+            unique_colors = len(set(selected_categories.values())) == len(selected_categories)
+
+            # Draw Done button
+            if len(selected_categories) == 4 and unique_colors:
+                done_button_rect = pygame.Rect(800, 600, 300, 50)
+                pygame.draw.rect(screen, (0, 255, 0), done_button_rect)
+                done_text_surf = font.render("Done", True, black)
+                done_text_rect = done_text_surf.get_rect(center=done_button_rect.center)
+                screen.blit(done_text_surf, done_text_rect)
+                if event.type == pygame.MOUSEBUTTONDOWN and done_button_rect.collidepoint(event.pos):
+                    selecting = False
 
             pygame.display.flip()
-            
-            if len(selected_categories) == 4:
-                selecting = False
 
         return selected_categories
+
+
 
     
     # Prompt for number of players
@@ -212,9 +251,15 @@ def runSetupMenu(database):
 
                 draw_text(screen, 'Enter Player Name:', font, pygame.Color('white'), (900, 250))
                 draw_text(screen, 'Select Player Color:', font, pygame.Color('white'), (900, 350))
-                setupDoneButton = Button('Done', 950, 500, 300, 75, pygame.Color('red'), pygame.display.flip())
+
                 pygame.display.flip()
                 clock.tick(30)
+
+    def checkUniqeColors(buttons):
+        # Extract the colors from the buttons (excluding the non-player buttons)
+        player_colors = [button.color for button in buttons[:number_of_players]]
+        # Ensure all colors are unique
+        return len(set(player_colors)) == len(player_colors)
 
 
     button_positions = [
@@ -225,25 +270,19 @@ def runSetupMenu(database):
     buttons = []
     colors = [(255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
 
+    # Add the player buttons
     for i in range(number_of_players):
         button = (Button(f"Player{i+1}", *button_positions[i], 150, 150, colors[i]))
         button.action = button.setup_player
         buttons.append(button)
 
-    # TODO: Need to figure out how to get number of players
-    # (255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)
-    # player1Button = Button("Player1" , 850, 100, 150, 150, (255, 0, 0))
-    # player2Button = Button("Player2", 1000, 100, 150, 150, (0, 255, 0))
-    # player3Button = Button("Player3", 850, -50, 150, 150, (0, 0, 255))
-    # player4Button = Button("Player4", 1000, -50, 150, 150, (255, 255, 0))
+    # Add the non-player buttons
     database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
     categoriesButton = Button("Categories", 850, 475, 300, 75, color=pygame.Color('magenta'), action=categorySelection)
-    submitButton = Button("Done", 850, 575, 300, 75, color=pygame.Color('red'), action=pygame.display.flip)
+    submitButton = Button("Done", 850, 575, 300, 75, color=pygame.Color('red'), action=None)
 
-    #playerButtons = [player1Button, player2Button, player3Button, player4Button]
     buttons.append(categoriesButton)
     buttons.append(submitButton) #, categoriesButton, submitButton]
-
     
 
     running = True
@@ -262,6 +301,16 @@ def runSetupMenu(database):
 
         for button in buttons:
             button.draw(screen)
+
+        uniqueColors = checkUniqeColors(buttons)
+        if uniqueColors:
+            submitButton.color = pygame.Color('green') #Active state
+            submitButton.text = "Done"
+            submitButton.action = lambda: print("Game setup complete! Proceeding...")
+        else:
+            submitButton.color = pygame.Color('red') #Inactive state
+            submitButton.text = "Colors must be unique"
+            submitButton.action = None
 
         pygame.display.flip()
 
