@@ -5,9 +5,10 @@ from databaseSetup import setup_database_and_execute_scripts
 from colors import *
 import slideBarWidget
 import configMenu as cm
+from databaseConnection import databaseConnection
 
 
-def runSetupMenu():
+def runSetupMenu(database):
 
     #Screen Settings
     screen_width = 1280
@@ -35,7 +36,54 @@ def runSetupMenu():
         textrect = textobj.get_rect()
         textrect.center = pos
         surf.blit(textobj, textrect)
+    
+    def categorySelection():
+        categories = database.getCategories()
+        selected_categories = []
 
+        selecting = True
+        while selecting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        for i, (rect, category) in enumerate(category_buttons):
+                            if rect.collidepoint(event.pos):
+                                if category not in selected_categories:
+                                    if len(selected_categories) < 4:
+                                        selected_categories.append(category[1])
+                                else:
+                                    selected_categories.remove(category[1])
+
+                                # # Update button color
+                                button_colors[i] = (0, 255, 0) if category in selected_categories else (255, 0, 0)
+
+            # Draw background
+            screen.blit(background_image, (0, 0))
+
+            # Draw category buttons
+            category_buttons = []
+            button_colors = []
+            for i, category in enumerate(categories):
+                button_rect = pygame.Rect(800, 100 + i * 60, 300, 50)
+                button_color = (0, 255, 0) if category[1] in selected_categories else (255, 0, 0)
+                pygame.draw.rect(screen, button_color, button_rect)
+                text_surf = font.render(category[1], True, black)
+                text_rect = text_surf.get_rect(center=button_rect.center)
+                screen.blit(text_surf, text_rect)
+                category_buttons.append((button_rect, category))
+                button_colors.append(button_color)
+
+            pygame.display.flip()
+            
+            if len(selected_categories) == 4:
+                selecting = False
+
+        return selected_categories
+
+    
     # Prompt for number of players
     number_of_players = 0
     while number_of_players not in range(1, 5):
@@ -110,13 +158,63 @@ def runSetupMenu():
                 if self.rect.collidepoint(event.pos):
                     if self.action:
                         self.action()
-                    self.color_index = (self.color_index + 1) % len(self.color_list)
-                    print("Color Index", self.color_index)
-                    print("Color", self.color)
-                    self.color = self.color_list[self.color_index]
-                    print("New Color Index", self.color_index)
-                    print("Intended Color", self.color_list[self.color_index])
             return None
+
+        def setup_player(self):
+            colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+            current_name = self.text
+            current_color = self.color
+            color_buttons = [pygame.Rect(750 + i * 120, 400, 100, 100) for i in range(len(colors))]
+            name_input_box = pygame.Rect(775, 275, 400, 50)
+            active = False
+            new_name = current_name
+
+            setup = True
+            while setup:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if name_input_box.collidepoint(event.pos):
+                            active = not active
+                        else:
+                            active = False
+
+                        # Check if a color button is clicked
+                        for i, rect in enumerate(color_buttons):
+                            if rect.collidepoint(event.pos):
+                                current_color = colors[i]
+
+                    elif event.type == pygame.KEYDOWN:
+                        if active:
+                            if event.key == pygame.K_RETURN:
+                                self.text = new_name
+                                self.color = current_color
+                                setup = False
+                            elif event.key == pygame.K_BACKSPACE:
+                                new_name = new_name[:-1]
+                            else:
+                                new_name += event.unicode
+
+                screen.blit(background_image, (0, 0))
+
+                # Draw input box for the player's name
+                pygame.draw.rect(screen, pygame.Color('white'), name_input_box, 2)
+                name_text_surface = font.render(new_name, True, pygame.Color('white'))
+                screen.blit(name_text_surface, (name_input_box.x + 5, name_input_box.y + 5))
+
+                # Draw color selection buttons
+                for i, rect in enumerate(color_buttons):
+                    pygame.draw.rect(screen, colors[i], rect)
+                    if colors[i] == current_color:
+                        pygame.draw.rect(screen, pygame.Color('white'), rect, 2)
+
+                draw_text(screen, 'Enter Player Name:', font, pygame.Color('white'), (900, 250))
+                draw_text(screen, 'Select Player Color:', font, pygame.Color('white'), (900, 350))
+                setupDoneButton = Button('Done', 950, 500, 300, 75, pygame.Color('red'), pygame.display.flip())
+                pygame.display.flip()
+                clock.tick(30)
 
 
     button_positions = [
@@ -124,11 +222,13 @@ def runSetupMenu():
         (850, 250), (1000, 250)
     ]
 
-    playerButtons = []
+    buttons = []
     colors = [(255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
 
     for i in range(number_of_players):
-        playerButtons.append(Button(f"Player{i+1}", *button_positions[i], 150, 150, colors[i]))
+        button = (Button(f"Player{i+1}", *button_positions[i], 150, 150, colors[i]))
+        button.action = button.setup_player
+        buttons.append(button)
 
     # TODO: Need to figure out how to get number of players
     # (255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)
@@ -136,11 +236,15 @@ def runSetupMenu():
     # player2Button = Button("Player2", 1000, 100, 150, 150, (0, 255, 0))
     # player3Button = Button("Player3", 850, -50, 150, 150, (0, 0, 255))
     # player4Button = Button("Player4", 1000, -50, 150, 150, (255, 255, 0))
-    #categoriesButton = Button("Categories")
-    #submitButton = Button("Done")
+    database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
+    categoriesButton = Button("Categories", 850, 475, 300, 75, color=pygame.Color('magenta'), action=categorySelection)
+    submitButton = Button("Done", 850, 575, 300, 75, color=pygame.Color('red'), action=pygame.display.flip)
 
     #playerButtons = [player1Button, player2Button, player3Button, player4Button]
-    buttons = playerButtons #, categoriesButton, submitButton]
+    buttons.append(categoriesButton)
+    buttons.append(submitButton) #, categoriesButton, submitButton]
+
+    
 
     running = True
     while running:
