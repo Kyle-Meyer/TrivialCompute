@@ -20,7 +20,12 @@ def runSetupMenu(database):
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 
     # Fonts
-    font = pygame.font.Font(None, 40) 
+    font = pygame.font.Font(None, 40)
+
+    # global datatypes
+    selected_categories = {}
+    game_setup_data = {}
+    category_selection_open = False
 
     # Text Input Box Setup
     input_box = pygame.Rect(screen_width - 350, screen_height / 2 - 30, 140, 30)
@@ -38,11 +43,11 @@ def runSetupMenu(database):
         surf.blit(textobj, textrect)
     
     def categorySelection():
-        categories = database.getCategories()
+        nonlocal selected_categories
         selected_categories = {}
+        categories = database.getCategories()
         colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
         color_index = {category[1]: 0 for category in categories}
-
         selecting = True
         while selecting:
             for event in pygame.event.get():
@@ -119,10 +124,13 @@ def runSetupMenu(database):
             pygame.display.flip()
 
         return selected_categories
-
-
-
     
+    def openCategorySelection():
+        nonlocal category_selection_open
+        category_selection_open = True
+        categorySelection()
+        category_selection_open = False
+
     # Prompt for number of players
     number_of_players = 0
     while number_of_players not in range(1, 5):
@@ -195,8 +203,11 @@ def runSetupMenu(database):
         def check_click(self, event):
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.rect.collidepoint(event.pos):
+                    print(f"{self.text} button clicked!")
                     if self.action:
-                        self.action()
+                        result = self.action()
+                        print(f"Action result: {result}")
+                        return result
             return None
 
         def setup_player(self):
@@ -268,22 +279,50 @@ def runSetupMenu(database):
     ]
 
     buttons = []
+    player_buttons = []
     colors = [(255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
 
     # Add the player buttons
     for i in range(number_of_players):
         button = (Button(f"Player{i+1}", *button_positions[i], 150, 150, colors[i]))
         button.action = button.setup_player
-        buttons.append(button)
+        player_buttons.append(button)
 
-    # Add the non-player buttons
-    database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-    categoriesButton = Button("Categories", 850, 475, 300, 75, color=pygame.Color('magenta'), action=categorySelection)
-    submitButton = Button("Done", 850, 575, 300, 75, color=pygame.Color('red'), action=None)
 
-    buttons.append(categoriesButton)
-    buttons.append(submitButton) #, categoriesButton, submitButton]
+    def collectSetupData():
+        game_setup_data = {
+            'number_of_players': number_of_players,
+            'players': [
+                {
+                    'name': button.text,
+                    'color': button.color
+                }
+                for button in player_buttons
+            ],
+            'categories': [
+                {
+                    'name': category,
+                    'color': color
+                }
+                for category, color in selected_categories.items()
+            ]
+        }
+        return game_setup_data
+
+    def exitSetupMenu():
+        nonlocal game_setup_data
+        game_setup_data = collectSetupData()
+        #print("setupDone")
+        return "setupDone"
     
+     # Add the non-player buttons
+    database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
+    categoriesButton = Button("Categories", 850, 475, 300, 75, color=pygame.Color('magenta'), action=openCategorySelection)
+    submitButton = Button("Done", 850, 575, 300, 75, color=pygame.Color('red'), action=exitSetupMenu)
+
+    buttons.extend(player_buttons)
+    buttons.append(categoriesButton)
+    buttons.append(submitButton)
 
     running = True
     while running:
@@ -296,7 +335,13 @@ def runSetupMenu(database):
                 return "exit"
             for button in buttons:
                 result = button.check_click(event)
-                if result is not None:
+                #print(result)
+                #if result is not None:
+                if result == "setupDone":
+                    running = False
+                    #print(running)
+                    break
+                elif result:
                     return result
 
         for button in buttons:
@@ -306,7 +351,7 @@ def runSetupMenu(database):
         if uniqueColors:
             submitButton.color = pygame.Color('green') #Active state
             submitButton.text = "Done"
-            submitButton.action = lambda: print("Game setup complete! Proceeding...")
+            submitButton.action = exitSetupMenu
         else:
             submitButton.color = pygame.Color('red') #Inactive state
             submitButton.text = "Colors must be unique"
@@ -314,4 +359,6 @@ def runSetupMenu(database):
 
         pygame.display.flip()
 
-    return "exit"
+    print("IM OUT OF THE LOOP")
+    #pygame.display.quit()
+    return game_setup_data

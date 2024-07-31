@@ -43,6 +43,15 @@ class mainMenu(object):
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     
 class pygameMain(object):
+    def __init__(self, databaseConnection, setupInfo):
+        self.databaseConnection = databaseConnection
+        self.setupInfo = setupInfo
+
+    def getSetupInfo(self):
+        return self.setupInfo
+    
+    setupInfo = getSetupInfo()
+    
     WIDTH = 1280
     HEIGHT = 720
     LENGTH = min(WIDTH, HEIGHT)
@@ -51,16 +60,21 @@ class pygameMain(object):
     moving = False
     color = green
     playBoard = cBoard(WIDTH, HEIGHT)
+
     #TODO, change how player list will work across network
-    playerList = [player(), player(), player(), player()]
+    playerList = []
+    for i in range(setupInfo['numPlayers']):
+        playerList.append(player())
+    #playerList = [player(), player(), player(), player()]
     #currPlayer = playerList[0]
     clientNumber = 0
     currState = 0
     drawDice = False
     # Show Player 1 name and score on the board
     # Note this is currently hardcoded for player 1
-    playBoard.board[2][1].title_text = "Larry"
-    playBoard.board[2][2].title_color = white
+    
+    playBoard.board[2][1].title_text = setupInfo['players'][0]['name'] #"Larry"
+    playBoard.board[2][2].title_color = setupInfo['players'][0]['color'] #white
     
     #the playground
     boundingDraw = False
@@ -310,9 +324,6 @@ class pygameMain(object):
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
 
-    def __init__(self, databaseConnection):
-        self.databaseConnection = databaseConnection    
-
     #TODO implement this later
     def mainMenuLoop(self):
         localRun = True
@@ -504,8 +515,9 @@ def main():
 
     if selected_menu_action == "start":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-        runSetupMenu(database)
-        demo = pygameMain(database)
+        setupInfo = runSetupMenu(database)
+        print(setupInfo)
+        demo = pygameMain(database, setupInfo)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
