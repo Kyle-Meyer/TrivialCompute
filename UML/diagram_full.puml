@@ -1,205 +1,163 @@
 @startuml trivialCompute
 
-' Define the pygameMain class
-class pygameMain {
-    - WIDTH: int = 1280
-    - HEIGHT: int = 720
-    - LENGTH: int = min(WIDTH, HEIGHT)
-    - OFFSET: int = max(WIDTH, HEIGHT)
-    - run: bool = true
-    - moving: bool = false
-    - color: any
-    - playBoard: cBoard
-    - player: player
-    - boundingDraw: bool = false
-    - dice: dice
-    - questionAnswerTextWidget: textWidget
-    - gameMenu: gameMenu
-    - menuButtons: map[string, int]
-    - settingsMenu: configMenu
-    - diceRoll: int = 0
-    - screen: pygame.Surface
-    - bounding_box: pygame.Rect
-    - bounding_box2: pygame.Rect
-    - clock: pygame.time.Clock
+skinparam linetype ortho
 
-    ' + __init__(databaseConnection: databaseConnection)
-    + debugButton()
-    + createSettingsMenu()
-    + initiatePlayers()
-    + drawPlayers()
-    + screenPosToCoord(): tuple[int, int]
-    + advanceToken(position: tuple[int, int])
-    + updatePlayerScore(coord: tuple[int, int])
-    + checkIfPlayerJustWon(): bool
-    + crownVictor()
-    + handleCurrentPlayerMoves()
-    + calculateBoundingBox()
-    + mainMenuLoop()
+' 1. Define the pygameMain class
+class pygameMain #AntiqueWhite {
+    - width: int
+    - height: int
+    - screen: pygame.Surface
+    - run: bool
+    - currState: int    
+    - diceRoll: int
+    - clock: pygame.time.Clock
+    - settingsMenu: settingsMenu
+    - gameMenu: gameMenu
+    - setupMenu: setupMenu
+    - trivMenu: triviaMenu
+    - playerManager: playerMgr
+    - trivManager: triviaMgr
+    - playBoard: board
+    - gameDice: dice
+    - databaseConn: dbConnection
+    + createTriviaMenu():void
+    + createSettingsMenu():void
+    + crownVictor():void
+    + handleCurrentPlayerMoves():void
     + mainLoop()
 }
 
-' Define the cBoard class
-class cBoard {
-    - template: list<list<string>>
-    - HQs: list<triviaType>
-    - outerBoard: pygame.Rect
-    - tileSize: int
-    - board: list<list<tile>>
+' 2. Define the board class
+class board #White {
     - width: int
     - height: int
-    
-    ' + __init__(width: int, height: int)
-    + create_board()
-    + drawBoard(screen: pygame.Surface, currentNeighbors: set<tuple<int, int>>)
-    + correctBoard()
-    + initializeBoard()
-    + updateTileColors()
+    - tileSize: int    
+    - template: list[list[str]]
+    - board: list[list[tile]]
+    - HQs: list[triviaType]
+    + create_board(): void
+    + drawBoard(screen: pygame.Surface, 
+    currentNeighbors: set{tuple<int, int>}): void
 }
 
-' Define the tile class
-class tile {
-    - size: int = 50
-    - mColor: color = (base0)
-    - mComplimentColor: color = (base0)
-    - mDistinct: tileDistinction = tileDistinction.NORMAL
-    - mTrivia: triviaType = triviaType.RED
-    - title: pygame.font.Font = pygame.font.init()
-    - title_text: str = ""
-    - title_text_size: int = 40
-    - title_color: color = (base0)
-    - row: int = 0
-    - col: int = 0
-    - etitle: pygame.font.Font = pygame.font.init()
-    - etitle_text: str = ""
-    - etitle_text_size: int = 40
-    - etitle_color: color = (base0)
-    - box: pygame.Rect
-    - inner_box: pygame.Rect
-
-    + is_inside_bounding_box(point_or_rect: Union[pygame.Rect, tuple[int, int]]): bool
-    + drawTile(screen: pygame.Surface): void
-    + updateTile(inPosition: tuple[int, int], inWidth: int, inHeight: int, row: int, col: int): void
-    ' + __init__(inColor: triviaType, dist: tileDistinction = tileDistinction.NORMAL, inSize: int = 10, row: int = 0, col: int = 0): void
+' 3. Define the tile class
+class tile #White {
+    - size: int
+    - mColor: color
+    - title_text: str
+    - title_font: pygame.font.Font    
+    - title_text_size: int
+    - title_color: color    
+    - mDistinct: tileDistinction
+    - mTrivia: triviaType
+    - row: int
+    - col: int
+    + updateTile(inPosition: tuple<int, int>, 
+    inWidth: int, inHeight: int, row: int, col: int): void 
+    + drawTile(screen: pygame.Surface): void       
 }
 
-' Define the dice class
-class dice {
+' 4. Define the dice class
+class dice #White {
     - diceText: textWidget
-    - diceMenu: menu
     - rolling: bool
     - diceValue: int
     - rollCount: int
     - current_number: int
-    - update_interval: int = 1
-    - total_duration: int = 3000
+    - update_interval: int
+    - total_duration: int
     - timer: int
     - start_time: int
     - snap_time: int
-    ' + __init__(position: tuple[int, ...], width: int = 200, height: int = 200)
-    + drawDice(screen: any, movLockout: bool)
-    + rollDice(screen: any)
+    + rollDice(screen: any): int    
+    + drawDice(screen: any, 
+    movLockout: bool): void
 }
 
-' Define the PlayerManager class
-class playerManager {
+' 5. Define the playerMgr class
+class playerMgr {
     - players: list[player]
     - currentPlayerIndex: int
-
-    ' + __init__(numPlayers: int)
+    + initiatePlayers(list[str]): void     
+    + randomlyOrder() : void
     + getCurrentPlayer(): player
-    + nextPlayer()
-    + updateScores()
-    + resetGame()
+    + nextPlayer(): player
+    + movePlayerToken(playerPosition: tuple<int,int>): void
+    + updatePlayerScore(tuple<int,int>): void        
+    + screenPosToCoord(playerPosition: tuple<int,int>): tuple<int,int>
+    + checkIfPlayerJustWon(): bool
+    + drawPlayers(): void
 }
 
-' Define the player class
+' 6. Define the player class
 class player {
-    - circle_radius: int = 30
-    - circle_inner_radius: int = 20
-    - circle_highlight_radius: int = 5
-    - circle_x: int = 0
-    - circle_y: int = 0
-    - circle_color: Color = blue
-    - circle_shadow_color: Color = blue
-    - circle_highlight_color: Color = blue
-    - currCordinate: tuple = (0, 0)
-    - dragging: bool = False
-    - playerScore: dict = {"c1": "_", "c2": "_", "c3": "_", "c4": "_"}
-    - isTurn: bool = True
-    - hasRolled: bool = False
-    - clampBox: boundingBox
-    - currentNeighbors: list
+    - playerScore: dict
+    - playerToken: token
+    - playerPosition : tuple<int, int> 
+    - isTurn: bool
+    - hasRolled: bool
+    + drawPlayer(screen: pygame.Surface): void
+}
 
-    + getNeighbors(inboard: cBoard, curPosition: tuple, diceRolls: int, possibleNeighbors: list): list
+' 7. Define the token class
+class token {
+    - circle_radius: int
+    - circle_x: int
+    - circle_y: int
+    - circle_color: Color
+    - currCordinate: tuple<int, int> 
+    - dragging: bool
+    - currentNeighbors: list[tuple<int, int>]
+    + getNeighbors(inboard: board, curPosition: tuple<int, int> , diceRolls: int, possibleNeighbors: list[tuple<int, int>]): list[tuple<int, int>]
     + pruneNeighbors(diceRoll: int): void
     + checkIfHeld(inEvent: pygame.event): bool
     + checkValidMove(inTile: tile): bool
-    + clampPlayer(screenWidth: int, screenHeight: int): void
-    + updateBox(inX: int, inY: int, size: int = 120): void
-    + updateBoxByDice(diceRoll: int, tileSize: int): void
     + updateBoardPos(inTile: tile, diceRoll: int): void
     + setScreenCoords(inX: int, inY: int): void
-    + drawPlayer(screen: pygame.Surface): void
-    + updateColor(): void
-    ' + __init__(inRadius: int = 2, inX: int = 100, inY: int = 100, inColor: Color = player_blue): void
 }
 
-' Define the gameMenu class
-class gameMenu {
-  - border_color: Color
-  - title: pygame.font.Font
+' 8. Define the gameMenu class
+class gameMenu  #AliceBlue {
+  - width: int
+  - height: int
+  - screenCoords: tuple<int, int> 
+  - title_font: pygame.font.Font
   - title_text: str
   - title_text_size: int
-  - child_Dictionary: dict<childType, list>
-  - ScreenCoords: tuple<int, int>
-  - menu_width: int
-  - menu_height: int
-  - border_thickness: int
-  - rect: pygame.Rect
-  - fadeBox: alphaRect
-  - slidingIn: bool
-  - slidingOut: bool
-  - start_time: int
-  - slideDuration: int
-  - overlayTarget: tuple<int, int>
-  - button_start_pos: tuple<int, int>
+  - child_Dictionary: dict[childType, list]
+  - overlayTarget: tuple<int, int> 
+  - button_start_pos: tuple<int, int> 
   - currButtonWidth: int
   - currButtonHeight: int
   - lockOut: bool
-  
-  ' + __init__(position: tuple<int, ...>, width: int = 200, height: int = 200, titleText: str = "place holder")
-  + draw_rounded_rect(surface: pygame.Surface)
-  + drawMenu(screen: pygame.Surface, title_col: Color)
-  + changeTextSize(inSize: int)
-  + resizeBox(width: int, height: int)
-  + moveBox(inPosition: tuple<int, int>)
-  + reOrientButtons(inPosition: tuple<int, int>, width: int, height: int)
-  + ease_in(current_time: int, start_value: int, change_in_value: int, duration: int) : int
-  + ease_out(current_time: int, start_value: int, change_in_value: int, duration: int) : int
-  + slideIn(target: tuple<int, int>, inTime: int = 350)
-  + resizeAllButtons(inWidth: int, inHeight: int)
-  + addChildComponent(inComponent: object)
-  + listen_for_slider(event: pygame.event.Event, index: int) : int
-  + listen_for_checkBox(event: pygame.event.Event) : int
-  + listen_for_buttons(event: pygame.event.Event) : int
+  - buttons: set{button}
+  - textWidgets: set{textWidget}
+  + draw_rounded_rect(surface: pygame.Surface): void
+  + drawMenu(screen: pygame.Surface, title_col: Color): void
+  + slideIn(target: tuple<int, int>, inTime: int): void
+  + addChildComponent(inComponent: object): void
+  + listen_for_buttons(event: pygame.event.Event): int
+  + gameMenuLoop(): void
 }
 
-' Define the configMenu class
-class configMenu {
-    - toDraw: bool = False
-    - startX: int = 0
-    - startY: int = 0
-    - menuDuration: int = 0
-    - newCent: int = 0
-    - isOut: bool = False
-    - stateList: list = []
-    - activeDictionary: dict = {}
+' 9. Define the settingsMenu class
+class settingsMenu  #AliceBlue {
+    - toDraw: bool
+    - startX: int
+    - startY: int
+    - menuDuration: int
+    - newCent: int
+    - isOut: bool
+    - stateList: list
+    - activeDictionary: dict
     - exitButton: button
     - rightButton: button
     - leftButton: button
-    - activeIndex: int = 0
-
+    - activeIndex: int
+    - buttons: set{button}
+    - textWidgets: set{textWidget}
+    - checkBoxWidgets: set{checkBoxWidgets}
+    + settingsMenuLoop(): void
     + addChildComponent(inComponent: object): void
     + updateButtonFadeBoxes(): void
     + addDictionary(): void
@@ -215,142 +173,236 @@ class configMenu {
     + listen_for_checkBox(event: pygame.event): void
     + listen_for_buttons(event: pygame.event): int
     + drawMenu(screen: pygame.Surface): void
-    ' + __init__(position: tuple[int, ...], width: int = 200, height: int = 200, titleText: str = "place holder"): void
 }
 
-' Define the textWidget class
-class textWidget {
-    - border_color: color = base3
-    - title: pygame.font.Font = pygame.font.init()
-    - title_text: str = "place holder"
-    - title_text_size: int = 40
-    - ScreenCoords: tuple[int, int] = (0,0)
-    - menu_width: int = 200
-    - menu_height: int = 200
-    - border_thickness: int = 0
-    - originalX: int = 0
-    - rect: pygame.Rect = pygame.Rect(ScreenCoords[0], ScreenCoords[1], menu_width, menu_height)
-
+' 10. Define the textWidget class
+class textWidget #AliceBlue {
+    - width: int
+    - height: int
+    - screenCoords: tuple<int, int>    
+    - rect: pygame.Rect    
+    - title_font: pygame.font.Font
+    - title_text: str
+    - title_text_size: int
     + draw_rounded_rect(surface: pygame.Surface): void
     + drawWidget(screen: pygame.Surface): void
     + wrap_text(text: str, max_width: int): list[str]
-    + changeTextSize(inSize: int): void
-    + resizeBox(width: int, height: int): void
-    + moveBox(inPosition: tuple[int, int]): void
     + updateText(inText: str): void
-    ' + __init__(position: tuple[int, ...], width: int = 200, height: int = 200, inText: str = "place holder"): void
 }
 
-' Define the checkBoxWidget class
-class checkBoxWidget {
-    - checkbox_rect: pygame.Rect = pygame.Rect(150, 100, 40, 40)
-    - outer_rect: pygame.Rect = pygame.Rect(160, 110, 50, 50)
-    - checked: bool = False
-    - originalX: int = 0
-    + listen(event: pygame.event.Event) : bool
-    + drawWidget(screen: pygame.Surface)
-    ' + __init__(inPosition: tuple<int, int>, inWidth: int, inHeight: int)
+' 11. Define the checkBoxWidget class
+class checkBoxWidget #AliceBlue {
+    - checkbox_rect: pygame.Rect
+    - checked: bool
+    - screenCoords: tuple<int, int>  
+    + listen(event: pygame.event.Event): bool
+    + drawWidget(screen: pygame.Surface): void
 }
 
-' Define the button class
-class button {
-    - button_width: int = 100
-    - button_height: int = 50
-    - button_Position_Screen: tuple<int, int> = (0, 0)
-    - button_inner_color: color = null
-    - button_outline_color: color = base3
-    - button_rect: pygame.Rect = pygame.Rect(100, 100, button_width, button_height)
-    - border_thickness: int = 0
-    - border_radius: int = 10
-    - button_font: pygame.font.Font = pygame.font.init()
-    - button_text_size: int = 40
-    - button_text: str = "place holder"
-    - button_text_color: color = yellow
-    - lockout: bool = False
-    - fadeBox: alphaRect = alphaRect((0,0), 1, 1)
-    - lockOut: bool = False
-    - originalX: int = 0
-    - oldColor: color
-    - oldTextColor: color
-    + draw_rounded_rect(surface: pygame.Surface)
-    + draw_button(screen: pygame.Surface)
-    + isClicked(event: pygame.event.Event) : bool
-    + updateInnerColor(inColor: color)
-    + changeTextSize(inSize: int)
-    + resizeBox(width: int, height: int)
-    + moveBox(inPosition: tuple<int, int>)
-    + updateFadeBox()
-    ' + __init__(inPosition: tuple<int, int>, width: int = 300, height: int = 100, inText: str = "place holder")
+' 12. Define the button class
+class button #AliceBlue {
+    - width: int
+    - height: int
+    - screenCoords: tuple<int, int> 
+    - button_inner_color: color
+    - rect: pygame.Rect
+    - button_text_font: pygame.font.Font
+    - button_text_size: int
+    - button_text: str
+    - button_text_color: color
+    - lockout: bool
+    + draw_rounded_rect(surface: pygame.Surface): void
+    + draw_button(screen: pygame.Surface): void
+    + isClicked(event: pygame.event.Event): bool
 }
 
-' Define the Question class
-class Question {
+' 13. Define the Question class
+class question {
+  - questionId: int
   - questionText: str
   - multimediaContent: any
-  - category: Category
-  - answer: Answer
-  ' + __init__(questionText: str, multimediaContent: any, category: Category)
+  - category: str
+  - answer: answer
   + getQuestionText() : str
   + getMultimediaContent() : any
 }
 
-' Define the Answer class
-class Answer {
+' 14. Define the Answer class
+class answer {
   - answerText: str
-  - multimediaContent: any
-  - isCorrect: bool
-  ' + __init__(answerText: str, multimediaContent: any, isCorrect: bool)
-  + getAnswerText() : str
-  + getMultimediaContent() : any
+  + getAnswer() : str
 }
 
-' Define the triviaManager class
-class triviaManager {
+' 15. Define the triviaMgr class
+class triviaMgr {
     - selectedCategories: list[str]
-    - currentQuestion: str
-    - currentAnswer: str
-    - previousQuestions: list[str]
-    - dbConnection: databaseConnection
-
-    '+ __init__(dbConnection: databaseConnection)
-    + setSelectedCategories(categories: list[str])
-    + getNextQuestion() : tuple[str, str]
-    + getPreviousQuestions() : list[str]
+    - currentQuestionId: int
+    - currentQuestion: question
+    - currentAnswer: answer
+    - previousQuestionIds: list[int]
+    - previousQuestions: list[question]
+    + setSelectedCategories(categories: list[str]): void
+    + getNextQuestion(conn: dbConnection, category: str): question
+    + getPreviousQuestionIds(): list[str]
+    + questionPlayer(): bool
 }
 
-' Define the databaseConnection class
-class databaseConnection {
+' 16. Define the dbConnection class
+class dbConnection #LightSalmon {
     - dbname: str
     - user: str
     - password: str
-    - host: str = 'localhost'
-    - port: str = '5432'
-    - conn: any = None
-    ' + __init__(dbname: str, user: str, password: str, host: str = 'localhost', port: str = '5432')
-    + connect()
-    + close()
-    + executeQueryFetchAll(query: str, params: list = None) : list
-    + executeQueryFetchOne(query: str, params: list = None) : any
-    + getQuestionAndAnswerByCategory(category: str) : any
-    + getRandomQuestionAndAnswer() : any
-    + getCategories() : list
+    - host: str
+    - port: int
+    - conn: any
+    + connect(): conn
+    + close(): void
+    + executeQueryFetchAll(query: str, params: list): list
+    + executeQueryFetchOne(query: str, params: list): any
+    + getQuestionAndAnswerByCategory(category: str): any
+    + getRandomQuestionAndAnswer(): any
+    + getCategories(): list
 }
 
-pygameMain --> cBoard
-pygameMain --> dice
-pygameMain --> textWidget
-pygameMain --> gameMenu
-pygameMain --> configMenu
-pygameMain --> databaseConnection
-pygameMain --> playerManager
-pygameMain --> triviaManager
-triviaManager --> Question
-Question --> Answer
-cBoard *-- tile
-gameMenu *-- button
-gameMenu *-- textWidget
-configMenu *-- checkBoxWidget
-configMenu *-- textWidget
-playerManager o-- player
+' 17. Define the triviaMenu class
+class triviaMenu #AliceBlue {
+    - toDraw: bool
+    - startX: int
+    - startY: int
+    - menuDuration: int
+    - newCent: int
+    - isOut: bool
+    - stateList: list
+    - activeDictionary: dict
+    - startButton: button
+    - buttons: set{button}
+    - textWidgets: set{textWidget}
+    - timer: timerClock 
+    + addChildComponent(inComponent): void
+    + addDictionary(): void
+    + switchActiveDictionary(index: int): void
+    + slideFadeBox(): void
+    + slideMenu(): void
+    + slideButtons(): void
+    + slideTextWidgets(): void
+    + slideClock(): void
+    + resetTimer(): void
+    + slideAll(): void
+    + listen_for_buttons(event): int
+    + drawMenu(screen): void
+}
+
+' 18. Define dbMgr class
+class dbMgr #DarkGrey {
+    - conn
+    - cur
+    + db_connect() : conn
+    + get_categories() : list
+    + get_questions_by_category(category: str): list
+    + get_category_name_by_category_id(category_id: int) : str
+    + add_category(name: str)
+    + add_question(question: str, answer: str, category : str) : void
+    + remove_question(question_id) : void
+    + remove_category(category_id) : void
+}
+
+' 19. Define ttkGuiApp class
+class ttkGuiApp #DarkGrey {
+    - db_manager: dbMgr
+    - category_frame
+    - action_frame
+    - init_db_button
+    - display_categories_button
+    - category_list
+    - add_category_button
+    - remove_category_button
+    - selected_category: str
+    + init_db(): void
+    + display_categories(): void
+    + on_category_select(event): void
+    + display_questions(category): void
+    + show_add_category(): void
+    + submit_category(): void
+    + show_add_question(): void
+    + submit_question(): void
+    + show_remove_question(): void
+    + show_remove_category(): void
+}
+
+' 20. Define timerClock class
+class timerClock  #AliceBlue {
+    - radius: int
+    - width: int
+    - position: tuple<int, int>     
+    - font: pygame.font.Font
+    - text: str
+    - event: pygame.event
+    - counter: int
+    - clock: pygame.time.Clock
+    - startCounting: bool
+    - shouldDraw: bool
+    + drawArcCv2(surf, color, 
+    center, radius, width, end_angle): void
+    + countTime(event)
+    + drawClock(window)      
+}
+
+' 21. Define setupMenu class
+class setupMenu #AliceBlue {
+    - numPlayers: int
+    - playerNames: list[str]
+    - questionCategories: list[str]
+    - playerTokenColors: map<str, Color>
+    - categoryColors: map<str, Color>   
+    - buttons: set{button}
+    - textWidgets: set{textWidget} 
+    + selectNumPlayers(numPlayers: int): void
+    + nterPlayerName(playerIndex: int, name: str): void
+    + selectPlayerTokenColor(playerIndex: int, color: Color): void
+    + selectQuestionCategories(categories: list[str]): void
+    + associateCategoryColor(category: str, color: Color): void
+    + listen_for_checkBox(event: pygame.event): void
+    + listen_for_buttons(event: pygame.event): int
+    + drawMenu(screen: pygame.Surface): list[str],list[str],map[str,Colors]
+    + setupMenuLoop(): void
+    +submitSelections(): void
+}
+
+ttkGuiApp " 1 " --> " 1 " dbMgr : uses
+dbMgr " 1 " --> " 1 " dbConnection : manages
+
+pygameMain "1" --> " 1 " board : contains
+pygameMain "1" --> " 1..2 " dice : uses
+pygameMain "1" --> " * " textWidget : displays
+pygameMain "1" --> " 1 " setupMenu : uses
+pygameMain "1" --> " 1 " gameMenu : uses
+pygameMain "1" --> " 1 " settingsMenu : uses
+pygameMain "1" --> " 1 " triviaMenu : uses
+pygameMain "1" --> " 1 " dbConnection : uses
+pygameMain "1" --> " 1 " playerMgr : manages
+pygameMain "1" --> " 1 " triviaMgr : manages
+
+triviaMgr " 1 " o--> " * " question : contains
+question " 1 " *--> " 1 " answer : consists of
+board " 1 " *--> " 81 " tile : composed of
+
+gameMenu " 1 " o--> " * " button : contains
+gameMenu " 1 " o--> " * " textWidget : contains
+
+setupMenu " 1 " o--> " * " checkBoxWidget : contains
+setupMenu "1" o--> " * " textWidget : contains
+setupMenu " 1 " o--> " * " button : contains
+
+settingsMenu " 1 " o--> " * " checkBoxWidget : contains
+settingsMenu " 1 " o--> " * " textWidget : contains
+settingsMenu " 1 " o--> " * " button : contains
+
+triviaMenu " 1 " o--> " * " button : contains
+triviaMenu " 1 " o--> " * " textWidget : contains
+
+triviaMenu " 1 " --> " 1 " timerClock : uses
+
+playerMgr " 1 " o--> " 1..4 " player : manages
+player " 1 " *--> " 1 " token : owns
 
 @enduml

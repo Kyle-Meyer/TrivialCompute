@@ -1,20 +1,73 @@
 ' Use Case 5: Configure New Question and Answer Pair
-
 @startuml
-actor Teacher
-participant configMenu
-participant databaseConnection
 
-Teacher -> configMenu: selectQuestionsAndAnswersOption()
-configMenu -> databaseConnection: getCategories()
-databaseConnection -> configMenu: returnCategories()
-configMenu -> Teacher: displayCategories()
-Teacher -> configMenu: selectCategory(category)
-configMenu -> databaseConnection: getQuestions(category)
-databaseConnection -> configMenu: returnQuestions(questions)
-configMenu -> Teacher: displayQuestions()
-Teacher -> configMenu: addNewQuestionAndAnswer(question, answer)
-configMenu -> databaseConnection: saveNewQuestionAndAnswer(question, answer)
-databaseConnection -> configMenu: confirmSave()
-configMenu -> Teacher: displayUpdatedQuestions()
+actor Teacher
+
+participant ttkGuiApp
+participant dbMgr
+participant dbConnection
+
+Teacher -> ttkGuiApp: click 'Categories'
+activate ttkGuiApp
+
+ttkGuiApp -> dbMgr: get_categories()
+activate dbMgr
+
+dbMgr -> dbConnection: executeQueryFetchAll("SELECT * FROM categories")
+activate dbConnection
+
+dbConnection --> dbMgr: list of categories
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: list of categories
+deactivate dbMgr
+
+ttkGuiApp -> ttkGuiApp: display categories
+
+Teacher -> ttkGuiApp: click on category
+ttkGuiApp -> dbMgr: get_questions_by_category(category)
+activate dbMgr
+
+dbMgr -> dbConnection: executeQueryFetchAll("SELECT * FROM questions WHERE category=?", [category])
+activate dbConnection
+
+dbConnection --> dbMgr: list of questions
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: list of questions
+deactivate dbMgr
+
+ttkGuiApp -> ttkGuiApp: display questions
+
+Teacher -> ttkGuiApp: click 'Add New Question and Answer'
+ttkGuiApp -> ttkGuiApp: display text input fields
+
+Teacher -> ttkGuiApp: enter question and answer
+Teacher -> ttkGuiApp: click 'Add'
+ttkGuiApp -> dbMgr: add_question(question, answer, category)
+activate dbMgr
+
+dbMgr -> dbConnection: executeQuery("INSERT INTO questions (question, answer, category) VALUES (?, ?, ?)", [question, answer, category])
+activate dbConnection
+
+dbConnection --> dbMgr: confirmation
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: confirmation
+deactivate dbMgr
+
+ttkGuiApp -> dbMgr: get_questions_by_category(category)
+activate dbMgr
+
+dbMgr -> dbConnection: executeQueryFetchAll("SELECT * FROM questions WHERE category=?", [category])
+activate dbConnection
+
+dbConnection --> dbMgr: updated list of questions
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: updated list of questions
+deactivate dbMgr
+
+ttkGuiApp -> ttkGuiApp: display updated list of questions
+
 @enduml

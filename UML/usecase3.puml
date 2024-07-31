@@ -1,28 +1,65 @@
 ' Use Case 3: Gameplay
 
 @startuml
+
 actor Player
 participant pygameMain
-participant playerManager
+participant gameMenu
+participant board
+participant playerMgr
+participant button
+participant textWidget
 participant dice
-participant cBoard
-participant tile
-participant triviaManager
+participant triviaMgr
+participant triviaMenu
 
-Player -> pygameMain: rollDice()
-pygameMain -> dice: roll()
-dice -> pygameMain: returnDiceValue()
-pygameMain -> playerManager: movePlayer(diceValue)
-playerManager -> cBoard: getTileAtPosition()
-cBoard -> playerManager: returnTile(tile)
-playerManager -> pygameMain: landOnTile(tile)
-pygameMain -> triviaManager: getQuestionForTile(tile)
-triviaManager -> pygameMain: returnQuestion(question)
-pygameMain -> Player: displayQuestion(question)
-Player -> pygameMain: submitAnswer(answer)
-pygameMain -> triviaManager: validateAnswer(answer)
-triviaManager -> pygameMain: returnValidationResult()
-pygameMain -> playerManager: updateScore(validationResult)
-playerManager -> pygameMain: returnUpdatedScore()
-pygameMain -> Player: displayScore(score)
+activate pygameMain
+
+
+loop mainLoop()
+    pygameMain -> board: drawBoard()    
+    pygameMain -> playerMgr: drawPlayers()  
+
+    pygameMain -> gameMenu: drawGameMenu()
+
+    activate gameMenu
+    gameMenu -> button: addChildComponent(button)
+    gameMenu -> textWidget: addChildComponent(textWidget)
+    gameMenu -> dice: drawDice()
+    
+    loop gameMenuLoop()
+        loop Event Handling
+            gameMenu -> button: listen_for_buttons(event)
+            gameMenu -> button: isClicked(event)
+            button --> gameMenu: bool (clicked)
+        end
+        Player -> button: Click Roll Dice Button
+        gameMenu -> dice: rollDice()
+        dice --> gameMenu: dice roll result (int)
+        Player -> button: Click Move Token Button after Moving Token
+        gameMenu -> playerMgr: movePlayerToken()
+        gameMenu -> triviaMgr: questionPlayer()
+        triviaMgr -> triviaMenu: drawTriviaMenu()
+        activate triviaMenu        
+        loop triviaMenuLoop()
+            Player -> triviaMenu: Click Show Question Button
+            Player -> triviaMenu: Click Show Answer Button
+            Player -> triviaMenu: Click Correct or Incorrect Button
+            triviaMenu --> triviaMgr: bool triviaResult
+            deactivate triviaMenu        
+        end
+        triviaMgr --> gameMenu: correct or incorrect
+        gameMenu -> playerMgr: updatePlayerScore()
+        gameMenu -> playerMgr: checkIfPlayerJustWon() 
+        playerMgr --> gameMenu: true or false       
+        gameMenu -> playerMgr: nexPlayer()
+        playerMgr --> gameMenu: player
+        deactivate gameMenu
+    end
+
+    pygameMain -> pygameMain: crownVictor()    
+end
+
+deactivate pygameMain
+
 @enduml
