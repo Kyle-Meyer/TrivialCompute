@@ -49,14 +49,33 @@ class pygameMain(object):
 
         # Initialize playerList using setupInfo
         self.playerList = []
+        print(self.setupInfo)
         print(self.setupInfo['number_of_players'])
         for i in range(self.setupInfo['number_of_players']):
-            self.playerList.append(player())
+            color_switcher = {
+                (255, 0, 0): player_red,
+                (0, 0, 255): player_blue,
+                (0, 255, 0): player_green,
+                (255, 255, 0): player_yellow
+            }
+            self.playerList.append(player(11, self.WIDTH // 2, self.HEIGHT // 2,color_switcher.get(self.setupInfo['players'][i]['color'])))
+            self.playerList[i].playerName = self.setupInfo['players'][i]['name']
+            self.playerList[i].playerColor =color_switcher.get(self.setupInfo['players'][i]['color'])
 
         # Initialize playBoard attributes that depend on setupInfo
         self.playBoard = cBoard(self.WIDTH, self.HEIGHT)
-        self.playBoard.board[2][1].title_text = self.setupInfo['players'][0]['name'] #"Larry"
-        self.playBoard.board[2][2].title_color = self.setupInfo['players'][0]['color'] #white
+        for i in range(self.setupInfo['number_of_players']):
+            position_switcher = {
+                0: (2, 1),
+                1: (6, 1),
+                2: (2, 5),
+                3: (6, 5)
+            }
+            a, b = position_switcher.get(i)
+            self.playerList[i].playerScorePosition = (a,b)
+            self.playBoard.board[a][b].title_text = self.playerList[i].playerName #Larry
+            self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
+
     
     WIDTH = 1280
     HEIGHT = 720
@@ -176,11 +195,11 @@ class pygameMain(object):
 
    #TODO encapsulate this so that it can draw mutliple players
     def initializePlayersForNewGame(self):
-        localColorList = [player_red, player_blue, player_green, player_yellow]
+        #localColorList = [player_red, player_blue, player_green, player_yellow]
         count = 0
         offset = 17
         for play in self.playerList:
-            play = player(11, self.WIDTH // 2, self.HEIGHT // 2, localColorList[count])
+            #play = player(11, self.WIDTH // 2, self.HEIGHT // 2, localColorList[count])
             play.updateBoardPos(self.playBoard.board[4][4], self.diceRoll)
             self.playerList[count] = play
             match count:
@@ -271,8 +290,7 @@ class pygameMain(object):
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.BLUE: self.currPlayer.playerScore[cat]="B"
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.GREEN: self.currPlayer.playerScore[cat]="G"
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.YELLOW: self.currPlayer.playerScore[cat]="Y"
-            # Note this is currently hardcoded for player 1
-            self.playBoard.board[2][2].title_text = str(self.currPlayer.playerScore["c1"])+ \
+            self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]+1].title_text = str(self.currPlayer.playerScore["c1"])+ \
                         str(self.currPlayer.playerScore["c2"])+     \
                         str(self.currPlayer.playerScore["c3"])+     \
                         str(self.currPlayer.playerScore["c4"])
@@ -291,8 +309,9 @@ class pygameMain(object):
 
     # Crown the victor
     def crownVictor(self):
-        self.playBoard.board[2][1].title_color = winner_green
-        self.playBoard.board[2][2].mColor = winner_green
+
+        self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]].title_color = winner_green
+        self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]+1].mColor = winner_green
                 
     def handleCurrentPlayerMoves(self):
         self.currPlayer.currentNeighbors.clear()
