@@ -20,6 +20,7 @@ from dice import dice
 from particleMgr import particleManager
 from databaseConnection import databaseConnection
 from startMenu import run_start_menu
+from gameSetupMenu import runSetupMenu
 from slidingMenu import slidingMenu
 from slideBarWidget import slideBarWidget
 from triviaMenu import triviaMenu
@@ -42,6 +43,21 @@ class mainMenu(object):
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     
 class pygameMain(object):
+    def __init__(self, databaseConnection, setupInfo):
+        self.databaseConnection = databaseConnection
+        self.setupInfo = setupInfo
+
+        # Initialize playerList using setupInfo
+        self.playerList = []
+        print(self.setupInfo['number_of_players'])
+        for i in range(self.setupInfo['number_of_players']):
+            self.playerList.append(player())
+
+        # Initialize playBoard attributes that depend on setupInfo
+        self.playBoard = cBoard(self.WIDTH, self.HEIGHT)
+        self.playBoard.board[2][1].title_text = self.setupInfo['players'][0]['name'] #"Larry"
+        self.playBoard.board[2][2].title_color = self.setupInfo['players'][0]['color'] #white
+    
     WIDTH = 1280
     HEIGHT = 720
     LENGTH = min(WIDTH, HEIGHT)
@@ -49,17 +65,12 @@ class pygameMain(object):
     run = True
     moving = False
     color = green
-    playBoard = cBoard(WIDTH, HEIGHT)
+   
     #TODO, change how player list will work across network
-    playerList = [player(), player(), player(), player()]
     #currPlayer = playerList[0]
     clientNumber = 0
     currState = 0
     drawDice = False
-    # Show Player 1 name and score on the board
-    # Note this is currently hardcoded for player 1
-    playBoard.board[2][1].title_text = "Larry"
-    playBoard.board[2][2].title_color = white
     
     #the playground
     boundingDraw = False
@@ -90,6 +101,7 @@ class pygameMain(object):
     #TODO clean this up
     settingsMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
     trivMenu = triviaMenu((WIDTH//2, -720), 700, 600)
+    gameSetupMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
 
     #slider = slideBarWidget((300, 200), 300, 100)
     #settingsMenu = slidingMenu((10, 300), 100, 100)
@@ -308,9 +320,6 @@ class pygameMain(object):
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
 
-    def __init__(self, databaseConnection):
-        self.databaseConnection = databaseConnection    
-
     #TODO implement this later
     def mainMenuLoop(self):
         localRun = True
@@ -332,6 +341,7 @@ class pygameMain(object):
         hasPulled = False
         while self.run:
             #event chain
+            
             for event in pygame.event.get():
                 if event.type == QUIT:
                     self.run= False 
@@ -435,7 +445,15 @@ class pygameMain(object):
                     self.trivMenu.triviaClock.shouldDraw = True
                     if not hasPulled:
                         print("HAS NOT PULLED")
-                        question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
+                        categories = self.setupInfo['categories']
+                        category_names = []
+                        if len(categories) < 4 or categories == {}:
+                            category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                        else:
+                            for catRec in categories:
+                                category_names.append(catRec['name'])
+                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        #question, answer = self.databaseConnection
                         self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                         hasPulled = True
 
@@ -501,7 +519,10 @@ def main():
 
     if selected_menu_action == "start":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-        demo = pygameMain(database)
+        setupInfo = runSetupMenu(database)
+        #print(setupInfo)
+        demo = pygameMain(database, setupInfo)
+        #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
         demo.createTriviaMenu()
