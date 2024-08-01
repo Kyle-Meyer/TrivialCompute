@@ -47,10 +47,16 @@ class pygameMain(object):
         self.databaseConnection = databaseConnection
         self.setupInfo = setupInfo
 
-    def getSetupInfo(self):
-        return self.setupInfo
-    
-    setupInfo = getSetupInfo()
+        # Initialize playerList using setupInfo
+        self.playerList = []
+        print(self.setupInfo['number_of_players'])
+        for i in range(self.setupInfo['number_of_players']):
+            self.playerList.append(player())
+
+        # Initialize playBoard attributes that depend on setupInfo
+        self.playBoard = cBoard(self.WIDTH, self.HEIGHT)
+        self.playBoard.board[2][1].title_text = self.setupInfo['players'][0]['name'] #"Larry"
+        self.playBoard.board[2][2].title_color = self.setupInfo['players'][0]['color'] #white
     
     WIDTH = 1280
     HEIGHT = 720
@@ -59,22 +65,12 @@ class pygameMain(object):
     run = True
     moving = False
     color = green
-    playBoard = cBoard(WIDTH, HEIGHT)
-
+   
     #TODO, change how player list will work across network
-    playerList = []
-    for i in range(setupInfo['numPlayers']):
-        playerList.append(player())
-    #playerList = [player(), player(), player(), player()]
     #currPlayer = playerList[0]
     clientNumber = 0
     currState = 0
     drawDice = False
-    # Show Player 1 name and score on the board
-    # Note this is currently hardcoded for player 1
-    
-    playBoard.board[2][1].title_text = setupInfo['players'][0]['name'] #"Larry"
-    playBoard.board[2][2].title_color = setupInfo['players'][0]['color'] #white
     
     #the playground
     boundingDraw = False
@@ -449,7 +445,15 @@ class pygameMain(object):
                     self.trivMenu.triviaClock.shouldDraw = True
                     if not hasPulled:
                         print("HAS NOT PULLED")
-                        question, answer = self.databaseConnection.getRandomQuestionAndAnswer()
+                        categories = self.setupInfo['categories']
+                        category_names = []
+                        if len(categories) < 4 or categories == {}:
+                            category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                        else:
+                            for catRec in categories:
+                                category_names.append(catRec['name'])
+                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        #question, answer = self.databaseConnection
                         self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                         hasPulled = True
 
@@ -516,7 +520,7 @@ def main():
     if selected_menu_action == "start":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         setupInfo = runSetupMenu(database)
-        print(setupInfo)
+        #print(setupInfo)
         demo = pygameMain(database, setupInfo)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
