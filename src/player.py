@@ -16,6 +16,9 @@ class player(object):
     currCoordinate = (0,0)
     dragging = False  # This flag checks if the circle is being dragged
     playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
+    playerScorePosition = (2,2)
+    playerName = "Gangster"
+    playerColor = white
     isTurn = True
     hasRolled = False
     clampBox = boundingBox()
