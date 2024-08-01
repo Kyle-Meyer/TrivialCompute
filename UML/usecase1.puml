@@ -1,25 +1,54 @@
 ' Use Case 1: Initialize Game Setup with Player Information and Category Selection
+' Use Case 2: Determine Player Order
 
 @startuml
+
 actor Player
 participant pygameMain
-participant gameMenu
-participant playerManager
-participant databaseConnection
-participant configMenu
-participant triviaManager
+participant playerMgr
+participant triviaMgr
+participant setupMenu
+participant button
+participant textWidget
+participant checkBoxWidget
 
-Player -> pygameMain: startGame()
-pygameMain -> gameMenu: displayStartMenu()
-gameMenu -> Player: selectNumberOfPlayers()
-Player -> gameMenu: providePlayerInfo()
-gameMenu -> playerManager: initializePlayers(playerInfo)
-playerManager -> pygameMain: updatePlayerManager()
-pygameMain -> databaseConnection: getCategories()
-databaseConnection -> pygameMain: returnCategories()
-pygameMain -> configMenu: displayCategorySelection(categories)
-Player -> configMenu: selectCategories()
-configMenu -> triviaManager: setSelectedCategories(categories)
-triviaManager -> pygameMain: categoriesUpdated()
-pygameMain -> gameMenu: displaySelectedCategories(categories)
+Player -> pygameMain: Start Application
+activate pygameMain
+
+pygameMain -> setupMenu: drawSetupMenu()
+activate setupMenu
+
+setupMenu -> button: addChildComponent(button)
+setupMenu -> textWidget: addChildComponent(textWidget)
+setupMenu -> checkBoxWidget: addChildComponent(checkBoxWidget)
+
+loop Event Handling, setupMenuLoop()
+    loop Event Handling    
+        setupMenu -> button: listen_for_buttons(event)
+        setupMenu -> button: isClicked(event)
+        button --> setupMenu: bool (clicked)
+        setupMenu -> checkBoxWidget: listen_for_checkBox(event)
+        setupMenu -> checkBoxWidget: listen(event)
+        checkBoxWidget --> setupMenu: bool (checked)
+    end
+
+    Player -> textWidget: Enter Player Information
+    textWidget --> setupMenu: enterPlayerName(playerIndex, name)
+
+    Player -> checkBoxWidget: Select Categories
+    checkBoxWidget --> setupMenu: selectQuestionCategories(categories)
+
+    Player -> button: Click Submit
+    button --> setupMenu: submitSelections()
+end
+deactivate setupMenu
+
+setupMenu --> pygameMain: player names, categories, and colors
+pygameMain -> playerMgr: initiatePlayers(player names)
+pygameMain -> playerMgr: randomlyOrderPlayers()
+pygameMain -> triviaMgr: setSelectedCategories(categories)
+
+
+deactivate pygameMain
+
 @enduml

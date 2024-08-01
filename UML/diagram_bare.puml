@@ -1,85 +1,229 @@
 @startuml trivialCompute
-
+skinparam linetype ortho
+skinparam ranksep 120
+!pragma ratio .75
+skinparam nodesep 50
 ' Define the pygameMain class
-class pygameMain {
+class pygameMain #AntiqueWhite {
+||||
+ 
+  
+   
 
 }
 
-' Define the cBoard class
-class cBoard {
-
+' Define the board class
+class board #White {
+||||
+ 
+  
+   
+   
 }
 
 ' Define the tile class
-class tile {
-
+class tile #White {
+||||
+ 
+  
+   
+     
 }
 
 ' Define the dice class
-class dice {
-
+class dice #White {
+||||
+ 
+  
+   
+   
 }
 
 ' Define the PlayerManager class
-class playerManager {
-
+class playerMgr {
+||||
+ 
+  
+   
+   
 }
 
 ' Define the player class
 class player {
+||||
+ 
+  
+   
+       
+}
+
+' Define the token class
+class token {
+||||
+ 
+  
+   
+    
 }
 
 ' Define the gameMenu class
-class gameMenu {
+class gameMenu  #AliceBlue {
+||||
+ 
+  
+   
+     
 }
 
-' Define the configMenu class
-class configMenu {
+' Define the settingsMenu class
+class settingsMenu  #AliceBlue {
+||||
+ 
+  
+   
+    
 }
 
 ' Define the textWidget class
-class textWidget {
+class textWidget #AliceBlue {
+||||
+ 
+  
+   
+
 }
 
 ' Define the checkBoxWidget class
-class checkBoxWidget {
+class checkBoxWidget #AliceBlue {
+||||
+ 
+  
+   
+    
 }
 
 ' Define the button class
-class button {
+class button #AliceBlue {
+||||
+ 
+  
+   
+    
 }
 
 ' Define the Question class
-class Question {
+class question {
+||||
+ 
+  
+   
+    
 }
 
 ' Define the Answer class
-class Answer {
+class answer {
+||||
+ 
+  
+   
+  
 }
 
 ' Define the triviaManager class
-class triviaManager {
+class triviaMgr {
+||||
+ 
+  
+   
+   
 }
 
 ' Define the databaseConnection class
-class databaseConnection {
+class dbConnection #LightSalmon {
+||||
+ 
+  
+   
+  
 }
 
-pygameMain --> cBoard
-pygameMain --> dice
-pygameMain --> textWidget
-pygameMain --> gameMenu
-pygameMain --> configMenu
-pygameMain --> databaseConnection
-pygameMain --> playerManager
-pygameMain --> triviaManager
-triviaManager --> Question
-Question --> Answer
-cBoard *-- tile
-gameMenu *-- button
-gameMenu *-- textWidget
-configMenu *-- checkBoxWidget
-configMenu *-- textWidget
-playerManager o-- player
+class triviaMenu #AliceBlue {
+||||
+ 
+  
+   
+    
+}
+
+class dbMgr #DarkGrey {
+||||
+ 
+  
+   
+    
+}
+
+class ttkGuiApp #DarkGrey {
+||||
+ 
+  
+   
+    
+}
+
+class timerClock  #AliceBlue {
+||||
+ 
+  
+   
+    
+}
+
+class setupMenu  #AliceBlue {
+||||
+ 
+  
+   
+    
+}
+
+
+ttkGuiApp " 1 " --> " 1 " dbMgr : uses
+dbMgr " 1 " --> " 1 " dbConnection : manages
+
+pygameMain "1" --> " 1 " board : contains
+pygameMain "1" --> " 1..2 " dice : uses
+pygameMain "1" --> " * " textWidget : displays
+pygameMain "1" --> " 1 " setupMenu : uses
+pygameMain "1" --> " 1 " gameMenu : uses
+pygameMain "1" --> " 1 " settingsMenu : uses
+pygameMain "1" --> " 1 " triviaMenu : uses
+pygameMain "1" --> " 1 " dbConnection : uses
+pygameMain "1" --> " 1 " playerMgr : manages
+pygameMain "1" --> " 1 " triviaMgr : manages
+
+triviaMgr " 1 " o--> " * " question : contains
+question " 1 " *--> " 1 " answer : consists of
+board " 1 " *--> " 81 " tile : composed of
+
+gameMenu " 1 " o--> " * " button : contains
+gameMenu " 1 " o--> " * " textWidget : contains
+
+setupMenu " 1 " o--> " * " checkBoxWidget : contains
+setupMenu "1" o--> " * " textWidget : contains
+setupMenu " 1 " o--> " * " button : contains
+
+settingsMenu " 1 " o--> " * " checkBoxWidget : contains
+settingsMenu " 1 " o--> " * " textWidget : contains
+settingsMenu " 1 " o--> " * " button : contains
+
+triviaMenu " 1 " o--> " * " button : contains
+triviaMenu " 1 " o--> " * " textWidget : contains
+
+triviaMenu " 1 " --> " 1 " timerClock : uses
+
+playerMgr " 1 " o--> " 1..4 " player : manages
+player " 1 " *--> " 1 " token : owns
+
 
 @enduml

@@ -1,16 +1,59 @@
 ' Use Case 4: Configure New Category
 
 @startuml
-actor Teacher
-participant configMenu
-participant databaseConnection
 
-Teacher -> configMenu: selectCategoriesOption()
-configMenu -> databaseConnection: getCategories()
-databaseConnection -> configMenu: returnCategories()
-configMenu -> Teacher: displayCategories()
-Teacher -> configMenu: addNewCategory(categoryName)
-configMenu -> databaseConnection: saveNewCategory(categoryName)
-databaseConnection -> configMenu: confirmSave()
-configMenu -> Teacher: displayUpdatedCategories()
+actor Teacher
+
+participant ttkGuiApp
+participant dbMgr
+participant dbConnection
+
+Teacher -> ttkGuiApp: click 'Categories'
+activate ttkGuiApp
+
+ttkGuiApp -> dbMgr: get_categories()
+activate dbMgr
+
+dbMgr -> dbConnection: executeQueryFetchAll("SELECT * FROM categories")
+activate dbConnection
+
+dbConnection --> dbMgr: list of categories
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: list of categories
+deactivate dbMgr
+
+ttkGuiApp -> ttkGuiApp: display categories
+
+Teacher -> ttkGuiApp: click 'Add New Category'
+ttkGuiApp -> ttkGuiApp: display text input field
+
+Teacher -> ttkGuiApp: enter category name
+Teacher -> ttkGuiApp: click 'Add'
+ttkGuiApp -> dbMgr: add_category(name)
+activate dbMgr
+
+dbMgr -> dbConnection: executeQuery("INSERT INTO categories (name) VALUES (?)", [name])
+activate dbConnection
+
+dbConnection --> dbMgr: confirmation
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: confirmation
+deactivate dbMgr
+
+ttkGuiApp -> dbMgr: get_categories()
+activate dbMgr
+
+dbMgr -> dbConnection: executeQueryFetchAll("SELECT * FROM categories")
+activate dbConnection
+
+dbConnection --> dbMgr: updated list of categories
+deactivate dbConnection
+
+dbMgr --> ttkGuiApp: updated list of categories
+deactivate dbMgr
+
+ttkGuiApp -> ttkGuiApp: display updated list of categories
+
 @enduml
