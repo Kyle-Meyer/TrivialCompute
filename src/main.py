@@ -148,7 +148,7 @@ class pygameMain(object):
         self.trivMenu.switchActiveDictionary(1)
         self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Answer PlaceHolder"))
         self.trivMenu.addChildComponent(button((500, 1300),  200, 70, "Correct!"))
-        self.trivMenu.addChildComponent(button((800, 1300),  200, 70, "InCorrect!"))
+        self.trivMenu.addChildComponent(button((800, 1300),  200, 70, "Incorrect!"))
         self.trivMenu.activeDictionary[childType.BUTTON][0].updateTextColor(green)
         self.trivMenu.activeDictionary[childType.BUTTON][1].updateTextColor(red)
         offset = 0
@@ -381,6 +381,10 @@ class pygameMain(object):
                     self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     print("RESET!")
                     self.trivMenu.resetTimer()
+                    self.clientNumber +=1
+                    if self.clientNumber >= 4:
+                        self.clientNumber = 0
+                    self.currPlayer = self.playerList[self.clientNumber]
                     self.currState = 0
                     
                 #self.slider.listen(event)
@@ -413,7 +417,6 @@ class pygameMain(object):
                         self.currState = 3
                     else:
                         self.currState = 4
-
                 elif mbs >= 0:
                     self.currState = 5
                     #check if correct
@@ -461,29 +464,29 @@ class pygameMain(object):
                     self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.drawDice = False
 
-                    self.trivMenu.triviaClock.shouldDraw = True
-                    if not hasPulled:
-                        print("HAS NOT PULLED")
-                        categories = self.setupInfo['categories']
-                        category_names = []
-                        if len(categories) < 4 or categories == {}:
-                            category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                        else:
-                            for catRec in categories:
-                                category_names.append(catRec['name'])
-                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                        #question, answer = self.databaseConnection
-                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                        hasPulled = True
-
-
             elif self.currState == 3:
+                #self.trivMenu.currState += 1
+                self.trivMenu.triviaClock.shouldDraw = True
                 self.trivMenu.triviaClock.startCounting = True
-                self.trivMenu.haltWidgetDraw = True
+
+                if not hasPulled:
+                    print("HAS NOT PULLED")
+                    categories = self.setupInfo['categories']
+                    category_names = []
+                    if len(categories) < 4 or categories == {}:
+                        category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    else:
+                        for catRec in categories:
+                            category_names.append(catRec['name'])
+                    question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    hasPulled = True
+
+                # self.trivMenu.haltWidgetDraw = True
                 self.trivMenu.startButton.button_text = "Reveal Answer"
-                
             elif self.currState == 4:
-                self.trivMenu.haltWidgetDraw = False
+                self.trivMenu.triviaClock.shouldDraw = False
+                self.trivMenu.triviaClock.startCounting = False
                 if self.trivMenu.away == False and self.trivMenu.activeIndex == 0:
                     self.trivMenu.switchActiveDictionary(1)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
