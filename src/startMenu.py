@@ -74,13 +74,13 @@ def run_start_menu():
 
 
     # Create buttons
-    config_button = Button("Configure", 850, 100, 300, 75, (41,173,255), config_game)
-    start_button = Button("Start New Game", 850, 200, 300, 75, (0,228,53), start_game)
-    restore_button = Button("Restore Last Game", 850, 300, 300, 75, (0,228,53), restore_last_game)
-    exit_button = Button("Exit", 850, 400, 300, 75, (255,0,76), exit_game)
+    config_button = Button("Configure", 850, 100, 300, 75, match_blue, config_game)
+    start_button = Button("Start New Game", 850, 200, 300, 75, match_green, start_game)
+    restore_button = Button("Restore Last Game", 850, 300, 300, 75, match_yellow, restore_last_game)
+    exit_button = Button("Exit", 850, 400, 300, 75, match_red, exit_game)
 
 
-    buttons = [config_button, start_button, restore_button, exit_button]
+    buttons = [start_button, restore_button, exit_button]
 
     # Main loop
     running = True
