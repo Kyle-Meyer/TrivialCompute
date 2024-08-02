@@ -21,6 +21,7 @@ from particleMgr import particleManager
 from databaseConnection import databaseConnection
 from startMenu import run_start_menu
 from gameSetupMenu import runSetupMenu
+from playerOrderMenu import run_order_menu
 from slidingMenu import slidingMenu
 from slideBarWidget import slideBarWidget
 from triviaMenu import triviaMenu
@@ -539,7 +540,11 @@ def main():
     if selected_menu_action == "start":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         setupInfo = runSetupMenu(database)
-        #print(setupInfo)
+        if(setupInfo['number_of_players'] in [2, 3, 4]):
+            setupInfo = run_order_menu(setupInfo)
+        if setupInfo == {}:
+            print("No setup info found.")
+            return
         demo = pygameMain(database, setupInfo)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
