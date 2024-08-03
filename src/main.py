@@ -386,6 +386,9 @@ class pygameMain(object):
                     if self.clientNumber >= 4:
                         self.clientNumber = 0
                     self.currPlayer = self.playerList[self.clientNumber]
+                    question = ''
+                    answer = ''
+                    hasPulled = False
                     self.currState = 0
                     
                 #self.slider.listen(event)
