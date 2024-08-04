@@ -30,10 +30,19 @@ NO WHEEL FILE OR INIT.PY<br />
 11>) install cv2<br />
     - (from your venv terminal) pip install opencv-python<br />
 <br />
+
 =======Running========<br />
 (from your venv terminal) python src/main.py<br />
 <br />
+NOTE: IF you are trying to run the online multiplayer component, you need to first do:<br />
+python src/network # this will convert your terminal into a server<br />
+<br />
+Now you can run<br />
+python src/main.py <br />
+<br />
+and as many instances (up to 4) as you'd like
 
+<br />
 Database setup<br />
 ======================================<br />
 Download PostgreSQL (This will install pgAdmin 4 as well)<br />
