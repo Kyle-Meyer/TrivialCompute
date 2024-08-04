@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS questions;
+
+DROP TABLE IF EXISTS categories;
+
 CREATE TABLE categories (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR UNIQUE
