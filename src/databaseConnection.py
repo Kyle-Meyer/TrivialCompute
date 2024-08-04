@@ -70,26 +70,28 @@ class databaseConnection(object):
         query = "SELECT id, name FROM categories"
         return self.executeQueryFetchAll(query)
 
-    def getPlayerPositionsOfLastSavedGame(self):
-        query = "SELECT \"playerPositions\" FROM saved_game_states ORDER BY date DESC"
+    def getGameStateOfLastSavedGame(self):
+        query = "SELECT * FROM saved_game_states ORDER BY date DESC"
         return self.executeQueryFetchOne(query)
 
-    def saveCurrentGameState(self, playerList, currPlayer, playerOrder):
-        count = 0
+    def saveCurrentGameState(self, playerList, setupInfo, currPlayerIndex):
 
-        # Initialize dictionary
+        # Initialize dictionaries
         player_position_data = {}
+        player_score_data = {}
 
-        # Populate dictionary with incrementing count
+        count = 0
+        # Populate dictionaries with incrementing player count
         for player in playerList:
             player_position_data[f'player{count}'] = player.currCoordinate
+            player_score_data[f'player{count}'] = player.playerScore
             count += 1
 
         # Convert the dictionary to a JSON string
         json_player_position_data = json.dumps(player_position_data)
-        
-        #TODO format currPlayer and playerOrder and use those values in the insert statement instead of the test values
-        
-        query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"playerOrder\", \"currentPlayer\", \"date\") VALUES (%s , %s, %s, %s, current_timestamp)"
-        params = (json_player_position_data, [], [], 'testCurrPlayer',)
+        json_player_score_data = json.dumps(player_score_data)
+        json_setupInfo = json.dumps(setupInfo)
+
+        query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"setupInfo\", \"currentPlayerIndex\", \"date\") VALUES (%s , %s, %s, %s, current_timestamp)"
+        params = (json_player_position_data, json_player_score_data, json_setupInfo, currPlayerIndex)
         return self.executeQueryInsert(query, params)

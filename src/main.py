@@ -44,9 +44,10 @@ class mainMenu(object):
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     
 class pygameMain(object):
-    def __init__(self, databaseConnection, setupInfo):
+    def __init__(self, databaseConnection, setupInfo, currPlayerIndex):
         self.databaseConnection = databaseConnection
         self.setupInfo = setupInfo
+        self.clientNumber = currPlayerIndex
 
         # Initialize playerList using setupInfo
         self.playerList = []
@@ -88,7 +89,7 @@ class pygameMain(object):
    
     #TODO, change how player list will work across network
     #currPlayer = playerList[0]
-    clientNumber = 0
+    # clientNumber = 0
     currState = 0
     drawDice = False
     
@@ -218,18 +219,18 @@ class pygameMain(object):
                     self.playerList[count].circle_y += offset
             count += 1
         #TODO change this so that it sets respective player to what the server dictates the client should be
-        self.currPlayer = self.playerList[0]
+        self.currPlayer = self.playerList[self.clientNumber]
         #set player relative to the coords of the board
         #this takes in a tile object from the board
         #self.currPlayer.updateBoardPos(self.playBoard.board[4][4], self.diceRoll)
 
     def initializePlayersForRestoreGame(self, convertedPlayerPositionsTuple):
-        localColorList = [player_red, player_blue, player_green, player_yellow]
+        # localColorList = [player_red, player_blue, player_green, player_yellow]
         count = 0
         offset = 17
 
         for play in self.playerList:
-            play = player(11, self.WIDTH // 2, self.HEIGHT // 2, localColorList[count])
+            # play = player(11, self.WIDTH // 2, self.HEIGHT // 2, localColorList[count])
             
             (playerName, (x, y)) = convertedPlayerPositionsTuple[count]
             play.updateBoardPos(self.playBoard.board[x][y], self.diceRoll)
@@ -250,7 +251,15 @@ class pygameMain(object):
                     self.playerList[count].circle_y += offset
             count += 1
         #TODO change this so that it sets respective player to what the server dictates the client should be
-        self.currPlayer = self.playerList[0]
+        self.currPlayer = self.playerList[self.clientNumber]
+
+    def restorePlayerScores(self, savedPlayerScores):
+        for i in range(len(self.playerList)):
+            self.playerList[i].playerScore = savedPlayerScores[i]
+            self.playBoard.board[self.playerList[i].playerScorePosition[0]][self.playerList[i].playerScorePosition[1]+1].title_text = str(self.playerList[i].playerScore["c1"])+ \
+                str(self.playerList[i].playerScore["c2"])+     \
+                str(self.playerList[i].playerScore["c3"])+     \
+                str(self.playerList[i].playerScore["c4"])
 
     def drawPlayers(self):
         for play in self.playerList:
@@ -383,9 +392,12 @@ class pygameMain(object):
                     print("RESET!")
                     self.trivMenu.resetTimer()
                     self.clientNumber +=1
-                    if self.clientNumber >= 4:
+                    if self.clientNumber >= self.setupInfo['number_of_players']:
                         self.clientNumber = 0
                     self.currPlayer = self.playerList[self.clientNumber]
+                    question = ''
+                    answer = ''
+                    hasPulled = False
                     self.currState = 0
                     
                 #self.slider.listen(event)
@@ -400,7 +412,7 @@ class pygameMain(object):
                     self.currState = 2
                 elif abs == self.testMenuButtons['Save Game']-1:
                     print('Save Game')
-                    self.databaseConnection.saveCurrentGameState(self.playerList, self.currPlayer, [])
+                    self.databaseConnection.saveCurrentGameState(self.playerList, self.setupInfo, self.clientNumber)
                 if abs == 3 or dbs == -3:
                     self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.testMenu.lockOut = not self.testMenu.lockOut
@@ -430,7 +442,7 @@ class pygameMain(object):
                                 self.crownVictor()
                     else:
                         self.clientNumber +=1
-                        if self.clientNumber >= 4:
+                        if self.clientNumber >= self.setupInfo['number_of_players']:
                             self.clientNumber = 0
                         self.currPlayer = self.playerList[self.clientNumber]
             #game state logic
@@ -548,7 +560,7 @@ def main():
         if setupInfo == {}:
             print("No setup info found.")
             return
-        demo = pygameMain(database, setupInfo)
+        demo = pygameMain(database, setupInfo, 0)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
@@ -558,23 +570,51 @@ def main():
         #database.close()
     elif selected_menu_action == "restore":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-        demo = pygameMain(database)
-        #demo.mainMenuLoop()
-        demo.createSettingsMenu()
-        demo.createTriviaMenu()
 
-        playerPostionsOfLastSavedGameFromDB = database.getPlayerPositionsOfLastSavedGame()
+        gameStateFromDB = database.getGameStateOfLastSavedGame()
 
-        if playerPostionsOfLastSavedGameFromDB is None:
+        if gameStateFromDB is None:
             print("No saved game state found.")
+            setupInfo = runSetupMenu(database)
+            if(setupInfo['number_of_players'] in [2, 3, 4]):
+                setupInfo = run_order_menu(setupInfo)
+            if setupInfo == {}:
+                print("No setup info found.")
+                return
+            demo = pygameMain(database, setupInfo, 0)
+            demo.createSettingsMenu()
+            demo.createTriviaMenu()
             demo.initializePlayersForNewGame()
+            demo.mainLoop()
+
         else:
             print("Previous game state found.")
-            playerPositionsDictionary = playerPostionsOfLastSavedGameFromDB[0]
-            convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositionsDictionary.items())
-            demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
+            (id, playerPositions, playerScores, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
+            converted_setupInfo = {
+                'number_of_players': setupInfo['number_of_players'],
+                'players': [
+                    {
+                        'name': player['name'],
+                        'color': tuple(player['color'])  # Convert color list to tuple
+                    }
+                    for player in setupInfo['players']
+                ],
+                'categories': setupInfo['categories']
+            }
 
-        demo.mainLoop()
+            demo = pygameMain(database, converted_setupInfo, currPlayerIndex)
+            #demo.mainMenuLoop()
+            demo.createSettingsMenu()
+            demo.createTriviaMenu()
+
+            playerScoresList = list(playerScores.values())
+            demo.restorePlayerScores(playerScoresList)
+
+            convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
+            demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
+            
+            demo.mainLoop()
+
         #database.close()
     else:
         pygame.quit()
