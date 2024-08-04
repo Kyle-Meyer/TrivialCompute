@@ -28,9 +28,21 @@ from triviaMenu import triviaMenu
 from timerClock import timerClock
 from voteWidget import voteWidget
 import json
+from network.connector import connector
+from network.networkObjs import *
 
 import os
+import subprocess
 import copy
+from _thread import *
+import signal
+import psutil
+
+def kill(proc_pid):
+    process = psutil.Process(proc_pid)
+    for proc in process.children(recursive=True):
+        proc.kill()
+    process.kill()
 
 #flesh this out later
 class mainMenu(object):
@@ -44,15 +56,60 @@ class mainMenu(object):
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     
 class pygameMain(object):
-    def __init__(self, databaseConnection, setupInfo, currPlayerIndex):
+    def __init__(self, setupInfo, databaseConnection, currPlayerIndex):
+
+        ####MEMBER VARIABLES
         self.databaseConnection = databaseConnection
+        self.WIDTH = 1280
+        self.HEIGHT = 720
+        self.LENGTH = min(self.WIDTH, self.HEIGHT)
+        self.OFFSET = max(self.WIDTH, self.HEIGHT)
+        self.run = True
+        self.moving = False
+        self.color = green
+        self.clientNumber = 0
+        self.controllingPlayer = 0
+        self.currState = 0
+        self.drawDice = False
+        self.boundingDraw = False
+        self.clientPlayer = 0
+        self.testParticle = particleManager(self.WIDTH, self.HEIGHT)
+        self.testDice = dice((300, 280), 80, 80)
+        self.testDice.diceMenu.changeTextSize(0)
+        self.testDice.diceMenu.moveBox((self.testDice.diceMenu.rect.centerx, self.testDice.diceMenu.rect.centery -30))
+        self.testDice.diceText.moveBox((self.testDice.diceText.rect.centerx, self.testDice.diceText.rect.centery - 20))
+        self.testDice.diceText.changeTextSize(30)
+        self.testDice.diceText.moveBox((self.testDice.diceText.rect.centerx, self.testDice.diceText.rect.centery + 60))
+        self.questionAnswerTextWidget = textWidget((350, 400), 100, 100, "")
+        self.questionAnswerTextWidget.border_thickness = 0
+        self.testButton = button((10, 10))
+        self.testButton2 = button((self.WIDTH // 2, self.HEIGHT // 2))
+        self.testButton2.button_text = "locked button"
+        self.testButton2.lockOut = True
+        self.testMenu = menu((200, 350), 300, 550) 
+        self.testMenu.title_text = "Game Menu"
+        self.testMenu.addChildComponent(button((150, 200),  180, 90, "1. Roll dice"))
+        self.testMenu.addChildComponent(button((150, 300),  180, 90, "2. Move Token"))
+        self.testMenu.addChildComponent(button((150, 400),  180, 90, "3. Save Game"))
+        self.testMenu.addChildComponent(button((150, 500),  180, 90, "6. Settings"))
+        self.testMenuButtons = {'Roll Dice':1, 'Move Token':2, 'Save Game':3}
+        self.settingsMenu = slidingMenu((-1280, self.HEIGHT//2), 600, 400)
+        self.trivMenu = triviaMenu((self.WIDTH//2, -720), 700, 600)
+        self.gameSetupMenu = slidingMenu((-1280, self.HEIGHT//2), 600, 400)
+        self.diceRoll = 0
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption("Trivial Compute")
+        self.n = connector()
+        self.bounding_box = pygame.Rect(300, 200, 200, 200)
+        self.bounding_box2 = pygame.Rect(100, 200, 200, 200)
+        self.clock = pygame.time.Clock()
         self.setupInfo = setupInfo
         self.clientNumber = currPlayerIndex
-
         # Initialize playerList using setupInfo
         self.playerList = []
-        print(self.setupInfo)
-        print(self.setupInfo['number_of_players'])
+        #TODO, change how player list will work across network
+        self.currPlayer = None
+        #please do not use literals here, we have a color file
         for i in range(self.setupInfo['number_of_players']):
             color_switcher = {
                 (255, 0, 0): player_red,
@@ -79,61 +136,7 @@ class pygameMain(object):
             self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
 
     
-    WIDTH = 1280
-    HEIGHT = 720
-    LENGTH = min(WIDTH, HEIGHT)
-    OFFSET = max(WIDTH, HEIGHT)
-    run = True
-    moving = False
-    color = green
-   
-    #TODO, change how player list will work across network
-    #currPlayer = playerList[0]
-    # clientNumber = 0
-    currState = 0
-    drawDice = False
     
-    #the playground
-    boundingDraw = False
-    testParticle = particleManager(WIDTH, HEIGHT)
-    testDice = dice((300, 280), 80, 80)
-    testDice.diceMenu.changeTextSize(0)
-    testDice.diceMenu.moveBox((testDice.diceMenu.rect.centerx, testDice.diceMenu.rect.centery -30))
-    testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery - 20))
-    testDice.diceText.changeTextSize(30)
-    testDice.diceText.moveBox((testDice.diceText.rect.centerx, testDice.diceText.rect.centery + 60))
-    questionAnswerTextWidget = textWidget((350, 400), 100, 100, "")
-    questionAnswerTextWidget.border_thickness = 0
-    testButton = button((10, 10))
-    testButton2 = button((WIDTH // 2, HEIGHT // 2))
-    testButton2.button_text = "locked button"
-    testButton2.lockOut = True
-    testMenu = menu((200, 350), 300, 550) 
-    testMenu.title_text = "Game Menu"
-    
-   
-    #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "TestButton1"))
-    #testMenu.addChildComponent(button(testMenu.ScreenCoords,  0, 0, "Draw Bounding Box"))
-    testMenu.addChildComponent(button((150, 200),  180, 90, "1. Roll dice"))
-    testMenu.addChildComponent(button((150, 300),  180, 90, "2. Move Token"))
-    testMenu.addChildComponent(button((150, 400),  180, 90, "3. Save Game"))
-    testMenu.addChildComponent(button((150, 500),  180, 90, "6. Settings"))
-    testMenuButtons = {'Roll Dice':1, 'Move Token':2, 'Save Game':3}
-    #TODO clean this up
-    settingsMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
-    trivMenu = triviaMenu((WIDTH//2, -720), 700, 600)
-    gameSetupMenu = slidingMenu((-1280, HEIGHT//2), 600, 400)
-
-    #slider = slideBarWidget((300, 200), 300, 100)
-    #settingsMenu = slidingMenu((10, 300), 100, 100)
-    #for dice roll in the future
-    diceRoll = 0
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Trivial Compute")
-
-    bounding_box = pygame.Rect(300, 200, 200, 200)
-    bounding_box2 = pygame.Rect(100, 200, 200, 200)
-    clock = pygame.time.Clock()
 
     def debugButton(self):
         self.testButton.button_text = "this is a test"
@@ -149,20 +152,24 @@ class pygameMain(object):
         self.trivMenu.addDictionary()
         self.trivMenu.switchActiveDictionary(1)
         self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Answer PlaceHolder"))
+        offset = 0
+        tempList = copy.deepcopy(self.playerList)
+        if configModule.online:
+            '''del tempList[self.clientNumber]
+            count = 0'''
+            #TODO turn this back on when we have server functionality
+            for i in range(1, len(tempList)+1):
+                self.trivMenu.addChildComponent(voteWidget((350, 1000 + offset), 30, 30, self.clientNumber))
+                self.trivMenu.addChildComponent(textWidget((450, 990 + offset), 50, 50, str(tempList[i-1].playerName)))
+                self.trivMenu.activeDictionary[childType.TEXT][i].textCol = base01
+                self.trivMenu.activeDictionary[childType.TEXT][i].changeTextSize(30)
+                offset += 50
+        
         self.trivMenu.addChildComponent(button((500, 1300),  200, 70, "Correct!"))
         self.trivMenu.addChildComponent(button((800, 1300),  200, 70, "Incorrect!"))
         self.trivMenu.activeDictionary[childType.BUTTON][0].updateTextColor(green)
         self.trivMenu.activeDictionary[childType.BUTTON][1].updateTextColor(red)
-        offset = 0
-        tempList = copy.deepcopy(self.playerList)
-        del tempList[self.clientNumber]
-        #TODO turn this back on when we have server functionality
-        '''for i in range(1, len(self.playerList)):
-            self.trivMenu.addChildComponent(voteWidget((350, 1000 + offset), 30, 30))
-            self.trivMenu.addChildComponent(textWidget((450, 990 + offset), 50, 50, str("Player: " + str(i))))
-            self.trivMenu.activeDictionary[childType.TEXT][i].textCol = base01
-            self.trivMenu.activeDictionary[childType.TEXT][i].changeTextSize(30)
-            offset += 50'''
+            
         self.trivMenu.switchActiveDictionary(0)
         
     def createSettingsMenu(self):
@@ -218,11 +225,7 @@ class pygameMain(object):
                     self.playerList[count].tileOffset=(0, offset)
                     self.playerList[count].circle_y += offset
             count += 1
-        #TODO change this so that it sets respective player to what the server dictates the client should be
         self.currPlayer = self.playerList[self.clientNumber]
-        #set player relative to the coords of the board
-        #this takes in a tile object from the board
-        #self.currPlayer.updateBoardPos(self.playBoard.board[4][4], self.diceRoll)
 
     def initializePlayersForRestoreGame(self, convertedPlayerPositionsTuple):
         # localColorList = [player_red, player_blue, player_green, player_yellow]
@@ -314,12 +317,8 @@ class pygameMain(object):
             else:
                 return True
     
-    #def spawnServer(self):
-
-
     # Crown the victor
     def crownVictor(self):
-
         self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]].title_color = winner_green
         self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]+1].mColor = winner_green
                 
@@ -327,7 +326,7 @@ class pygameMain(object):
         self.currPlayer.currentNeighbors.clear()
         neighbors = self.currPlayer.currentNeighbors
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
-        #print(self.currPlayer.currCoordinate)
+        ##print(self.currPlayer.currCoordinate)
         oldCoord = self.currPlayer.currCoordinate
         self.currPlayer.getNeighbors(self.playBoard, self.currPlayer.currCoordinate, self.diceRoll + 1, neighbors)
         if configModule.optionalPruneNeighbors:
@@ -338,7 +337,11 @@ class pygameMain(object):
                 #check if the player has moved beyond their starting square
                 if self.currPlayer.currCoordinate != neighbors[i]:
                     #TODO make the call from here to spawn the end turn button
-                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False
+                    if configModule.online:
+                        if self.clientNumber == self.controllingPlayer:
+                            self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False
+                    else:
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = False
                     #self.currPlayer.currCoordinate = neighbors[i]
                 break
         #reset player position if its invalid
@@ -348,6 +351,7 @@ class pygameMain(object):
 
     def calculateBoundingBox(self):
         self.playBoard.board[0][0].box.size[0]
+
 
     #TODO implement this later
     def mainMenuLoop(self):
@@ -364,14 +368,318 @@ class pygameMain(object):
             self.clock.tick(60) #60 fps
 
 
-    #SETTING UP INTERACTIVTY
-    def mainLoop(self):
+    def mainLoopOnline(self):
+        question, answer = '', ''
+        hasPulled = False
+        #client 0 is always the dictator at this point
+        if self.clientNumber == 0:
+            self.n.send(initObject(len(self.playerList)))
+        #self.n.send(startGame(True)) turn this back on when its time to handle proper connection closing and refusal
+        currSelf = self.n.getObj()
+       
+        self.clientNumber = currSelf.id
+        self.clientPlayer = self.playerList[self.clientNumber]
+        #print("I AM: ", self.clientNumber, "AND PLAYER: ", self.clientPlayer.playerName)
+        incData = []
+        sendObj = None
+        myVote = -1
+        totalVotes = 0
+        passTurn = False
+        while self.run:
+
+            #SERVER BULLSHIT
+            ##print("SENDING: \n\t STATE: ", self.currState, "\n\t CLIENT: ", self.clientNumber, "\n\t COORDS: ", self.playerList[self.clientNumber].circle_x, ", ", self.playerList[self.clientNumber].circle_y)
+            #only send things if we are the controlling player
+            if self.clientNumber == self.controllingPlayer:
+                sendObj = playerObj(self.currState, 
+                                    self.clientNumber, 
+                                    (self.playerList[self.clientNumber].circle_x, self.playerList[self.clientNumber].circle_y), 
+                                    self.diceRoll,
+                                    question, 
+                                    answer,
+                                    myVote, 
+                                    passTurn) #send our info to the server
+                
+                '''print("SENDING: \n\t STATE: ", self.currState, 
+                      "\n\t CLIENT: ", self.clientNumber, 
+                      "\n\t COORDS: ", self.playerList[self.clientNumber].circle_x, ", ", self.playerList[self.clientNumber].circle_y,
+                      "currRoll: ", self.diceRoll,
+                      "Question: ", question,
+                      "Answer: ", answer)'''
+            else:
+                sendObj = observeObject(self.clientNumber, myVote)
+
+            incData = self.n.send(sendObj)
+            self.currState = incData.state
+            if incData == -1:
+                #print("FATAL: cannot connect to game")
+                sys.exit()
+            temp = []
+            voteTemp = []
+            if isinstance(incData, serverObj):
+                temp.append(incData.player1Pos)
+                temp.append(incData.player2Pos)
+                temp.append(incData.player3Pos)
+                temp.append(incData.player4Pos)
+                voteTemp.append(incData.player1Vote)
+                voteTemp.append(incData.player2Vote)
+                voteTemp.append(incData.player3Vote)
+                voteTemp.append(incData.player4Vote)
+                #print("I have: ", temp, "at state: ", incData.state)
+                for i in range(len(self.playerList)):
+                    self.playerList[i].circle_x = temp[i][0]
+                    self.playerList[i].circle_y = temp[i][1]
+            for event in pygame.event.get():
+                #for now only send data on event
+                
+                if event.type == QUIT:
+                    self.run= False 
+                #listeners
+                rbs = self.settingsMenu.listen_for_checkBox(event)
+                dbs = self.settingsMenu.listen_for_buttons(event)
+                shouldRedraw = configModule.optionalMatchOriginalColors
+                if self.clientNumber == self.controllingPlayer:
+                    self.currPlayer.checkIfHeld(event)
+                    self.currPlayer.clampPlayer(self.WIDTH, self.HEIGHT)     
+                self.testButton.isClicked(event)
+                abs = self.testMenu.listen_for_buttons(event)
+                mbs = self.trivMenu.listen_for_buttons(event)
+                if abs == 3 or dbs == -3:
+                    self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    self.testMenu.lockOut = not self.testMenu.lockOut
+                #start the clock
+                if self.trivMenu.triviaClock.startCounting == True:
+                    self.trivMenu.triviaClock.countTime(event)
+                if self.trivMenu.triviaClock.counter <= 0:
+                    self.trivMenu.triviaClock.startCounting = False
+                    self.trivMenu.triviaClock.shouldDraw = False
+                    self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    self.trivMenu.resetTimer()
+                    self.currState = 0
+                
+                if self.clientNumber == self.controllingPlayer:
+                    # Roll Dice Button
+                    if abs == self.testMenuButtons['Roll Dice']-1 and self.currPlayer.hasRolled == False:
+                        self.currState = 1 #TODO change this to send to server
+                    # Move Token Button
+                    elif abs == self.testMenuButtons['Move Token']-1:
+                        self.currState = 2
+                    elif abs == self.testMenuButtons['Save Game']-1:
+                        #print('Save Game')
+                        self.databaseConnection.saveCurrentGameState(self.playerList, self.currPlayer, [])
+                    elif abs == 1:
+                        self.currState == 3
+                        #self.trivMenu.triviaClock.startCounting = True
+                        
+                    if shouldRedraw != configModule.optionalMatchOriginalColors:
+                        #self.playBoard.create_board()
+                        self.playBoard.updateTileColors()
+                        self.currPlayer.updateColor()
+                    if mbs == -3:
+                        #change the trivia button to accurately reflect what stage you are in
+                        if self.currState < 3:
+                            self.currState = 3
+                        else:
+                            self.currState = 4
+
+
+                if not self.clientNumber == self.controllingPlayer:
+                    if mbs >= 0 and self.currState == 4:
+                        if mbs == 0:
+                            myVote = 0
+                        else:
+                            myVote = 1
+            
+            if self.currState == 0:
+                #print(self.trivMenu.isOut, " : ", self.trivMenu.preventSliding)
+                #self.trivMenu.preventSliding = True
+                if self.trivMenu.isOut: 
+                    print("SLIDE")
+                self.controllingPlayer = incData.controller
+                if passTurn == True:
+                    print("passing control")
+                    self.currPlayer = self.playerList[self.controllingPlayer]
+                    passTurn = False
+                totalVotes = 0
+                myVote = -1
+                if self.clientNumber == self.controllingPlayer:
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=False
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
+                else:
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=True
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
+                hasPulled = False
+                if self.trivMenu.away == True and self.trivMenu.activeIndex == 1:
+                    for ent in self.trivMenu.activeDictionary[childType.VOTE]:
+                        ent.voteSubmitted = False
+                    self.trivMenu.switchActiveDictionary(0)
+                self.trivMenu.triviaClock.startCounting = False
+                self.trivMenu.triviaClock.shouldDraw = False
+    
+                
+            if self.currState == 1:
+                self.questionAnswerTextWidget.updateText('')
+                self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                if self.clientNumber != self.controllingPlayer:
+                    self.testDice.diceValue = incData.dice
+                    self.diceRoll = incData.dice
+                if not self.currPlayer.hasRolled:
+                    self.testDice.rollDice(self.screen)
+                self.trivMenu.preventSliding = False
+                self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
+                self.currPlayer.hasRolled = True 
+                self.drawDice = True
+                if self.clientNumber != self.controllingPlayer: 
+                    self.trivMenu.startButton.lockOut = True
+                else:
+                    self.trivMenu.startButton.lockout = False
+
+            elif self.currState == 2:
+                currentTokenPosition = self.screenPosToCoord()
+                self.trivMenu.startButton.button_text = "Get Question"
+                if currentTokenPosition in self.currPlayer.currentNeighbors and \
+                    currentTokenPosition != self.currPlayer.currCoordinate:
+                    self.advanceToken(currentTokenPosition)
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
+                    self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
+                    self.currPlayer.currCoordinate = currentTokenPosition
+                    self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    self.drawDice = False
+                if self.controllingPlayer == self.clientNumber:
+                    self.trivMenu.startButton.lockOut = False
+                    self.trivMenu.haltButtons = False
+                else:
+                    self.trivMenu.startButton.lockOut = True
+                    self.trivMenu.haltButtons = True
+
+            elif self.currState == 3:
+                #self.trivMenu.currState += 1
+                self.trivMenu.triviaClock.shouldDraw = True
+                self.trivMenu.triviaClock.startCounting = True
+
+                if not hasPulled:
+                    #print("HAS NOT PULLED")
+                    categories = self.setupInfo['categories']
+                    category_names = []
+                    if len(categories) < 4 or categories == {}:
+                        category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    else:
+                        for catRec in categories:
+                            category_names.append(catRec['name'])
+                    if self.clientNumber == self.controllingPlayer:
+                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    else:
+                        question, answer = incData.question, incData.answer
+                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    hasPulled = True
+
+                # self.trivMenu.haltWidgetDraw = True
+                self.trivMenu.startButton.button_text = "Reveal Answer"
+            elif self.currState == 4:
+                if self.controllingPlayer == self.clientNumber:
+                    self.trivMenu.startButton.lockOut = True
+                    self.trivMenu.haltButtons = True
+                else:
+                    self.trivMenu.startButton.lockOut = True
+                    self.trivMenu.haltButtons = False
+                self.trivMenu.haltWidgetDraw = False
+                if self.trivMenu.away == False and self.trivMenu.activeIndex == 0:
+                    self.trivMenu.switchActiveDictionary(1)
+                self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
+                count = 0
+                #the vote system
+                totalVotes = 0
+                for ent in self.trivMenu.activeDictionary[childType.VOTE]:
+                    if voteTemp[count] > -1:
+                        ent.voteSubmitted = True
+                        totalVotes += 1
+                        if voteTemp[count] == 0:
+                            ent.correct = True
+                        else:
+                            ent.correct = False
+                    count += 1
+                if totalVotes >= len(self.playerList) - 1:
+                    #print("EVALUATING")
+                    voteScore = 0
+                    for i in voteTemp:
+                        if i == 0:
+                            voteScore += 1
+                        elif i == 1:
+                            voteScore -= 1
+                    if voteScore > 0:
+                        if self.currPlayer.currCoordinate in [(4,0),(8,4),(4,8),(0,4)]: 
+                                self.updatePlayerScore(self.currPlayer.currCoordinate)
+                        elif self.currPlayer.currCoordinate == (4,4):
+                            if self.checkIfPlayerJustWon():
+                                self.crownVictor()
+                    else:
+                        passTurn = True
+                    #advance stuff
+                    if self.clientNumber == self.controllingPlayer:
+                        self.currState = 5
+                    #self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    #if self.clientNumber == self.controllingPlayer:
+                
+            elif self.currState == 5:
+                self.trivMenu.resetTimer()
+                self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                self.trivMenu.startButton.lockOut = True
+                question = ''
+                answer = ''
+                if self.clientNumber == self.controllingPlayer:
+                        self.currState = 6
+            elif self.currState == 6:
+                self.currState = 0
+
+            if not self.testDice.rolling and self.currPlayer.hasRolled:
+                self.diceRoll = self.testDice.diceValue
+                self.currPlayer.updateBoxByDice(self.diceRoll, self.playBoard.board[0][0].box.size[0])
+            
+            #You must be the right player to do these
+            if not self.clientNumber == self.controllingPlayer:
+                self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=True
+                self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
+                self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Save Game']-1].lockOut=True
+            #get the press hold event for the player
+            
+            self.handleCurrentPlayerMoves()
+            
+            #game state logic
+            #draw calls
+            self.screen.fill((25, 28, 38))
+            self.testParticle.drawParticles(self.screen)
+            self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
+            #self.debugButton()
+
+        
+            # self.questionAnswerTextWidget.drawWidget(self.screen)
+            #self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut)
+
+            self.drawPlayers()
+            self.testMenu.drawMenu(self.screen, base3)
+            
+            if self.clientNumber == self.controllingPlayer:
+                self.testDice.drawDice(self.screen, self.drawDice)
+            else:
+                self.testDice.drawDice(self.screen, self.drawDice, incData.dice)
+            self.settingsMenu.drawMenu(self.screen)
+            self.trivMenu.drawMenu(self.screen)
+            #self.slider.draw(self.screen)
+            #bounding box draw
+            if self.boundingDraw:
+                pygame.draw.rect(self.screen, debug_red, self.currPlayer.clampBox.box, 2)
+            pygame.display.update()
+            self.clock.tick(60) #60 fps
+
+        pygame.quit()
+
+    #offline variant, too lazy to surgically align things
+    def mainLoopOffline(self):
         question, answer = '', ''
         hasPulled = False
         while self.run:
-            #event chain
-            
             for event in pygame.event.get():
+                #for now only send data on event
                 if event.type == QUIT:
                     self.run= False 
                 #listen for board redraw
@@ -389,7 +697,7 @@ class pygameMain(object):
                     self.trivMenu.triviaClock.startCounting = False
                     self.trivMenu.triviaClock.shouldDraw = False
                     self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
-                    print("RESET!")
+                    #print("RESET!")
                     self.trivMenu.resetTimer()
                     self.clientNumber +=1
                     if self.clientNumber >= self.setupInfo['number_of_players']:
@@ -399,8 +707,6 @@ class pygameMain(object):
                     answer = ''
                     hasPulled = False
                     self.currState = 0
-                    
-                #self.slider.listen(event)
                 #BUTTON CALLBACK
                 # Roll Dice Button
                 if abs == self.testMenuButtons['Roll Dice']-1 and self.currPlayer.hasRolled == False:
@@ -408,10 +714,10 @@ class pygameMain(object):
                     self.currState = 1 #TODO change this to send to server
                 # Move Token Button
                 elif abs == self.testMenuButtons['Move Token']-1:
-                    print("WHAT THE FUCK")
+
                     self.currState = 2
                 elif abs == self.testMenuButtons['Save Game']-1:
-                    print('Save Game')
+                    #print('Save Game')
                     self.databaseConnection.saveCurrentGameState(self.playerList, self.setupInfo, self.clientNumber)
                 if abs == 3 or dbs == -3:
                     self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
@@ -434,7 +740,7 @@ class pygameMain(object):
                     self.currState = 5
                     #check if correct
                     if mbs == 0:
-                        print("correct clicked")
+                        #print("correct clicked")
                         if self.currPlayer.currCoordinate in [(4,0),(8,4),(4,8),(0,4)]: 
                             self.updatePlayerScore(self.currPlayer.currCoordinate)
                         elif self.currPlayer.currCoordinate == (4,4):
@@ -442,11 +748,14 @@ class pygameMain(object):
                                 self.crownVictor()
                     else:
                         self.clientNumber +=1
-                        if self.clientNumber >= self.setupInfo['number_of_players']:
+                        if self.clientNumber >= len(self.playerList):
                             self.clientNumber = 0
                         self.currPlayer = self.playerList[self.clientNumber]
+            print("currplayer ", self.currPlayer.playerName)
             #game state logic
             if self.currState == 0:
+                question = ''
+                answer = ''
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=False
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
                 hasPulled = False
@@ -473,7 +782,7 @@ class pygameMain(object):
                     self.advanceToken(currentTokenPosition)
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
-                    
+                    self.currPlayer.currCoordinate = currentTokenPosition
                     self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.drawDice = False
 
@@ -483,7 +792,7 @@ class pygameMain(object):
                 self.trivMenu.triviaClock.startCounting = True
 
                 if not hasPulled:
-                    print("HAS NOT PULLED")
+                    #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
                     if len(categories) < 4 or categories == {}:
@@ -527,19 +836,12 @@ class pygameMain(object):
             self.screen.fill((25, 28, 38))
             self.testParticle.drawParticles(self.screen)
             self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
-            #self.debugButton()
-
-        
-            # self.questionAnswerTextWidget.drawWidget(self.screen)
-            #self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut)
-
             self.drawPlayers()
             self.testMenu.drawMenu(self.screen, base3)
             
             self.testDice.drawDice(self.screen, self.drawDice)
             self.settingsMenu.drawMenu(self.screen)
             self.trivMenu.drawMenu(self.screen)
-            #self.slider.draw(self.screen)
             #bounding box draw
             if self.boundingDraw:
                 pygame.draw.rect(self.screen, debug_red, self.currPlayer.clampBox.box, 2)
@@ -550,24 +852,31 @@ class pygameMain(object):
 
 def main(): 
     pygame.init()
+    #print("running")
     selected_menu_action = run_start_menu()
-
-    if selected_menu_action == "start":
+    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': (255, 255, 0)}, {'name': 'Player3', 'color': (0, 0, 255)}, {'name': 'Player1', 'color': (255, 0, 0)}, {'name': 'Player2', 'color': (0, 255, 0)}], 'categories': []}
+    if selected_menu_action == "start":   
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
-        setupInfo = runSetupMenu(database)
-        if(setupInfo['number_of_players'] in [2, 3, 4]):
-            setupInfo = run_order_menu(setupInfo)
-        if setupInfo == {}:
-            print("No setup info found.")
-            return
-        demo = pygameMain(database, setupInfo, 0)
+        #TODO remove this later
+        if configModule.online:
+            setupInfo = bypass
+        else:
+            setupInfo = runSetupMenu(database)
+            if(setupInfo['number_of_players'] in [2, 3, 4]):
+                setupInfo = run_order_menu(setupInfo)
+            if setupInfo == {}:
+                print("No setup info found.")
+                return
+        demo = pygameMain(setupInfo, database, 0)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
         demo.createSettingsMenu()
         demo.createTriviaMenu()
         demo.initializePlayersForNewGame()
-        demo.mainLoop()
-        #database.close()
+        if configModule.online:
+            demo.mainLoopOnline()
+        else:
+            demo.mainLoopOffline()
     elif selected_menu_action == "restore":
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
 
@@ -581,14 +890,17 @@ def main():
             if setupInfo == {}:
                 print("No setup info found.")
                 return
-            demo = pygameMain(database, setupInfo, 0)
+            demo = pygameMain(setupInfo, database, 0)
             demo.createSettingsMenu()
             demo.createTriviaMenu()
             demo.initializePlayersForNewGame()
-            demo.mainLoop()
+            if configModule.online:
+                demo.mainLoopOnline()
+            else:
+                demo.mainLoopOffline()
 
         else:
-            print("Previous game state found.")
+            #print("Previous game state found.")
             (id, playerPositions, playerScores, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
             converted_setupInfo = {
                 'number_of_players': setupInfo['number_of_players'],
@@ -602,7 +914,7 @@ def main():
                 'categories': setupInfo['categories']
             }
 
-            demo = pygameMain(database, converted_setupInfo, currPlayerIndex)
+            demo = pygameMain(converted_setupInfo, database, currPlayerIndex)
             #demo.mainMenuLoop()
             demo.createSettingsMenu()
             demo.createTriviaMenu()
@@ -612,12 +924,14 @@ def main():
 
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
-            
-            demo.mainLoop()
 
-        #database.close()
+        if configModule.online:
+            demo.mainLoopOnline()
+        else:
+            demo.mainLoopOffline()
+
     else:
         pygame.quit()
-
+    
 if __name__=="__main__": 
     main() 

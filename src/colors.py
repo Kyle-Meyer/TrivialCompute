@@ -66,20 +66,3 @@ match_red = (255,0,76)
 match_white = (255,255,255)
 
 player_highlight_color = (224, 101, 13)
-'''if configModule.optionalMatchOriginalColors == True:
-    print("UPDATE????")
-    yellow = (255,236,38)
-    blue = (41,173,255)
-    green = (0,228,53)
-    red = (255,0,76)
-    magenta = (255,255,255)
-    violet = base0
-    HQ_red = red
-    HQ_blue = blue
-    HQ_green = green
-    HQ_yellow = yellow
-    player_red = red
-    player_blue = blue
-    player_green = green
-    player_yellow = yellow
-'''

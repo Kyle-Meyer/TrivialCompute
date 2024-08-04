@@ -29,8 +29,6 @@ class slidingMenu(menu):
             self.activeDictionary[childType.SLIDER].append(inComponent)
         elif isinstance(inComponent, checkBoxWidget):
             self.activeDictionary[childType.CHECK].append(inComponent)
-        for entry in self.activeDictionary[childType.CHECK]:
-            print(entry.outer_rect.center)
     
     def updateButtonFadeBoxes(self):
         self.exitButton.updateFadeBox()

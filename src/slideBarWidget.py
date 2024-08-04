@@ -42,7 +42,6 @@ class slideBarWidget(object):
                 print(self.thumbRect.x)
        
         self.value = self.get_slider_value()
-        #print("X coord of thumb: ", self.thumbRect.centerx, " val: ", self.value)
     
     def moveAll(self, inPos):
         self.rect.center = inPos
@@ -57,7 +56,6 @@ class slideBarWidget(object):
         self.height = inHeight
         self.rect.width = inWidth
         self.rect.height = inHeight
-        print("!!!!!!!!!!!!!!!!!!!", inPosition)
         self.rect.center = inPosition
         self.sliderRect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], self.slider_length, self.slider_height)
         self.thumbRect = pygame.Rect(self.ScreenCoords[0], self.ScreenCoords[1], self.thumb_width, self.thumb_height)

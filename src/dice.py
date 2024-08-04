@@ -19,7 +19,7 @@ class dice(object):
     start_time = pygame.time.get_ticks()  # get the initial time
     snap_time = pygame.time.get_ticks()
 
-    def drawDice(self, screen, movLockout):
+    def drawDice(self, screen, movLockout, preDestined = -1):
         # Draw the dice menu box, adjust colors conditionally
         if movLockout:
             self.diceMenu.drawMenu(screen, base3)
@@ -36,12 +36,14 @@ class dice(object):
                 self.rolling = False
                 # This is just for use in demo mode to demo with a fortuitous sequence of demo rolls
                 if configModule.optionalSkeletalDemoMode:
-                    print(self.rollCount)
                     self.diceValue = configModule.optionalSkeletalDemoRolls[self.rollCount]
                     self.diceText.title_text = str(self.diceValue)
                     self.rollCount += 1    
         elif self.diceValue==0:            
             self.diceText.title_text = '_'
+        if preDestined >= 0:
+                    self.diceValue = preDestined
+                    self.diceText.title_text = str(self.diceValue)
     #this function is deceptive, it merely sets things up for the dice roll animation, the actual dice roll will take place in the draw call
     #the reason its done this way is to get around the thread lockout that takes place with pygame.display.update(), and I'm not going to bother
     #with concurrency for this
@@ -57,21 +59,7 @@ class dice(object):
         running = True
         self.start_time = pygame.time.get_ticks()  # get the initial time
         self.snap_time = pygame.time.get_ticks()
-        '''while running:
-
-            # Update the timer
-            current_time = pygame.time.get_ticks()
-            if current_time - snap_time >= update_interval:
-                current_number = random.randint(0, 6)  # change to any random number from 0 to 9
-                print("updating dice....")
-                self.diceText.title_text = str(current_number)
-                snap_time = current_time  # reset the start time for the next update
-                update_interval += 1
-
-            pygame.display.flip()
-            # Check if the total animation time has elapsed
-            if current_time - start_time >= total_duration:
-                running = False'''
+       
             
     def __init__(self, position : tuple[int, ...], width = 200, height = 200):
         self.diceMenu = menu(position, width, height, "Dice Roll")

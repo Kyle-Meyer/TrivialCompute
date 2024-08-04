@@ -49,9 +49,7 @@ class cBoard(object):
             for j in range(9):
                 match self.template[i][j]:
                     case "X":
-                        print("tile size", self.board[i][j].box.size)
                         newColor = random.choice(list(triviaType))
-                        print("setting new tile at ", i, " , ", j, " to ", newColor, " from ", self.board[i][j].mTrivia)
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.NORMAL, 10, i, j)
                     case "P":
                         self.board[i][j] = tile(triviaType.RED, tileDistinction.SPECIAL, 10, i, j)

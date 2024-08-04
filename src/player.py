@@ -25,11 +25,6 @@ class player(object):
     currentNeighbors = []
     #recursively grab all of our potential next moves
     def getNeighbors(self, inboard : cBoard, curPosition, diceRolls : int, possibleNeighbors):
-        '''
-        if not isinstance(inboard, cBoard):
-            print("bad board passed")
-            return
-        '''
         if curPosition[0] < 0 or curPosition[1] < 0 or curPosition[0] >= 9 or curPosition[1] >= 9:
             return possibleNeighbors
         if diceRolls == 0:
@@ -54,9 +49,7 @@ class player(object):
         toRemove.append(self.currCoordinate)
         for entry in self.currentNeighbors:
             diff = abs((entry[0] - self.currCoordinate[0])) + abs((entry[1] - self.currCoordinate[1]))
-            #print("\t ENTRY: ", entry, " has diff:" , diff)
             if(diff != diceRoll) and diff != 0:
-                #print("\t removing: ", entry, " because diff was: ", diff)
                 toRemove.append(entry)
         #python does not support in place deletions, so we have to loop AGAIN
         for entry in toRemove:
@@ -79,8 +72,6 @@ class player(object):
     def checkValidMove(self, inTile : tile):
         if inTile.is_inside_bounding_box((self.circle_x, self.circle_y)):
             return True
-        #elif inTile.is_inside_bounding_box(mouse_pos):
-        #    return
         else:
             return
 
@@ -129,7 +120,6 @@ class player(object):
 
     #The all in one
     def updateBoardPos(self, inTile : tile, diceRoll : int):
-        print(inTile.row," ", inTile.col)
         self.hasRolled = False
         self.currCoordinate = (inTile.row, inTile.col)
         self.setScreenCoords(inTile.box.centerx, inTile.box.centery)

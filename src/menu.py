@@ -133,17 +133,13 @@ class menu(object):
             for i in range(len(self.child_Dictionary[childType.SLIDER])):
                 currButton = self.child_Dictionary[childType.SLIDER][i]
                 if currButton.storedXVal <= 0:
-                    print("storing value of: ", currButton.rect.centerx)
                     currButton.storedXVal = currButton.rect.centerx
         else:
             self.slidingOut = True
             self.slidingIn = False
             for i in range(len(self.child_Dictionary[childType.SLIDER])):
                 currButton = self.child_Dictionary[childType.SLIDER][i]
-                print("ELSE storing value of: ", currButton.thumbRect.centerx)
                 currButton.storedXVal = currButton.thumbRect.centerx
-        print(self.slidingIn)
-        print(self.slidingOut)
         self.overlayTarget = (target[0] - (self.fadeBox.rect_width // 2), target[1] - (self.fadeBox.rect_height // 2))
     
     def resizeAllButtons(self, inWidth, inHeight):

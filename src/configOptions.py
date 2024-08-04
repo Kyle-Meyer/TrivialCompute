@@ -10,4 +10,5 @@ configModule.optionalFastDice = True
 configModule.optionalPruneNeighbors = True
 configModule.optionalSkeletalDemoMode = False
 configModule.optionalSkeletalDemoRolls = [4,2,6,3,5,5,3,4]
+configModule.online = True
 

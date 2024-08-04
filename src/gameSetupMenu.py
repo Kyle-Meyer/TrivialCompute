@@ -312,7 +312,6 @@ def runSetupMenu(database):
     def exitSetupMenu():
         nonlocal game_setup_data
         game_setup_data = collectSetupData()
-        #print("setupDone")
         return "setupDone"
     
      # Add the non-player buttons
@@ -335,11 +334,8 @@ def runSetupMenu(database):
                 return "exit"
             for button in buttons:
                 result = button.check_click(event)
-                #print(result)
-                #if result is not None:
                 if result == "setupDone":
                     running = False
-                    #print(running)
                     break
                 elif result:
                     return result
@@ -358,7 +354,4 @@ def runSetupMenu(database):
             submitButton.action = None
 
         pygame.display.flip()
-
-    print("IM OUT OF THE LOOP")
-    #pygame.display.quit()
     return game_setup_data

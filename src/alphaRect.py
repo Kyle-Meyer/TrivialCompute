@@ -13,7 +13,6 @@ class alphaRect(object):
         self.y = inY
 
     def drawAlpha(self, screen : pygame.Surface):
-        #print("Alpha draw called ", self.x,  " ", self.y)
         self.rect_surface = pygame.Surface((self.rect_width, self.rect_height))
         self.rect_surface.set_alpha(self.alpha)
         self.rect_surface.fill(self.color)

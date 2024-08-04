@@ -15,6 +15,7 @@ class triviaMenu(menu):
     activeDictionary = {}
     canVote = False
     startButton = button((0, 500),  100, 50, "Exit")
+    preventSliding = False
 
     def addChildComponent(self, inComponent):
         if isinstance(inComponent, button):
@@ -76,7 +77,7 @@ class triviaMenu(menu):
                 self.away = False
                 self.rect.centery = target_y
                 self.startButton.button_rect.centery = 600
-
+                self.isOut = True
             
         elif self.slidingOut:
             initial_y = 360
@@ -88,8 +89,8 @@ class triviaMenu(menu):
                 self.away = True
                 self.rect.centery = target_y
                 self.startButton.button_rect.centery = 1300
+                self.isOut = False
 
-        #print(self.newCent, " : ", time_elapsed)
     def slideButtons(self):
         time_elapsed = pygame.time.get_ticks() - self.start_time
         if self.slidingIn:
@@ -187,27 +188,30 @@ class triviaMenu(menu):
         self.canVote = False
         self.startButton.lockOut = False
     def slideAll(self):
-        self.slideFadeBox()
-        self.slideMenu()
-        self.slideButtons()
-        #if self.slidingOut == True and self.slidingIn == False:
-        #    self.isOut = False       
-        #if not self.isOut:
-        #    self.slideSliders()
-        self.slideTextWidgets()
-        self.slideVote()
-        self.slideClock()
+        if not self.preventSliding:
+            self.slideFadeBox()
+            self.slideMenu()
+            self.slideButtons()
+            #if self.slidingOut == True and self.slidingIn == False:
+            #    self.isOut = False       
+            #if not self.isOut:
+            #    self.slideSliders()
+            self.slideTextWidgets()
+            self.slideVote()
+            self.slideClock()
 
     def listen_for_buttons(self, event):
         selfSet = -1
-        
-        if self.startButton.isClicked(event):
-           return -3
+        if not self.haltButtons:
+            if self.startButton.isClicked(event):
+                return -3
+            else:
+                for i in range(len(self.activeDictionary[childType.BUTTON])):
+                    if self.activeDictionary[childType.BUTTON][i].isClicked(event):
+                        selfSet = i
+                return selfSet
         else:
-            for i in range(len(self.activeDictionary[childType.BUTTON])):
-                if self.activeDictionary[childType.BUTTON][i].isClicked(event):
-                    selfSet = i
-            return selfSet
+            return -5
         
     def drawMenu(self, screen):
         self.slideAll()
@@ -218,11 +222,16 @@ class triviaMenu(menu):
         text_surf = self.title.render(self.title_text, True, base3)
         text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size))
         screen.blit(text_surf, text_rect)
-        if not self.canVote and self.activeIndex == 0:
-            self.startButton.draw_button(screen)
+        if not configModule.online:
+            if not self.canVote and self.activeIndex == 0:
+                self.startButton.draw_button(screen)
+        else:
+            if not self.startButton.lockOut:
+                self.startButton.draw_button(screen)
         if not self.haltWidgetDraw:
-            for i in range(len(self.activeDictionary[childType.BUTTON])):
-                self.activeDictionary[childType.BUTTON][i].draw_button(screen)
+            if not self.haltButtons:
+                for i in range(len(self.activeDictionary[childType.BUTTON])):
+                    self.activeDictionary[childType.BUTTON][i].draw_button(screen)
             for i in range(len(self.activeDictionary[childType.VOTE])):
                 self.activeDictionary[childType.VOTE][i].drawWidget(screen)
             for i in range(len(self.activeDictionary[childType.SLIDER])):
@@ -257,4 +266,6 @@ class triviaMenu(menu):
         self.triviaClock.position = (900, 1060)
         self.away = True
         self.haltWidgetDraw = False
+        self.haltButtons = False
+        self.preventSliding = False
         
