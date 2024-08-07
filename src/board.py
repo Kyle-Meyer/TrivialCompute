@@ -30,6 +30,8 @@ class cBoard(object):
     outerBoard = pygame.Rect(0, 0, 720 - 100, 720 - 100)
     outerBoard.center = (1280/2 , 720/2)
     tileSize = 0
+    rect_x, rect_y = 140, 130
+
     def create_board(self):
         self.board = [ [tile(triviaType.RED) for j in range(9)] for i in range(9)]
         if configModule.optionalStaticBoard == True:
@@ -127,24 +129,22 @@ class cBoard(object):
                         possibleColors.remove(self.board[i][j+1].mTrivia)
                     #add weight scoring to make sure we get a more even distribution of tiles
                     self.board[i][j] = tile(random.choice(possibleColors))
+                    
     def initializeBoard(self):
-        rect_x, rect_y = 140, 130  # Position of the rectangle we always work in quadrants
         length = min(self.width, self.height)
         offset = max(self.width, self.height)
         rect_width, rect_height = length - (.02 * offset), length - (.08 * offset)  # Size of the rectangle
-        cols, rows = 9, 9  # Number of columns and rows in the grid
-        cell_width = rect_width // cols
-        cell_height = rect_height // rows
-        for col in range(cols):
-            for row in range(rows):
-                cell_x = rect_x + col * cell_width + (length * .4)
-                cell_y = rect_y + row * cell_height - (length * .15)
+        cell_width = rect_width // self.cols
+        cell_height = rect_height // self.rows
+        for col in range(self.cols):
+            for row in range(self.rows):
+                cell_x = self.rect_x + col * cell_width + (length * .4)
+                cell_y = self.rect_y + row * cell_height - (length * .15)
                 self.board[col][row].updateTile((cell_x, cell_y), cell_width, cell_height, col , row)
     
     def updateTileColors(self):
-        cols, rows = 9, 9  # Number of columns and rows in the grid
-        for col in range(cols):
-            for row in range(rows):
+        for col in range(self.cols):
+            for row in range(self.rows):
                 if configModule.optionalMatchOriginalColors:
                     if self.board[col][row].mDistinct == tileDistinction.HQ or self.board[col][row].mDistinct == tileDistinction.NORMAL:
                         match self.board[col][row].mTrivia:
@@ -196,10 +196,12 @@ class cBoard(object):
                         self.board[row][col].mColor = magenta
                         self.board[row][col].mComplimentColor =violet
 
-    def __init__(self, width, height):
+    def __init__(self, width=1280, height=720, cols=9, rows=9):
         self.width = width
         self.height = height
-        self.board = [ [tile(triviaType.RED) for j in range(9)] for i in range(9)]
+        self.cols = cols
+        self.rows = rows
+        self.board = [ [tile(triviaType.RED) for j in range(self.cols)] for i in range(self.rows)]
         self.create_board()
         if configModule.optionalStaticBoard == False:
             self.correctBoard()

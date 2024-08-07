@@ -2,6 +2,7 @@ from configOptions import *
 
 #basics
 null = (25, 28, 38)
+lightNull = (40,43,53)
 base03 = (0, 43, 54)
 base02 = (7, 54, 66)
 base01 = (88, 110, 117)
