@@ -35,7 +35,7 @@ NO WHEEL FILE OR INIT.PY<br />
 (from your venv terminal) python src/main.py<br />
 <br />
 NOTE: IF you are trying to run the online multiplayer component, you need to first do:<br />
-python src/network # this will convert your terminal into a server<br />
+python src/network/server.py this will convert your terminal into a server<br />
 <br />
 Now you can run<br />
 python src/main.py <br />
