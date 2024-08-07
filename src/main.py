@@ -264,21 +264,76 @@ class pygameMain(object):
                 str(self.playerList[i].playerScore["c3"])+     \
                 str(self.playerList[i].playerScore["c4"])
 
+    #TODO Convert scoreboxes and mini-tiles to classes if there is time
+    def drawScoreBoards(self):
+        # Get the size of tiles, Set the size of scorebox and mini-tiles
+        rect_width, rect_height = self.LENGTH - (.02 * self.OFFSET), self.LENGTH - (.08 * self.OFFSET)
+        cell_width = rect_width // self.playBoard.cols
+        cell_height = rect_height // self.playBoard.rows
+        scoreBoxWidth = 1.5 * cell_width
+        scoreBoxHeight = 1.5 * cell_height
+        miniTileWidth = scoreBoxWidth * 0.7 // 2
+        miniTileHeight = scoreBoxHeight * 0.7 // 2        
+
+        # Draw the scorebox for each player
+        for play in self.playerList:
+
+            # Set position of player's scorebox
+            scoreBox = self.coordToScreenPos([(play.playerScorePosition[0]), (play.playerScorePosition[1]+1)])
+            scoreBox = (scoreBox[0] - 0.25 * cell_width, scoreBox[1] - 0.25 * cell_height)
+
+            # Draw the player's scorebox
+            pygame.draw.rect(self.screen, null, pygame.Rect(scoreBox[0],scoreBox[1],scoreBoxWidth,scoreBoxHeight), 0)            
+            
+            # Draw the player's scorebox outline
+            pygame.draw.rect(self.screen, play.circle_color, pygame.Rect(scoreBox[0],scoreBox[1],scoreBoxWidth,scoreBoxHeight), 4)
+
+            # Set the mini-tile colors
+            miniTileColors = [lightNull, lightNull, lightNull, lightNull]
+            if play.playerScore["c1"] == "R":
+                miniTileColors[0] = match_red
+            if play.playerScore["c2"] == "G":  
+                miniTileColors[1] = match_green
+            if play.playerScore["c3"] == "B":
+                miniTileColors[2] = match_blue
+            if play.playerScore["c4"] == "Y":
+                miniTileColors[3] = match_yellow
+
+            # Draw the mini-tiles
+            pygame.draw.rect(self.screen, miniTileColors[0], pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 0)   
+            pygame.draw.rect(self.screen, miniTileColors[2], pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 0)
+            pygame.draw.rect(self.screen, miniTileColors[1], pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 0)
+            pygame.draw.rect(self.screen, miniTileColors[3], pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 0)
+            
+            # Draw the mini-tile outlines
+            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 1)   
+            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 1)
+            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 1)
+            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 1)
+
     def drawPlayers(self):
         for play in self.playerList:
             play.drawPlayer(self.screen)
             if play == self.currPlayer:
                 diff = play.circle_radius - play.circle_inner_radius
                 pygame.draw.circle(self.screen, base3, (play.circle_x, play.circle_y), play.circle_radius+diff, diff*2)
-    
-    # Convert token position to tile coordinates
+
+    # Convert screen position to tile coordinates
     #TODO redo all of this, its bad
     def screenPosToCoord(self): 
-        leftEdgeOfTiles = int(140 + 0.4 * self.LENGTH) 
-        topEdgeOfTiles = int(130 - 0.15 * self.LENGTH) 
-        playerXCoord = int((self.currPlayer.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.02 * self.OFFSET))//9)) 
-        playerYCoord = int((self.currPlayer.circle_y - topEdgeOfTiles)//((self.LENGTH - (.08 * self.OFFSET))//9))
-        return(playerXCoord,playerYCoord) 
+        leftEdgeOfTiles = int(self.playBoard.rect_x + 0.4 * self.LENGTH) 
+        topEdgeOfTiles = int(self.playBoard.rect_y - 0.15 * self.LENGTH) 
+        tileXCoord = int((self.currPlayer.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.02 * self.OFFSET))//self.playBoard.cols)) 
+        tileYCoord = int((self.currPlayer.circle_y - topEdgeOfTiles)//((self.LENGTH - (.08 * self.OFFSET))//self.playBoard.rows))
+        return(tileXCoord,tileYCoord) 
+    
+    # Convert tile coordinates to screen position
+    def coordToScreenPos(self, coord):
+        leftEdgeOfTiles = int(self.playBoard.rect_x + 0.4 * self.LENGTH) 
+        topEdgeOfTiles = int(self.playBoard.rect_y - 0.15 * self.LENGTH) 
+        x = int(leftEdgeOfTiles + (self.LENGTH - (.02 * self.OFFSET))//self.playBoard.cols * coord[0]) 
+        y = int(topEdgeOfTiles + (self.LENGTH - (.08 * self.OFFSET))//self.playBoard.rows * coord[1])
+        return(x,y)
     
     # Locks in the player's move
     def advanceToken(self, position = (-1,-1)):
@@ -303,10 +358,6 @@ class pygameMain(object):
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.BLUE: self.currPlayer.playerScore[cat]="B"
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.GREEN: self.currPlayer.playerScore[cat]="G"
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.YELLOW: self.currPlayer.playerScore[cat]="Y"
-            self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]+1].title_text = str(self.currPlayer.playerScore["c1"])+ \
-                        str(self.currPlayer.playerScore["c2"])+     \
-                        str(self.currPlayer.playerScore["c3"])+     \
-                        str(self.currPlayer.playerScore["c4"])
         return
     
     # Check for game winner
@@ -320,7 +371,6 @@ class pygameMain(object):
     # Crown the victor
     def crownVictor(self):
         self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]].title_color = winner_green
-        self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]+1].mColor = winner_green
                 
     def handleCurrentPlayerMoves(self):
         self.currPlayer.currentNeighbors.clear()
@@ -751,7 +801,7 @@ class pygameMain(object):
                         if self.clientNumber >= len(self.playerList):
                             self.clientNumber = 0
                         self.currPlayer = self.playerList[self.clientNumber]
-            print("currplayer ", self.currPlayer.playerName)
+            #print("currplayer ", self.currPlayer.playerName)
             #game state logic
             if self.currState == 0:
                 question = ''
@@ -837,6 +887,7 @@ class pygameMain(object):
             self.testParticle.drawParticles(self.screen)
             self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
             self.drawPlayers()
+            self.drawScoreBoards()
             self.testMenu.drawMenu(self.screen, base3)
             
             self.testDice.drawDice(self.screen, self.drawDice)

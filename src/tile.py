@@ -175,11 +175,7 @@ class tile(object):
                 self.etitle_text_size = inSize * 2
                 self.etitle = pygame.font.Font(None, self.etitle_text_size)
                 self.title = pygame.font.Font(None, self.title_text_size)
-            case tileDistinction.SPECIAL:
-                self.mColor = null
-                self.title_text = "____"
-                self.title_text_size = inSize * 3
-                self.title = pygame.font.Font(None, self.title_text_size)                
+            case tileDistinction.SPECIAL:             
                 self.title_color = null
             case tileDistinction.NORMAL:
                 match inColor:
