@@ -699,6 +699,7 @@ class pygameMain(object):
             #self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut)
 
             self.drawPlayers()
+            self.drawScoreBoards()
             self.testMenu.drawMenu(self.screen, base3)
             
             if self.clientNumber == self.controllingPlayer:
