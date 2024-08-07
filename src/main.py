@@ -30,6 +30,7 @@ from voteWidget import voteWidget
 import json
 from network.connector import connector
 from network.networkObjs import *
+from legend import categoryLegend
 
 import os
 import subprocess
@@ -104,6 +105,7 @@ class pygameMain(object):
         self.bounding_box2 = pygame.Rect(100, 200, 200, 200)
         self.clock = pygame.time.Clock()
         self.setupInfo = setupInfo
+        self.legend = categoryLegend(font_size=20, screen_width=self.WIDTH, screen_height=self.HEIGHT)
         self.clientNumber = currPlayerIndex
         # Initialize playerList using setupInfo
         self.playerList = []
@@ -127,9 +129,6 @@ class pygameMain(object):
             self.playerList[i].playerScorePosition = (a,b)
             self.playBoard.board[a][b].title_text = self.playerList[i].playerName #Larry
             self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
-
-    
-    
 
     def debugButton(self):
         self.testButton.button_text = "this is a test"
@@ -712,6 +711,7 @@ class pygameMain(object):
             #bounding box draw
             if self.boundingDraw:
                 pygame.draw.rect(self.screen, debug_red, self.currPlayer.clampBox.box, 2)
+            self.legend.draw(self.screen)
             pygame.display.update()
             self.clock.tick(60) #60 fps
 
@@ -890,6 +890,7 @@ class pygameMain(object):
             #bounding box draw
             if self.boundingDraw:
                 pygame.draw.rect(self.screen, debug_red, self.currPlayer.clampBox.box, 2)
+            self.legend.draw(self.screen)
             pygame.display.update()
             self.clock.tick(60) #60 fps
 
@@ -918,6 +919,7 @@ def main():
         demo.createSettingsMenu()
         demo.createTriviaMenu()
         demo.initializePlayersForNewGame()
+        demo.legend.update_legend(categories=setupInfo['categories'])
         if configModule.online:
             demo.mainLoopOnline()
         else:
