@@ -176,7 +176,7 @@ class tile(object):
                 self.etitle = pygame.font.Font(None, self.etitle_text_size)
                 self.title = pygame.font.Font(None, self.title_text_size)
             case tileDistinction.SPECIAL:             
-                self.title_color = null
+                self.mColor = null
             case tileDistinction.NORMAL:
                 match inColor:
                     case triviaType.RED:

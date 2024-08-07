@@ -175,7 +175,7 @@ def runSetupMenu(database):
         def __init__(self, text, x, y, width, height, color, action=None):
             self.text = text
             self.rect = pygame.Rect(x, y, width, height)
-            self.color_list = [(255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+            self.color_list = [match_red, match_green, match_blue, match_yellow]
             self.color_index = 0
             self.color = color
             self.action = action
@@ -211,7 +211,7 @@ def runSetupMenu(database):
             return None
 
         def setup_player(self):
-            colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+            colors = [match_red, match_green, match_blue, match_yellow]
             current_name = self.text
             current_color = self.color
             color_buttons = [pygame.Rect(750 + i * 120, 400, 100, 100) for i in range(len(colors))]
@@ -280,7 +280,7 @@ def runSetupMenu(database):
 
     buttons = []
     player_buttons = []
-    colors = [(255, 0 , 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+    colors = [match_red, match_green, match_blue, match_yellow]
 
     # Add the player buttons
     for i in range(number_of_players):

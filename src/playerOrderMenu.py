@@ -139,20 +139,12 @@ def run_order_menu(setupInfo):
         buttons = []
         for i in range(number_of_players):
             player_name = setupInfo['players'][i]['name']
-            player_color = color_switcher.get(setupInfo['players'][i]['color'])
+            player_color = setupInfo['players'][i]['color']
             button = Button(player_name, button_positions[i][0], button_positions[i][1],
                             button_width, button_height, player_color, actions[i])
             buttons.append(button)
 
         return buttons
-
-    # Initialize color switcher
-    color_switcher = {
-        (255, 0, 0): match_red,
-        (0, 0, 255): match_blue,
-        (0, 255, 0): match_green,
-        (255, 255, 0): match_yellow
-    }
 
     # Create buttons based on the number of players
     buttons = create_buttons(setupInfo['number_of_players'])

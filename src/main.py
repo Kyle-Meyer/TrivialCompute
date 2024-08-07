@@ -109,17 +109,10 @@ class pygameMain(object):
         self.playerList = []
         #TODO, change how player list will work across network
         self.currPlayer = None
-        #please do not use literals here, we have a color file
         for i in range(self.setupInfo['number_of_players']):
-            color_switcher = {
-                (255, 0, 0): player_red,
-                (0, 0, 255): player_blue,
-                (0, 255, 0): player_green,
-                (255, 255, 0): player_yellow
-            }
-            self.playerList.append(player(11, self.WIDTH // 2, self.HEIGHT // 2,color_switcher.get(self.setupInfo['players'][i]['color'])))
+            self.playerList.append(player(11, self.WIDTH // 2, self.HEIGHT // 2,self.setupInfo['players'][i]['color']))
             self.playerList[i].playerName = self.setupInfo['players'][i]['name']
-            self.playerList[i].playerColor =color_switcher.get(self.setupInfo['players'][i]['color'])
+            self.playerList[i].playerColor = self.setupInfo['players'][i]['color']
 
         # Initialize playBoard attributes that depend on setupInfo
         self.playBoard = cBoard(self.WIDTH, self.HEIGHT)
@@ -905,7 +898,7 @@ def main():
     pygame.init()
     #print("running")
     selected_menu_action = run_start_menu()
-    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': (255, 255, 0)}, {'name': 'Player3', 'color': (0, 0, 255)}, {'name': 'Player1', 'color': (255, 0, 0)}, {'name': 'Player2', 'color': (0, 255, 0)}], 'categories': []}
+    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': []}
     if selected_menu_action == "start":   
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         #TODO remove this later
