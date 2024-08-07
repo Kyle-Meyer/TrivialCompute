@@ -1,5 +1,4 @@
 ' Use Case 1: Initialize Game Setup with Player Information and Category Selection
-' Use Case 2: Determine Player Order
 
 @startuml
 

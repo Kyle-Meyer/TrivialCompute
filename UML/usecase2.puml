@@ -1,0 +1,39 @@
+' Use Case 2: Determine Player Order
+
+@startuml
+
+actor Player
+participant pygameMain
+participant playerOrderMenu
+participant button
+participant textWidget
+
+activate pygameMain
+
+pygameMain -> playerOrderMenu: drawPlayerOrderMenu()
+activate playerOrderMenu
+
+playerOrderMenu -> button: addChildComponent(button)
+playerOrderMenu -> textWidget: addChildComponent(textWidget)
+
+
+loop Event Handling, playerOrderMenuLoop()
+    loop Event Handling    
+        setupMenu -> button: listen_for_buttons(event)
+        setupMenu -> button: isClicked(event)
+        button --> setupMenu: bool (clicked)
+    end
+
+    Player -> button: Roll Dice
+    button --> playerOrderMenu: rollDice()
+
+end
+
+Player -> button: Begin Game
+button --> playerOrderMenu: proceedToGame()
+playerOrderMenu --> pygameMain: players (in order)
+
+deactivate playerOrderMenu
+deactivate pygameMain
+
+@enduml
