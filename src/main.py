@@ -100,7 +100,10 @@ class pygameMain(object):
         self.diceRoll = 0
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Trivial Compute")
-        self.n = connector()
+        if configModule.online:
+            self.n = connector()
+        else:
+            self.n = None
         self.bounding_box = pygame.Rect(300, 200, 200, 200)
         self.bounding_box2 = pygame.Rect(100, 200, 200, 200)
         self.clock = pygame.time.Clock()
