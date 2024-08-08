@@ -31,6 +31,7 @@ import json
 from network.connector import connector
 from network.networkObjs import *
 from legend import categoryLegend
+from scoreboard import scoreboard
 
 import os
 import subprocess
@@ -110,6 +111,7 @@ class pygameMain(object):
         self.setupInfo = setupInfo
         self.legend = categoryLegend(font_size=20, screen_width=self.WIDTH, screen_height=self.HEIGHT)
         self.clientNumber = currPlayerIndex
+        self.scoreboards = []
         # Initialize playerList using setupInfo
         self.playerList = []
         #TODO, change how player list will work across network
@@ -254,64 +256,29 @@ class pygameMain(object):
     def restorePlayerScores(self, savedPlayerScores):
         for i in range(len(self.playerList)):
             self.playerList[i].playerScore = savedPlayerScores[i]
-            self.playBoard.board[self.playerList[i].playerScorePosition[0]][self.playerList[i].playerScorePosition[1]+1].title_text = str(self.playerList[i].playerScore["c1"])+ \
-                str(self.playerList[i].playerScore["c2"])+     \
-                str(self.playerList[i].playerScore["c3"])+     \
-                str(self.playerList[i].playerScore["c4"])
 
-    #TODO Convert scoreboxes and mini-tiles to classes if there is time
-    def drawScoreBoards(self):
-        # Get the size of tiles, Set the size of scorebox and mini-tiles
+    def initializeScoreboards(self, playerList):
         rect_width, rect_height = self.LENGTH - (.02 * self.OFFSET), self.LENGTH - (.08 * self.OFFSET)
         cell_width = rect_width // self.playBoard.cols
         cell_height = rect_height // self.playBoard.rows
         scoreBoxWidth = 1.5 * cell_width
         scoreBoxHeight = 1.5 * cell_height
-        miniTileWidth = scoreBoxWidth * 0.7 // 2
-        miniTileHeight = scoreBoxHeight * 0.7 // 2        
 
-        # Draw the scorebox for each player
-        for play in self.playerList:
-
-            # Set position of player's scorebox
-            scoreBox = self.coordToScreenPos([(play.playerScorePosition[0]), (play.playerScorePosition[1]+1)])
-            scoreBox = (scoreBox[0] - 0.25 * cell_width, scoreBox[1] - 0.25 * cell_height)
-
-            # Draw the player's scorebox
-            pygame.draw.rect(self.screen, null, pygame.Rect(scoreBox[0],scoreBox[1],scoreBoxWidth,scoreBoxHeight), 0)            
+        for play in playerList:
+            x_pos, y_pos = self.coordToScreenPos([(play.playerScorePosition[0]), (play.playerScorePosition[1]+1)])
+            x_pos, y_pos = (x_pos - 0.25 * cell_width, y_pos - 0.25 * cell_height)
+            self.scoreboards.append(scoreboard(play.playerName, play.circle_color, x_pos, y_pos, scoreBoxWidth, scoreBoxHeight))
             
-            # Draw the player's scorebox outline
-            pygame.draw.rect(self.screen, play.circle_color, pygame.Rect(scoreBox[0],scoreBox[1],scoreBoxWidth,scoreBoxHeight), 4)
-
-            # Set the mini-tile colors
-            miniTileColors = [lightNull, lightNull, lightNull, lightNull]
-            if play.playerScore["c1"] == "R":
-                miniTileColors[0] = match_red
-            if play.playerScore["c2"] == "G":  
-                miniTileColors[1] = match_green
-            if play.playerScore["c3"] == "B":
-                miniTileColors[2] = match_blue
-            if play.playerScore["c4"] == "Y":
-                miniTileColors[3] = match_yellow
-
-            # Draw the mini-tiles
-            pygame.draw.rect(self.screen, miniTileColors[0], pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 0)   
-            pygame.draw.rect(self.screen, miniTileColors[2], pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 0)
-            pygame.draw.rect(self.screen, miniTileColors[1], pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 0)
-            pygame.draw.rect(self.screen, miniTileColors[3], pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 0)
-            
-            # Draw the mini-tile outlines
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 1)   
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 1)
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 1)
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 1)
-
     def drawPlayers(self):
         for play in self.playerList:
             play.drawPlayer(self.screen)
             if play == self.currPlayer:
                 diff = play.circle_radius - play.circle_inner_radius
                 pygame.draw.circle(self.screen, base3, (play.circle_x, play.circle_y), play.circle_radius+diff, diff*2)
+    
+    def drawScoreboards(self):
+        for i in range(len(self.scoreboards)):
+            self.scoreboards[i].drawScoreboard(self.screen, self.playerList[i].playerScore)
 
     # Convert screen position to tile coordinates
     #TODO redo all of this, its bad
@@ -705,7 +672,7 @@ class pygameMain(object):
             #self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut)
 
             self.drawPlayers()
-            self.drawScoreBoards()
+            self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
             
             if self.clientNumber == self.controllingPlayer:
@@ -894,7 +861,7 @@ class pygameMain(object):
             self.testParticle.drawParticles(self.screen)
             self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
             self.drawPlayers()
-            self.drawScoreBoards()
+            self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
             
             self.testDice.drawDice(self.screen, self.drawDice)
@@ -913,11 +880,11 @@ def main():
     pygame.init()
     #print("running")
     selected_menu_action = run_start_menu()
-    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': []}
+    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Computer Science', 'color': (0, 228, 53)}]}
     if selected_menu_action == "start":   
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         #TODO remove this later
-        if configModule.online:
+        if configModule.online or configModule.bypass:
             setupInfo = bypass
         else:
             setupInfo = runSetupMenu(database)
@@ -933,6 +900,7 @@ def main():
         demo.createTriviaMenu()
         demo.initializePlayersForNewGame()
         demo.legend.update_legend(categories=setupInfo['categories'])
+        demo.initializeScoreboards(demo.playerList)
         if configModule.online:
             demo.mainLoopOnline()
         else:
@@ -954,6 +922,8 @@ def main():
             demo.createSettingsMenu()
             demo.createTriviaMenu()
             demo.initializePlayersForNewGame()
+            demo.legend.update_legend(categories=setupInfo['categories'])
+            demo.initializeScoreboards(demo.playerList)            
             if configModule.online:
                 demo.mainLoopOnline()
             else:
@@ -984,6 +954,9 @@ def main():
 
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
+
+            demo.legend.update_legend(categories=setupInfo['categories'])
+            demo.initializeScoreboards(demo.playerList)
 
         if configModule.online:
             demo.mainLoopOnline()
