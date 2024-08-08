@@ -69,15 +69,15 @@ def run_start_menu():
         return "exit"
 
     def config_game():
-        print("Configuraiton button clicked")
+        print("Configuration button clicked")
         cm.config_menu()
 
 
     # Create buttons
-    config_button = Button("Configure", 850, 100, 300, 75, match_blue, config_game)
-    start_button = Button("Start New Game", 850, 200, 300, 75, match_green, start_game)
-    restore_button = Button("Restore Last Game", 850, 300, 300, 75, match_yellow, restore_last_game)
-    exit_button = Button("Exit", 850, 400, 300, 75, match_red, exit_game)
+    #config_button = Button("Configure", 850, 100, 300, 75, std_blue, config_game)
+    start_button = Button("Start New Game", 850, 200, 300, 75, std_green, start_game)
+    restore_button = Button("Restore Last Game", 850, 300, 300, 75, std_yellow, restore_last_game)
+    exit_button = Button("Exit", 850, 400, 300, 75, std_red, exit_game)
 
 
     buttons = [start_button, restore_button, exit_button]
