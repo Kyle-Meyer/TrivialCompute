@@ -1,6 +1,8 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog, ttk
+from tkinter import messagebox, simpledialog, filedialog, ttk
 import psycopg2
+import subprocess
+import os
 from databaseSetup import setup_database_and_execute_scripts
 
 # Database connection
@@ -61,13 +63,55 @@ def remove_category(cur, conn, category_id):
     except psycopg2.Error as e: 
         messagebox.showerror("Error", f"Failed to remove category and associated questions: {e}") 
         conn.rollback() 
+# Export database to file
+def export_database():
+    file_path = filedialog.asksaveasfilename(defaultextension=".sql", filetypes=[("SQL files", "*.sql"), ("All files", "*.*")])
+    if file_path:
+        try:
+            env = os.environ.copy()
+            env["PGPASSWORD"] = "postgres"
+            subprocess.run(["pg_dump", "-U", "postgres", "-h", "localhost", "-d", "trivialCompute", "-f", file_path], check=True, env=env)
+            messagebox.showinfo("Success", f"Database exported successfully to {file_path}")
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Error", f"Failed to export database: {e}")
+
+# Force delete existing database
+def force_delete_database():
+    try:
+        env = os.environ.copy()
+        env["PGPASSWORD"] = "postgres"
+        # Terminate any active connections to the database
+        subprocess.run(["psql", "-U", "postgres", "-h", "localhost", "-c", "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'trivialCompute' AND pid <> pg_backend_pid()"], check=True, env=env)
+        # Drop the database
+        subprocess.run(["psql", "-U", "postgres", "-h", "localhost", "-c", "DROP DATABASE IF EXISTS \"trivialCompute\""], check=True, env=env)
+    except subprocess.CalledProcessError as e:
+        messagebox.showerror("Error", f"Failed to delete existing database: {e}")
+        return False
+    return True
+
+# Import database from file
+def import_database():
+    file_path = filedialog.askopenfilename(defaultextension=".sql", filetypes=[("SQL files", "*.sql"), ("All files", "*.*")])
+    if file_path:
+        if messagebox.askyesno("Warning", "Importing will overwrite the existing 'trivialCompute' database. Do you want to proceed?"):
+            if force_delete_database():
+                try:
+                    env = os.environ.copy()
+                    env["PGPASSWORD"] = "postgres"
+                    subprocess.run(["psql", "-U", "postgres", "-h", "localhost", "-c", "CREATE DATABASE \"trivialCompute\""], check=True, env=env)
+                    subprocess.run(["psql", "-U", "postgres", "-h", "localhost", "-d", "trivialCompute", "-f", file_path], check=True, env=env)
+                    messagebox.showinfo("Success", f"Database imported successfully from {file_path}")
+                    app.conn = db_connect()  # Re-establish the database connection
+                except subprocess.CalledProcessError as e:
+                    messagebox.showerror("Error", f"Failed to import database: {e}")
+
 
 # Main application class
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Database Manager")
-        self.geometry("1280x720")
+        self.geometry("1280x800")
         self.style = ttk.Style(self)
         self.style.theme_use('clam')
         self.conn = db_connect()
@@ -100,6 +144,13 @@ class App(tk.Tk):
 
         self.remove_category_button = ttk.Button(self.category_frame, text="Remove Category", command=self.show_remove_category) 
         self.remove_category_button.pack(pady=10) 
+
+        # Buttons for export and import
+        self.export_button = ttk.Button(self.category_frame, text="Export Database", command=export_database)
+        self.export_button.pack(pady=10)
+
+        self.import_button = ttk.Button(self.category_frame, text="Import Database", command=import_database)
+        self.import_button.pack(pady=10)
 
         self.selected_category = None 
 
