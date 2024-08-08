@@ -1,6 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog, ttk
+from tkinter import messagebox, simpledialog, ttk, filedialog
 import psycopg2
+from PIL import Image, ImageTk
+import base64
+import io
 from databaseSetup import setup_database_and_execute_scripts
 
 # Database connection
@@ -21,7 +24,7 @@ def get_categories(cur):
     return cur.fetchall()
 
 def get_questions_by_category(cur, category):
-    cur.execute("SELECT id, question, answer FROM questions WHERE category=%s", (category,))
+    cur.execute("SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category=%s", (category,))
     return cur.fetchall()
 
 def get_category_name_by_category_id(cur, category_id):
@@ -36,9 +39,9 @@ def add_category(cur, conn, name):
         messagebox.showerror("Error", f"Failed to add category: {e}")
         conn.rollback()
 
-def add_question(cur, conn, question, answer, category):
+def add_question(cur, conn, question, answer, category, imageBase64):
     try:
-        cur.execute("INSERT INTO questions (question, answer, category) VALUES (%s, %s, %s)", (question, answer, category))
+        cur.execute("INSERT INTO questions (question, answer, category, \"imageBase64\") VALUES (%s, %s, %s, %s)", (question, answer, category, imageBase64))
         messagebox.showinfo("Success", "Question added successfully!")
     except psycopg2.Error as e:
         messagebox.showerror("Error", f"Failed to add question: {e}")
@@ -128,29 +131,55 @@ class App(tk.Tk):
         for widget in self.action_frame.winfo_children():
             widget.destroy()
         
-        questions = get_questions_by_category(self.conn[1],category)
+        questions = get_questions_by_category(self.conn[1], category)
         ttk.Label(self.action_frame, text=f"Questions for {category}:", font=('Arial', 14)).pack(pady=10)
         
-        # Create a frame with a scrollbar and listbox for questions 
-        listbox_frame = ttk.Frame(self.action_frame) 
-        listbox_frame.pack(fill=tk.BOTH, expand=True) 
-        scrollbar = ttk.Scrollbar(listbox_frame) 
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y) 
-        self.question_listbox = tk.Listbox(listbox_frame, yscrollcommand=scrollbar.set, font=('Arial', 12)) 
-        self.question_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True) 
-        scrollbar.config(command=self.question_listbox.yview) 
+        # Create a frame with a scrollbar and canvas for questions
+        canvas_frame = ttk.Frame(self.action_frame)
+        canvas_frame.pack(fill=tk.BOTH, expand=True)
 
-        for question_id, question, answer in questions: 
-            self.question_listbox.insert(tk.END, f"ID: {question_id}")
-            self.question_listbox.insert(tk.END, f"Q: {question}")
-            self.question_listbox.insert(tk.END, f"A: {answer}")
-            self.question_listbox.insert(tk.END, "\n")
+        canvas = tk.Canvas(canvas_frame, bg="white")
+        scrollbar = ttk.Scrollbar(canvas_frame, orient=tk.VERTICAL, command=canvas.yview)
+        
+        # Create a scrollable window on the canvas
+        scrollable_frame = ttk.Frame(canvas)
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        canvas.configure(yscrollcommand=scrollbar.set)
 
+        for child in scrollable_frame.winfo_children():
+            child.configure(background="white")
+
+        # Insert questions and images into the scrollable frame
+        for question_id, question, answer, imageBase64 in questions:
+            question_frame = ttk.Frame(scrollable_frame)
+            question_frame.pack(fill=tk.X, pady=5)
+            
+            ttk.Label(question_frame, text=f"ID: {question_id}", font=('Arial', 12)).pack(anchor=tk.W)
+            ttk.Label(question_frame, text=f"Q: {question}", font=('Arial', 12)).pack(anchor=tk.W)
+            ttk.Label(question_frame, text=f"A: {answer}", font=('Arial', 12)).pack(anchor=tk.W)
+            
+            # Handle image display
+            if imageBase64:
+                image_data = base64.b64decode(imageBase64)
+                image = Image.open(io.BytesIO(image_data))
+                image.thumbnail((100, 100))
+                photo = ImageTk.PhotoImage(image)
+                image_label = ttk.Label(question_frame, image=photo)
+                image_label.pack(pady=5)
+                image_label.photo = photo  # Keep a reference to avoid garbage collection
+        
         self.add_question_button = ttk.Button(self.action_frame, text="Add Question", command=self.show_add_question) 
         self.add_question_button.pack(pady=10) 
 
         self.remove_question_button = ttk.Button(self.action_frame, text="Remove Question", command=self.show_remove_question) 
-        self.remove_question_button.pack(pady=10) 
+        self.remove_question_button.pack(pady=10)
 
     def show_add_category(self):
         if self.conn == None:
@@ -187,18 +216,62 @@ class App(tk.Tk):
         self.new_answer_entry = ttk.Entry(self.action_frame, font=('Arial', 12))
         self.new_answer_entry.pack(pady=10)
         
+        self.upload_button = ttk.Button(self.action_frame, text="Upload Image", command=self.upload_image)
+        self.upload_button.pack(pady=10)
+
+        self.image_label = ttk.Label(self.action_frame)
+        self.image_label.pack(pady=10)
+        
+        self.delete_image_button = ttk.Button(self.action_frame, text="Delete Image", command=self.delete_image, state=tk.DISABLED)
+        self.delete_image_button.pack(pady=10)
+        
         self.submit_question_button = ttk.Button(self.action_frame, text="Submit", command=self.submit_question)
-        self.submit_question_button.pack(pady=10)
-    
+        self.submit_question_button.pack(side=tk.BOTTOM, pady=10)
+
+        self.image_base64 = None
+
+    def upload_image(self):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            with open(file_path, "rb") as img_file:
+                img_data = img_file.read()
+                self.image_base64 = base64.b64encode(img_data).decode('utf-8')
+                
+            self.show_image_thumbnail(file_path)
+            self.upload_button.pack_forget()  # Hide the upload button
+            self.delete_image_button.config(state=tk.NORMAL)
+            self.delete_image_button.pack(pady=10)  # Ensure delete button is visible
+
+    def show_image_thumbnail(self, file_path):
+        image = Image.open(file_path)
+        image.thumbnail((100, 100))
+        photo = ImageTk.PhotoImage(image)
+        self.image_label.config(image=photo)
+        self.image_label.photo = photo
+
+    def delete_image(self):
+        self.image_base64 = None
+        self.image_label.config(image='')
+        self.delete_image_button.pack_forget()  # Hide the delete button
+        self.upload_button.pack(pady=10)  # Show the upload button
+        self.submit_question_button.pack(side=tk.BOTTOM, pady=10)  # Ensure submit button is at the bottom
+
     def submit_question(self):
         question_text = self.new_question_entry.get()
         answer_text = self.new_answer_entry.get()
+        
         if question_text and answer_text:
-            add_question(self.conn[1], self.conn[0], question_text, answer_text, self.selected_category)
+            # Save the question along with its image
+            add_question(self.conn[1], self.conn[0], question_text, answer_text, self.selected_category, self.image_base64)
             self.display_questions(self.selected_category)
+                
+            # Update the UI immediately after submission
+            self.display_questions(self.selected_category)
+            self.update_idletasks()  # Ensure UI is updated
         else:
             messagebox.showerror("Error", "Question and answer cannot be empty!")
-    
+
+
     def show_remove_question(self):
         selected_question = simpledialog.askinteger("Remove Question", "Enter the ID of the question to remove:")
         if selected_question is not None:
