@@ -45,7 +45,7 @@ class textWidget(object):
 
     def draw_rounded_rect(self, surface):
         inner_rect = self.rect.inflate(-4 * self.border_thickness, -4 * self.border_thickness)
-        pygame.draw.rect(surface, null, inner_rect, 0, 20)  # Adjust as needed
+        pygame.draw.rect(surface, null, inner_rect, 0, 20)  #hard setting the border radius as menus should be fixed "roundness"
         outer_rect = self.rect.inflate(self.border_thickness, self.border_thickness)
         pygame.draw.rect(surface, self.border_color, outer_rect, self.border_thickness, 20)
 
