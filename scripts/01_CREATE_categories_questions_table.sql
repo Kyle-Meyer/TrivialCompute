@@ -12,6 +12,5 @@ CREATE TABLE questions (
     "question" TEXT NOT NULL,
     "answer" TEXT NOT NULL,
     "category" VARCHAR NOT NULL,
-    "imageBase64" TEXT,
     FOREIGN KEY ("category") REFERENCES categories("name")
 );

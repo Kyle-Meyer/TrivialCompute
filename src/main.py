@@ -579,13 +579,10 @@ class pygameMain(object):
                         for catRec in categories:
                             category_names.append(catRec['name'])
                     if self.clientNumber == self.controllingPlayer:
-                        question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
                     else:
-                        question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+                        question, answer = incData.question, incData.answer
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    
-                    self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
-
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -641,7 +638,6 @@ class pygameMain(object):
                 self.trivMenu.startButton.lockOut = True
                 question = ''
                 answer = ''
-                imageBase64 = None
                 if self.clientNumber == self.controllingPlayer:
                         self.currState = 6
             elif self.currState == 6:
@@ -694,7 +690,6 @@ class pygameMain(object):
     #offline variant, too lazy to surgically align things
     def mainLoopOffline(self):
         question, answer = '', ''
-        imageBase64 = None
         hasPulled = False
         while self.run:
             for event in pygame.event.get():
@@ -724,7 +719,6 @@ class pygameMain(object):
                     self.currPlayer = self.playerList[self.clientNumber]
                     question = ''
                     answer = ''
-                    imageBase64 = None
                     hasPulled = False
                     self.currState = 0
                 #BUTTON CALLBACK
@@ -776,7 +770,6 @@ class pygameMain(object):
             if self.currState == 0:
                 question = ''
                 answer = ''
-                imageBase64 = None
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=False
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
                 hasPulled = False
@@ -791,7 +784,6 @@ class pygameMain(object):
             if self.currState == 1:
                 self.questionAnswerTextWidget.updateText('')
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                 self.currPlayer.hasRolled = True 
                 self.drawDice = True
@@ -822,9 +814,8 @@ class pygameMain(object):
                     else:
                         for catRec in categories:
                             category_names.append(catRec['name'])
-                    question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -844,7 +835,6 @@ class pygameMain(object):
                 self.trivMenu.resetTimer()
                 question = ''
                 answer = ''
-                imageBase64 = None
                 self.currState = 0
 
             if not self.testDice.rolling and self.currPlayer.hasRolled:
