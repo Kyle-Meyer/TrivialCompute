@@ -66,4 +66,11 @@ match_green = (0,228,53)
 match_red = (255,0,76)
 match_white = (255,255,255)
 
+#standard colors
+std_red = (255,0,0)
+std_green = (0,255,0)
+std_blue = (0,0,255)
+std_yellow = (255,255,0)
+std_magenta = (255,0,255)
+
 player_highlight_color = (224, 101, 13)

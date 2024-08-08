@@ -1,0 +1,66 @@
+' Use Case 3: Gameplay
+
+@startuml
+
+actor Player
+participant pygameMain
+participant startMenu
+participant gameMenu
+participant board
+participant playerMgr
+participant button
+participant textWidget
+participant dice
+
+
+activate pygameMain
+
+
+loop mainLoop()
+    pygameMain -> board: drawBoard()    
+    pygameMain -> playerMgr: drawPlayers()  
+
+    pygameMain -> gameMenu: drawGameMenu()
+
+    activate gameMenu
+    gameMenu -> button: addChildComponent(button)
+    gameMenu -> textWidget: addChildComponent(textWidget)
+    gameMenu -> dice: drawDice()
+    
+    loop gameMenuLoop()
+
+    Player -> button: Save Game
+    button --> gameMenu: saveGame()
+    gameMenu --> pygameMain: saveGame()
+    pygameMain -> dbConnection: saveGameState(playerList, currPlayer, playerOrder)    
+        
+    end
+
+    deactivate gameMenu
+
+    
+Player -> pygameMain: Close Application
+end
+deactivate pygameMain
+
+Player -> pygameMain: Start Application
+activate pygameMain
+    pygameMain -> startMenu: drawStartMenu()
+
+    activate startMenu
+    startMenu -> button: addChildComponent(button)
+    loop startMenuLoop()
+
+    Player -> button: Restore Game
+    button --> startMenu: restoreGame()
+    startMenu --> pygameMain: restoreGame()
+    pygameMain -> dbConnection: restoreGameState()    
+    dbConnection --> pygameMain: playerList, currPlayer, playerOrder
+        
+    end
+
+
+
+deactivate pygameMain
+
+@enduml
