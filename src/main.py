@@ -133,6 +133,13 @@ class pygameMain(object):
             self.playBoard.board[a][b].title_text = self.playerList[i].playerName #Larry
             self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
 
+        self.tileColorMapping =  {
+            triviaType.RED: (255, 0, 76),
+            triviaType.YELLOW: (255, 236, 38),
+            triviaType.BLUE: (41, 173, 255),
+            triviaType.GREEN: (0, 228, 53)
+        }
+
     def debugButton(self):
         self.testButton.button_text = "this is a test"
         self.testButton.border_thickness = 0
@@ -606,13 +613,30 @@ class pygameMain(object):
                     #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
+                    
                     if len(categories) < 4 or categories == {}:
-                        category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                    else:
-                        for catRec in categories:
-                            category_names.append(catRec['name'])
+                        categories = [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
+                        #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    
+                    for catRec in categories:
+                        category_names.append(catRec['name'])
+                    print(categories)
+                    print(category_names)
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    tile_trivia = self.tileColorMapping[tile.mTrivia]
+                    selectedCategory = None
+                    for category in categories:
+                        if category['color'] == tile_trivia:
+                            selectedCategory = category['name']
+                            break
+
                     if self.clientNumber == self.controllingPlayer:
-                        question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        #question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        if selectedCategory:
+                            question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                        else:
+                            print("No category found")
                     else:
                         question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
@@ -850,12 +874,29 @@ class pygameMain(object):
                     #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
+                    
                     if len(categories) < 4 or categories == {}:
-                        category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                        categories = [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
+                        #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    
+                    for catRec in categories:
+                        category_names.append(catRec['name'])
+                    print(categories)
+                    print(category_names)
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    tile_trivia = self.tileColorMapping[tile.mTrivia]
+                    selectedCategory = None
+                    for category in categories:
+                        if category['color'] == tile_trivia:
+                            selectedCategory = category['name']
+                            break
+                    #question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    #question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    if selectedCategory:
+                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
                     else:
-                        for catRec in categories:
-                            category_names.append(catRec['name'])
-                    question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        print("No category found")
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                     self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
                     hasPulled = True
@@ -919,13 +960,16 @@ def main():
         #TODO remove this later
         if configModule.online:
             setupInfo = bypass
+            print("Online:", setupInfo)
         else:
             setupInfo = runSetupMenu(database)
+            print(setupInfo)
             if(setupInfo['number_of_players'] in [2, 3, 4]):
                 setupInfo = run_order_menu(setupInfo)
             if setupInfo == {}:
                 print("No setup info found.")
                 return
+        #print(setupInfo)
         demo = pygameMain(setupInfo, database, 0)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
