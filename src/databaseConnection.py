@@ -59,7 +59,7 @@ class databaseConnection(object):
     
     def getQuestionAndAnswerByCategories(self, categories):
         placeholders = ', '.join(['%s' for _ in categories])
-        query = f"SELECT question, answer FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
+        query = f"SELECT question, answer, \"imageBase64\" FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
         return self.executeQueryFetchOne(query, categories)
 
     def getRandomQuestionAndAnswer(self):
