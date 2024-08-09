@@ -486,14 +486,16 @@ class pygameMain(object):
                     if shouldRedraw != configModule.optionalMatchOriginalColors:
                         #self.playBoard.create_board()
                         self.playBoard.updateTileColors()
-                        self.currPlayer.updateColor()
+                    for play in self.playerList:
+                        play.updateColor()
+                    for scoreboard in self.scoreboards:
+                        scoreboard.updateScoreboxColors()
                     if mbs == -3:
                         #change the trivia button to accurately reflect what stage you are in
                         if self.currState < 3:
                             self.currState = 3
                         else:
                             self.currState = 4
-
 
                 if not self.clientNumber == self.controllingPlayer:
                     if mbs >= 0 and self.currState == 4:
@@ -743,7 +745,10 @@ class pygameMain(object):
                 if shouldRedraw != configModule.optionalMatchOriginalColors:
                     #self.playBoard.create_board()
                     self.playBoard.updateTileColors()
-                    self.currPlayer.updateColor()
+                    for play in self.playerList:
+                        play.updateColor()
+                    for scoreboard in self.scoreboards:
+                        scoreboard.updateScoreboxColors()
                 if mbs == -3:
                     #change the trivia button to accurately reflect what stage you are in
                     if self.currState < 3:
