@@ -1,5 +1,6 @@
 import pygame
 from colors import *
+from configOptions import *
 
 class categoryLegend:
     def __init__(self, font_size=20, screen_width=1280, screen_height=720):
@@ -13,12 +14,35 @@ class categoryLegend:
         self.rect = None
         self.create_legend_surface()
 
+    def updateLegendColors(self):
+        if configModule.optionalMatchOriginalColors:
+            for i in range(len(self.colors)):
+                if (self.colors[i][0],self.colors[i][1],self.colors[i][2])  == HQ_red:
+                    self.colors[i] = [match_red[0],match_red[1],match_red[2]]
+                elif (self.colors[i][0],self.colors[i][1],self.colors[i][2]) == HQ_green:
+                    self.colors[i] = [match_green[0],match_green[1],match_green[2]]
+                elif (self.colors[i][0],self.colors[i][1],self.colors[i][2]) == HQ_blue:
+                    self.colors[i] = [match_blue[0],match_blue[1],match_blue[2]]
+                elif (self.colors[i][0],self.colors[i][1],self.colors[i][2]) == HQ_yellow:
+                    self.colors[i] = [match_yellow[0],match_yellow[1],match_yellow[2]]
+        else:
+            for i in range(len(self.colors)):
+                if (self.colors[i][0],self.colors[i][1],self.colors[i][2])  == match_red:
+                    self.colors[i] = [HQ_red[0],HQ_red[1],HQ_red[2]]
+                elif (self.colors[i][0],self.colors[i][1],self.colors[i][2]) == match_green:
+                    self.colors[i] = [HQ_green[0],HQ_green[1],HQ_green[2]]
+                elif (self.colors[i][0],self.colors[i][1],self.colors[i][2]) == match_blue:
+                    self.colors[i] = [HQ_blue[0],HQ_blue[1],HQ_blue[2]]
+                elif (self.colors[i][0],self.colors[i][1],self.colors[i][2]) == match_yellow:
+                    self.colors[i] = [HQ_yellow[0],HQ_yellow[1],HQ_yellow[2]]
+        self.create_legend_surface()
+
     def update_legend(self, categories):
         """ Update the legend with new categories and colors. """
         for entry in categories:
             self.categories.append(entry['name'][0:12])
             self.colors.append(entry['color'])
-        self.create_legend_surface()
+        self.updateLegendColors()
 
     def create_legend_surface(self):
         """ Create the surface for the legend. """
