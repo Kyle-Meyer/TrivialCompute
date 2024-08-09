@@ -595,7 +595,19 @@ class pygameMain(object):
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
-                    self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        self.currPlayer.hasRolled = False
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False  # Unlock the roll dice button
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
+                        self.currState = 0  # Reset to roll dice state
+                    else:
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
+                        self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    
                     self.drawDice = False
                 if self.controllingPlayer == self.clientNumber:
                     self.trivMenu.startButton.lockOut = False
@@ -624,24 +636,31 @@ class pygameMain(object):
                     print(category_names)
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
-                    tile_trivia = self.tileColorMapping[tile.mTrivia]
-                    selectedCategory = None
-                    for category in categories:
-                        if category['color'] == tile_trivia:
-                            selectedCategory = category['name']
-                            break
 
-                    if self.clientNumber == self.controllingPlayer:
-                        #question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                        if selectedCategory:
-                            question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
-                        else:
-                            print("No category found")
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        self.currPlayer.hasRolled = False
+                        self.currState = 1  # Reset to roll dice state
+                        continue
                     else:
-                        question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
-                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    
-                    self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
+                        # Handle the normal trivia tile logic
+                        tile_trivia = self.tileColorMapping[tile.mTrivia]
+                        selectedCategory = None
+                        for category in categories:
+                            if category['color'] == tile_trivia:
+                                selectedCategory = category['name']
+                                break
+
+                        if self.clientNumber == self.controllingPlayer:
+                            if selectedCategory:
+                                question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                            else:
+                                print("No category found")
+                        else:
+                            question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
 
                     hasPulled = True
 
@@ -862,8 +881,22 @@ class pygameMain(object):
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
-                    self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        self.currPlayer.hasRolled = False
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False  # Unlock the roll dice button
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
+                        self.currState = 0  # Reset to roll dice state
+                    else:
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True  # Unlock the roll dice button
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
+                        self.currState = 0  # Reset to roll dice state
+                        self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.drawDice = False
+
+                    
 
             elif self.currState == 3:
                 #self.trivMenu.currState += 1
@@ -885,20 +918,46 @@ class pygameMain(object):
                     print(category_names)
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
-                    tile_trivia = self.tileColorMapping[tile.mTrivia]
-                    selectedCategory = None
-                    for category in categories:
-                        if category['color'] == tile_trivia:
-                            selectedCategory = category['name']
-                            break
-                    #question, answer, imageBase64 = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                    #question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                    if selectedCategory:
-                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        # Handle the "Roll Again" logic here
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        
+                        if self.clientNumber == self.controllingPlayer:
+                            # Trigger the roll dice workflow
+                            if self.currPlayer.hasRolled == True:
+                                self.currState = 1  # Set the state to indicate rolling the dice
+                                #self.currPlayer.hasRolled = True  # Mark the player as having rolled
+                                continue
+                                # You can also trigger any additional logic for rolling the dice here, if needed
+                                # For example, you might call a method to actually roll the dice and update the UI
+                                
+                                # After rolling, you might want to reset or update the game state
+                                # Reset self.currPlayer.hasRolled to False if they need to roll again
+                                
+                        # Handle tile color update and redraw
+                        if shouldRedraw != configModule.optionalMatchOriginalColors:
+                            self.playBoard.updateTileColors()
+                            self.currPlayer.updateColor()
                     else:
-                        print("No category found")
-                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
+                        # Handle the normal trivia tile logic
+                        tile_trivia = self.tileColorMapping[tile.mTrivia]
+                        selectedCategory = None
+                        for category in categories:
+                            if category['color'] == tile_trivia:
+                                selectedCategory = category['name']
+                                break
+
+                        if self.clientNumber == self.controllingPlayer:
+                            if selectedCategory:
+                                question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                            else:
+                                print("No category found")
+                        else:
+                            question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
+
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
