@@ -41,6 +41,7 @@ class tile(object):
     etitle_text = ""
     etitle_text_size = 40
     etitle_color = (base0)
+    boardTile = True
 
     def is_inside_bounding_box(self, point_or_rect):
         """ Check if a point or another rectangle is inside the bounding box. """
@@ -60,14 +61,18 @@ class tile(object):
                 pygame.draw.rect(screen, debug_red, self.box)
                 pygame.draw.rect(screen, self.mComplimentColor, self.box)
                 pygame.draw.rect(screen, self.mColor, self.inner_box)
-                pygame.draw.rect(screen, self.mComplimentColor, self.box, 3)
+                if self.boardTile:
+                    outline = 3
+                else:
+                    outline = 2
+                pygame.draw.rect(screen, self.mComplimentColor, self.box, outline)
             else:
                 pygame.draw.rect(screen, self.mColor, self.box)
         else:
             pygame.draw.rect(screen, self.mColor, self.box)
         if self.mDistinct in (tileDistinction.SPECIAL,tileDistinction.PLAYER1,
                               tileDistinction.PLAYER2,tileDistinction.PLAYER3,
-                              tileDistinction.PLAYER4,tileDistinction.HQ):
+                              tileDistinction.PLAYER4,tileDistinction.HQ) and self.boardTile:
             text_surface = self.title.render(self.title_text, True, self.title_color)
             text_rect = text_surface.get_rect(center=(self.box.centerx, self.box.centery))
             screen.blit(text_surface, text_rect)
@@ -88,7 +93,7 @@ class tile(object):
         
     def updateTile(self, inPosition, inWidth, inHeight, row, col):
         self.box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight)
-        self.inner_box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight-10)
+        self.inner_box = pygame.Rect(inPosition[0], inPosition[1], inWidth, inHeight*0.87)
         self.row = row
         self.col = col
 
