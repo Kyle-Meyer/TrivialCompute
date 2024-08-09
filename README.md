@@ -27,8 +27,10 @@ NO WHEEL FILE OR INIT.PY<br />
     - (from your venv terminal) pip install numpy<br />
 10.) install psycopg2<br />
     - (from your venv terminal) pip install psycopg2-binary<br />
-11>) install cv2<br />
+11.) install cv2<br />
     - (from your venv terminal) pip install opencv-python<br />
+12.) install pillow<br />
+    - (from your venv terminal) pip install pillow<br />
 <br />
 
 =======Running========<br />
@@ -61,8 +63,7 @@ Username: postgres<br />
 Password: postgres<br />
 database name: trivialCompute<br />
 
-Run the table creation scripts: scripts/01_table_creation_scripts.sql<br />
-Run the following script to insert sample categories and questions into the db tables: scripts/02_sample_categories_and_questions.sql<br />
+Run the table creation scripts: run scripts 1 - 3 in the scripts folder
 
 
 macOS setup python virtual environment<br />

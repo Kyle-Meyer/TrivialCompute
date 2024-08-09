@@ -39,6 +39,7 @@ currState = 0
 currRoll = 0
 currQuestion = ''
 currAnswer = ''
+currBase64String = None
 totalPlayers = 0
 #now to make a threaded function
 def threaded_client(conn, player):
@@ -49,13 +50,14 @@ def threaded_client(conn, player):
     global currRoll
     global currQuestion
     global currAnswer
+    global currBase64String
     global votes
     global totalPlayers
     #load the player object as a pickle object
     print("==============================")
     print("sending...", players[player])
     print(type(players[0]))
-    handShakeObj = playerObj(0, player, (0,0), 0, '', '', -1, False)
+    handShakeObj = playerObj(0, player, (0,0), 0, '', '', None, -1, False)
     conn.sendall(pickle.dumps(handShakeObj))
     print("threaded client started")
     if player == 0: #if the controller reconnects to the server
@@ -91,6 +93,7 @@ def threaded_client(conn, player):
                 currRoll = data.dice
                 currQuestion = data.question
                 currAnswer = data.answer
+                currBase64String = data.base64_string
                 #print("received: ", data)
                 #dumpData(data)
                 #print("sending: ", reply)
@@ -114,6 +117,7 @@ def threaded_client(conn, player):
                                 currRoll, 
                                 currQuestion, 
                                 currAnswer,
+                                currBase64String,
                                 votes[0],
                                 votes[1],
                                 votes[2],

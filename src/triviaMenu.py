@@ -4,6 +4,8 @@ from menu import *
 from slideBarWidget import slideBarWidget
 from timerClock import timerClock
 from voteWidget import voteWidget
+from imageDisplay import Base64Image
+
 class triviaMenu(menu):
     toDraw = False
     startX = 0
@@ -219,6 +221,9 @@ class triviaMenu(menu):
         self.draw_rounded_rect(screen)
         if self.triviaClock.shouldDraw:
             self.triviaClock.drawClock(screen)
+        if self.drawImage and self.base64_string:
+            self.base64_image = Base64Image(self.base64_string)
+            self.base64_image.drawImage(screen, self.image_x, self.image_y)
         text_surf = self.title.render(self.title_text, True, base3)
         text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size))
         screen.blit(text_surf, text_rect)
@@ -268,4 +273,8 @@ class triviaMenu(menu):
         self.haltWidgetDraw = False
         self.haltButtons = False
         self.preventSliding = False
+        self.drawImage = False
+        self.base64_string = None
+        self.image_x = 490  # X position to draw the image
+        self.image_y = 375  # Y position to draw the image
         

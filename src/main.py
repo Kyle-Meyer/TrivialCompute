@@ -145,10 +145,10 @@ class pygameMain(object):
     def createTriviaMenu(self):
         self.trivMenu.menuDuration = 750
         self.trivMenu.fadeBox.alpha = 200
-        self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Question PlaceHolder"))
+        self.trivMenu.addChildComponent(textWidget((640, 980),  400, 200, "Question PlaceHolder"))
         self.trivMenu.addDictionary()
         self.trivMenu.switchActiveDictionary(1)
-        self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Answer PlaceHolder"))
+        self.trivMenu.addChildComponent(textWidget((640, 980),  400, 200, "Answer PlaceHolder"))
         offset = 0
         tempList = copy.deepcopy(self.playerList)
         if configModule.online:
@@ -383,6 +383,7 @@ class pygameMain(object):
     def mainLoopOnline(self):
         question, answer = '', ''
         hasPulled = False
+        base64_string = None
         #client 0 is always the dictator at this point
         if self.clientNumber == 0:
             self.n.send(initObject(len(self.playerList)))
@@ -409,6 +410,7 @@ class pygameMain(object):
                                     self.diceRoll,
                                     question, 
                                     answer,
+                                    base64_string,
                                     myVote, 
                                     passTurn) #send our info to the server
                 
@@ -582,10 +584,14 @@ class pygameMain(object):
                         for catRec in categories:
                             category_names.append(catRec['name'])
                     if self.clientNumber == self.controllingPlayer:
-                        question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
                     else:
-                        question, answer = incData.question, incData.answer
+                        question, answer, base64_string = incData.question, incData.answer, incData.base64_string
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    if base64_string is not None:
+                        self.trivMenu.drawImage = True
+                        self.trivMenu.base64_string = base64_string
+                    
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -641,6 +647,9 @@ class pygameMain(object):
                 self.trivMenu.startButton.lockOut = True
                 question = ''
                 answer = ''
+                base64_string = None
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 if self.clientNumber == self.controllingPlayer:
                         self.currState = 6
             elif self.currState == 6:
@@ -694,6 +703,7 @@ class pygameMain(object):
     def mainLoopOffline(self):
         question, answer = '', ''
         hasPulled = False
+        base64_string = None
         while self.run:
             for event in pygame.event.get():
                 #for now only send data on event
@@ -722,6 +732,9 @@ class pygameMain(object):
                     self.currPlayer = self.playerList[self.clientNumber]
                     question = ''
                     answer = ''
+                    base64_string = None
+                    self.trivMenu.drawImage = False
+                    self.trivMenu.base64_string = None
                     hasPulled = False
                     self.currState = 0
                 #BUTTON CALLBACK
@@ -777,6 +790,9 @@ class pygameMain(object):
             if self.currState == 0:
                 question = ''
                 answer = ''
+                base64_string = None
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=False
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
                 hasPulled = False
@@ -821,8 +837,11 @@ class pygameMain(object):
                     else:
                         for catRec in categories:
                             category_names.append(catRec['name'])
-                    question, answer = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    if base64_string is not None:
+                        self.trivMenu.drawImage = True
+                        self.trivMenu.base64_string = base64_string
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -830,6 +849,8 @@ class pygameMain(object):
             elif self.currState == 4:
                 self.trivMenu.triviaClock.shouldDraw = False
                 self.trivMenu.triviaClock.startCounting = False
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 if self.trivMenu.away == False and self.trivMenu.activeIndex == 0:
                     self.trivMenu.switchActiveDictionary(1)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
@@ -842,6 +863,9 @@ class pygameMain(object):
                 self.trivMenu.resetTimer()
                 question = ''
                 answer = ''
+                base64_string = None
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 self.currState = 0
 
             if not self.testDice.rolling and self.currPlayer.hasRolled:
