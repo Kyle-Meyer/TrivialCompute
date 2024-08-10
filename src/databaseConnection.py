@@ -53,7 +53,7 @@ class databaseConnection(object):
             print(f"An error occurred: {e}")             
 
     def getQuestionAndAnswerByCategory(self, category):
-        query = "SELECT question, answer FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
+        query = "SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
         params = (category,)
         return self.executeQueryFetchOne(query, params)
     
