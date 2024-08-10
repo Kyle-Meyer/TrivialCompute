@@ -12,6 +12,8 @@ class scoreboard(object):
         self.miniTiles.append(tile(triviaType.YELLOW, tileDistinction.HQ, miniTileSize, 0, 1))
         self.miniTiles.append(tile(triviaType.GREEN, tileDistinction.HQ, miniTileSize, 0, 2))
         self.miniTiles.append(tile(triviaType.BLUE, tileDistinction.HQ, miniTileSize, 0, 3))
+        for i in range(4):
+            self.miniTiles[i].boardTile = False
 
     def drawScoreboard(self, screen, score):
 
@@ -24,16 +26,36 @@ class scoreboard(object):
         # Draw the player's scorebox outline
         pygame.draw.rect(screen, self.color, pygame.Rect(scoreBox[0],scoreBox[1],self.width,self.height), 4)
 
-        miniTileColors=[lightNull,lightNull,lightNull,lightNull]
+        for i in range(4):
+            self.miniTiles[i].mColor = lightNull
+            self.miniTiles[i].mComplimentColor = lightNull
 
-        if score["c1"] == "R":
-            miniTileColors[0] = self.miniTiles[0].mColor
-        if score["c2"] == "G":  
-            miniTileColors[1] = self.miniTiles[1].mColor
-        if score["c3"] == "B":
-            miniTileColors[2] = self.miniTiles[2].mColor
-        if score["c4"] == "Y":
-            miniTileColors[3] = self.miniTiles[3].mColor
+        if configModule.optionalMatchOriginalColors:
+            if score["c1"] == "R":
+                self.miniTiles[0].mColor = match_red
+                self.miniTiles[0].mComplimentColor = darkRed
+            if score["c2"] == "G":  
+                self.miniTiles[1].mColor = match_green
+                self.miniTiles[1].mComplimentColor = darkGreen
+            if score["c3"] == "B":
+                self.miniTiles[2].mColor = match_blue
+                self.miniTiles[2].mComplimentColor = darkBlue
+            if score["c4"] == "Y":
+                self.miniTiles[3].mColor = match_yellow
+                self.miniTiles[3].mComplimentColor = darkYellow
+        else:
+            if score["c1"] == "R":
+                self.miniTiles[0].mColor = HQ_red
+                self.miniTiles[0].mComplimentColor = HQ_dark_red
+            if score["c2"] == "G":  
+                self.miniTiles[1].mColor = HQ_green
+                self.miniTiles[1].mComplimentColor = HQ_dark_green
+            if score["c3"] == "B":
+                self.miniTiles[2].mColor = HQ_blue
+                self.miniTiles[2].mComplimentColor = HQ_dark_blue
+            if score["c4"] == "Y":
+                self.miniTiles[3].mColor = HQ_yellow
+                self.miniTiles[3].mComplimentColor = HQ_dark_yellow
 
         miniTileLocs = [None]*4
         miniTileLocs[0] = (scoreBox[0]+self.width//2-self.miniTiles[0].size, scoreBox[1]+self.height//2-self.miniTiles[0].size)
@@ -43,11 +65,8 @@ class scoreboard(object):
         
         # Draw the mini tiles
         for i in range(4):
-            pygame.draw.rect(screen, miniTileColors[i], 
-                             pygame.Rect(miniTileLocs[i][0],
-                                         miniTileLocs[i][1],
-                                         self.miniTiles[i].size,
-                                         self.miniTiles[i].size),0)
+            self.miniTiles[i].updateTile(miniTileLocs[i], self.miniTiles[i].size, self.miniTiles[i].size, 0, i)
+            self.miniTiles[i].drawTile(screen)
         
         # Draw the mini-tile outlines
         if configModule.optionalTileBlackOutline:
@@ -57,31 +76,8 @@ class scoreboard(object):
                                             miniTileLocs[i][1],
                                             self.miniTiles[i].size,
                                             self.miniTiles[i].size),2)
-        
-    def updateMiniTileColors(self):
-        colors = {"_":null}
 
-        if configModule.optionalMatchOriginalColors:
-            colors["R"] = match_red
-            colors["G"] = match_green
-            colors["B"] = match_blue
-            colors["Y"] = match_yellow
-        else:
-            colors["R"] = HQ_red
-            colors["G"] = HQ_green
-            colors["B"] = HQ_blue
-            colors["Y"] = HQ_yellow
-
-        if self.miniTiles[0].mColor != null:
-            self.miniTiles[0].mColor = colors["R"]
-        if self.miniTiles[0].mColor != null:            
-            self.miniTiles[1].mColor = colors["G"]
-        if self.miniTiles[0].mColor != null:
-            self.miniTiles[2].mColor = colors["B"]
-        if self.miniTiles[0].mColor != null:
-            self.miniTiles[3].mColor = colors["Y"]
-
-    def updateScoreboxOutlineColors(self):
+    def updateScoreboxColors(self):
         if configModule.optionalMatchOriginalColors:
             if self.color == player_red:
                 self.color = match_red
@@ -100,10 +96,6 @@ class scoreboard(object):
                 self.color = player_blue
             elif self.color == match_yellow:
                 self.color = player_yellow
-                
-    def updateScoreboxColors(self):
-        self.updateMiniTileColors()
-        self.updateScoreboxOutlineColors()
 
     def __init__(self, name, color, x_pos, y_pos, width, height):
         self.color = color
