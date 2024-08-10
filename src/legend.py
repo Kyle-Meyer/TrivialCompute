@@ -18,39 +18,49 @@ class categoryLegend:
         self.legendTiles = []
         self.legendTileSize = 30
         self.outline = True
+        self.threeDimensional = True
         self.addLegendTiles()
         self.create_legend_surface()
 
     def addLegendTiles(self):
         for i in range(4):
             self.legendTiles.append(tile(triviaType.RED, tileDistinction.HQ, self.legendTileSize, 0, i))
+            self.legendTiles[i].boardTile = False
 
     def updateLegendColors(self):
         if configModule.optionalMatchOriginalColors:
             for i in range(4):
                 if self.legendTiles[i].mTrivia  == triviaType.RED:
                     self.legendTiles[i].mColor = match_red
+                    self.legendTiles[i].mComplimentColor = darkRed
                 elif self.legendTiles[i].mTrivia == triviaType.GREEN:
                     self.legendTiles[i].mColor = match_green
+                    self.legendTiles[i].mComplimentColor = darkGreen
                 elif self.legendTiles[i].mTrivia == triviaType.BLUE:
                     self.legendTiles[i].mColor = match_blue
+                    self.legendTiles[i].mComplimentColor = darkBlue
                 elif self.legendTiles[i].mTrivia == triviaType.YELLOW:
                     self.legendTiles[i].mColor = match_yellow
+                    self.legendTiles[i].mComplimentColor = darkYellow
         else:
             for i in range(4):
                 if self.legendTiles[i].mTrivia  == triviaType.RED:
                     self.legendTiles[i].mColor = HQ_red
+                    self.legendTiles[i].mComplimentColor = HQ_dark_red
                 elif self.legendTiles[i].mTrivia == triviaType.GREEN:
                     self.legendTiles[i].mColor = HQ_green
+                    self.legendTiles[i].mComplimentColor = HQ_dark_green
                 elif self.legendTiles[i].mTrivia == triviaType.BLUE:
                     self.legendTiles[i].mColor = HQ_blue
+                    self.legendTiles[i].mComplimentColor = HQ_dark_blue
                 elif self.legendTiles[i].mTrivia == triviaType.YELLOW:
                     self.legendTiles[i].mColor = HQ_yellow
+                    self.legendTiles[i].mComplimentColor = HQ_dark_yellow
         self.create_legend_surface()
 
     def update_legend(self, categories):
         """ Update the legend with new categories and colors. """
-        for i in range(4):
+        for i in range(len(categories)):
             self.categories.append(categories[i]['name'][0:12])
             self.legendTiles[i].mColor = (categories[i]['color'][0],categories[i]['color'][1],categories[i]['color'][2])
             if self.legendTiles[i].mColor == HQ_red or self.legendTiles[i].mColor == match_red:
@@ -85,13 +95,13 @@ class categoryLegend:
         x = 0
         for i, category in enumerate(self.categories):
 
-            # Draw colored rectangle
-            pygame.draw.rect(self.legend_surface, self.legendTiles[i].mColor, pygame.Rect(x, 0, self.legendTileSize, self.legendTileSize),0)
+            # Draw tiles
+            self.legendTiles[i].updateTile((x,0), legend_height, legend_height, 0, i)
+            self.legendTiles[i].drawTile(self.legend_surface)
+
+            # Draw outlines
             if configModule.optionalTileBlackOutline:
-                pygame.draw.rect(self.legend_surface, black, pygame.Rect(x, 0, self.legendTileSize, self.legendTileSize),2)
-                self.outline = True
-            else:
-                self.outline = False
+                pygame.draw.rect(self.legend_surface, black, self.legendTiles[i].box, 2)
 
             # Draw category text
             text_surf = self.font.render(category, True, white)
@@ -111,9 +121,23 @@ class categoryLegend:
         
     def draw(self, screen):
         """ Draw the legend on the provided screen. """
+        rewrite = False
         if self.legend_surface:
+
+            # Handle toggling of optional features
             if self.outline == True and configModule.optionalTileBlackOutline == False:
-                self.updateLegendColors()
+                self.outline = False
+                rewrite = True
             elif self.outline == False and configModule.optionalTileBlackOutline == True:
+                self.outline = True
+                rewrite = True
+            if  self.threeDimensional == False and configModule.optionalThreeDimensionalTiles == True:
+                self.threeDimensional = True
+                rewrite = True
+            elif self.threeDimensional == True and configModule.optionalThreeDimensionalTiles == False:
+                self.threeDimensional = False
+                rewrite = True
+            if rewrite:
                 self.updateLegendColors()
+                               
             screen.blit(self.legend_surface, self.rect)
