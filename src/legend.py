@@ -60,7 +60,7 @@ class categoryLegend:
 
     def update_legend(self, categories):
         """ Update the legend with new categories and colors. """
-        for i in range(4):
+        for i in range(len(categories)):
             self.categories.append(categories[i]['name'][0:12])
             self.legendTiles[i].mColor = (categories[i]['color'][0],categories[i]['color'][1],categories[i]['color'][2])
             if self.legendTiles[i].mColor == HQ_red or self.legendTiles[i].mColor == match_red:
