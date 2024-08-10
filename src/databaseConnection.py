@@ -59,7 +59,7 @@ class databaseConnection(object):
     
     def getQuestionAndAnswerByCategories(self, categories):
         placeholders = ', '.join(['%s' for _ in categories])
-        query = f"SELECT question, answer, \"imageBase64\" FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
+        query = f"SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
         return self.executeQueryFetchOne(query, categories)
 
     def getRandomQuestionAndAnswer(self):
@@ -95,3 +95,8 @@ class databaseConnection(object):
         query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"setupInfo\", \"currentPlayerIndex\", \"date\") VALUES (%s , %s, %s, %s, current_timestamp)"
         params = (json_player_position_data, json_player_score_data, json_setupInfo, currPlayerIndex)
         return self.executeQueryInsert(query, params)
+
+    def getQuestionAndAnswerById(self, id):
+        query = "SELECT question, answer, \"imageBase64\" FROM questions WHERE id = %s"
+        params = (id,)
+        return self.executeQueryFetchOne(query, params)

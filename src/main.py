@@ -381,6 +381,7 @@ class pygameMain(object):
 
 
     def mainLoopOnline(self):
+        questionId = None
         question, answer = '', ''
         hasPulled = False
         base64_string = None
@@ -408,9 +409,7 @@ class pygameMain(object):
                                     self.clientNumber, 
                                     (self.playerList[self.clientNumber].circle_x, self.playerList[self.clientNumber].circle_y), 
                                     self.diceRoll,
-                                    question, 
-                                    answer,
-                                    base64_string,
+                                    questionId,
                                     myVote, 
                                     passTurn) #send our info to the server
                 
@@ -418,7 +417,7 @@ class pygameMain(object):
                       "\n\t CLIENT: ", self.clientNumber, 
                       "\n\t COORDS: ", self.playerList[self.clientNumber].circle_x, ", ", self.playerList[self.clientNumber].circle_y,
                       "currRoll: ", self.diceRoll,
-                      "Question: ", question,
+                      "Question Id: ", questionId,
                       "Answer: ", answer)'''
             else:
                 sendObj = observeObject(self.clientNumber, myVote)
@@ -584,9 +583,9 @@ class pygameMain(object):
                         for catRec in categories:
                             category_names.append(catRec['name'])
                     if self.clientNumber == self.controllingPlayer:
-                        question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                        questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
                     else:
-                        question, answer, base64_string = incData.question, incData.answer, incData.base64_string
+                        question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                     if base64_string is not None:
                         self.trivMenu.drawImage = True
@@ -645,6 +644,7 @@ class pygameMain(object):
                 self.trivMenu.resetTimer()
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.startButton.lockOut = True
+                questionId = None
                 question = ''
                 answer = ''
                 base64_string = None
@@ -701,6 +701,7 @@ class pygameMain(object):
 
     #offline variant, too lazy to surgically align things
     def mainLoopOffline(self):
+        questionId = None
         question, answer = '', ''
         hasPulled = False
         base64_string = None
@@ -730,6 +731,7 @@ class pygameMain(object):
                     if self.clientNumber >= self.setupInfo['number_of_players']:
                         self.clientNumber = 0
                     self.currPlayer = self.playerList[self.clientNumber]
+                    questionId = None
                     question = ''
                     answer = ''
                     base64_string = None
@@ -788,6 +790,7 @@ class pygameMain(object):
             #print("currplayer ", self.currPlayer.playerName)
             #game state logic
             if self.currState == 0:
+                questionId = None
                 question = ''
                 answer = ''
                 base64_string = None
@@ -837,7 +840,7 @@ class pygameMain(object):
                     else:
                         for catRec in categories:
                             category_names.append(catRec['name'])
-                    question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
                     self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                     if base64_string is not None:
                         self.trivMenu.drawImage = True
@@ -861,6 +864,7 @@ class pygameMain(object):
                     ent.voteSubmitted = True
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.resetTimer()
+                questionId = None
                 question = ''
                 answer = ''
                 base64_string = None
