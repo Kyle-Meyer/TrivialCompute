@@ -135,6 +135,13 @@ class pygameMain(object):
             self.playBoard.board[a][b].title_text = self.playerList[i].playerName #Larry
             self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
 
+        self.tileColorMapping =  {
+            triviaType.RED: match_red,
+            triviaType.YELLOW: match_yellow,
+            triviaType.BLUE: match_blue,
+            triviaType.GREEN: match_green
+        }
+
     def debugButton(self):
         self.testButton.button_text = "this is a test"
         self.testButton.border_thickness = 0
@@ -559,7 +566,19 @@ class pygameMain(object):
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
-                    self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        self.currPlayer.hasRolled = False
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False  # Unlock the roll dice button
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
+                        self.currState = 0  # Reset to roll dice state
+                    else:
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
+                        self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    
                     self.drawDice = False
                 if self.controllingPlayer == self.clientNumber:
                     self.trivMenu.startButton.lockOut = False
@@ -577,20 +596,41 @@ class pygameMain(object):
                     #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
-                    if len(categories) < 4 or categories == {}:
-                        category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                    else:
-                        for catRec in categories:
-                            category_names.append(catRec['name'])
-                    if self.clientNumber == self.controllingPlayer:
-                        questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                    else:
-                        question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
-                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    if base64_string is not None:
-                        self.trivMenu.drawImage = True
-                        self.trivMenu.base64_string = base64_string
                     
+                    if len(categories) < 4 or categories == {}:
+                        categories = [{'name': 'Astronomy', 'color': match_red}, {'name': 'Biology', 'color': match_yellow}, {'name': 'Chemistry', 'color': match_blue}, {'name': 'Geology', 'color': match_green}]
+                        #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    
+                    for catRec in categories:
+                        category_names.append(catRec['name'])
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        self.currPlayer.hasRolled = False
+                        self.currState = 1  # Reset to roll dice state
+                        continue
+                    else:
+                        # Handle the normal trivia tile logic
+                        tile_trivia = self.tileColorMapping[tile.mTrivia]
+                        selectedCategory = None
+                        for category in categories:
+                            if category['color'] == tile_trivia:
+                                selectedCategory = category['name']
+                                break
+
+                        if self.clientNumber == self.controllingPlayer:
+                            if selectedCategory:
+                                question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                            else:
+                                print("No category found")
+                        else:
+                            question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
+
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -823,8 +863,22 @@ class pygameMain(object):
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
-                    self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        self.currPlayer.hasRolled = False
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False  # Unlock the roll dice button
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
+                        self.currState = 0  # Reset to roll dice state
+                    else:
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True  # Unlock the roll dice button
+                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
+                        self.currState = 0  # Reset to roll dice state
+                        self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.drawDice = False
+
+                    
 
             elif self.currState == 3:
                 #self.trivMenu.currState += 1
@@ -835,16 +889,56 @@ class pygameMain(object):
                     #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
+                    
                     if len(categories) < 4 or categories == {}:
-                        category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                        categories = [{'name': 'Astronomy', 'color': colors.match_red}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
+                        #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    
+                    for catRec in categories:
+                        category_names.append(catRec['name'])
+                    print(categories)
+                    print(category_names)
+                    tile_coords = self.screenPosToCoord()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    if tile.mDistinct == tileDistinction.ROLL:
+                        # Handle the "Roll Again" logic here
+                        print("Player landed on Roll Again tile. Roll the dice again.")
+                        
+                        if self.clientNumber == self.controllingPlayer:
+                            # Trigger the roll dice workflow
+                            if self.currPlayer.hasRolled == True:
+                                self.currState = 1  # Set the state to indicate rolling the dice
+                                #self.currPlayer.hasRolled = True  # Mark the player as having rolled
+                                continue
+                                # You can also trigger any additional logic for rolling the dice here, if needed
+                                # For example, you might call a method to actually roll the dice and update the UI
+                                
+                                # After rolling, you might want to reset or update the game state
+                                # Reset self.currPlayer.hasRolled to False if they need to roll again
+                                
+                        # Handle tile color update and redraw
+                        if shouldRedraw != configModule.optionalMatchOriginalColors:
+                            self.playBoard.updateTileColors()
+                            self.currPlayer.updateColor()
                     else:
-                        for catRec in categories:
-                            category_names.append(catRec['name'])
-                    questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    if base64_string is not None:
-                        self.trivMenu.drawImage = True
-                        self.trivMenu.base64_string = base64_string
+                        # Handle the normal trivia tile logic
+                        tile_trivia = self.tileColorMapping[tile.mTrivia]
+                        selectedCategory = None
+                        for category in categories:
+                            if category['color'] == tile_trivia:
+                                selectedCategory = category['name']
+                                break
+
+                        if self.clientNumber == self.controllingPlayer:
+                            if selectedCategory:
+                                question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                            else:
+                                print("No category found")
+                        else:
+                            question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -911,13 +1005,16 @@ def main():
         #TODO remove this later
         if configModule.online or configModule.bypass:
             setupInfo = bypass
+            print("Online:", setupInfo)
         else:
             setupInfo = runSetupMenu(database)
+            print(setupInfo)
             if(setupInfo['number_of_players'] in [2, 3, 4]):
                 setupInfo = run_order_menu(setupInfo)
             if setupInfo == {}:
                 print("No setup info found.")
                 return
+        #print(setupInfo)
         demo = pygameMain(setupInfo, database, 0)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()
