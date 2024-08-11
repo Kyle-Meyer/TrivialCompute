@@ -134,10 +134,10 @@ class pygameMain(object):
             self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
 
         self.tileColorMapping =  {
-            triviaType.RED: (255, 0, 76),
-            triviaType.YELLOW: (255, 236, 38),
-            triviaType.BLUE: (41, 173, 255),
-            triviaType.GREEN: (0, 228, 53)
+            triviaType.RED: match_red,
+            triviaType.YELLOW: match_yellow,
+            triviaType.BLUE: match_blue,
+            triviaType.GREEN: match_green
         }
 
     def debugButton(self):
@@ -627,7 +627,7 @@ class pygameMain(object):
                     category_names = []
                     
                     if len(categories) < 4 or categories == {}:
-                        categories = [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
+                        categories = [{'name': 'Astronomy', 'color': match_red}, {'name': 'Biology', 'color': match_yellow}, {'name': 'Chemistry', 'color': match_blue}, {'name': 'Geology', 'color': match_green}]
                         #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
                     
                     for catRec in categories:
@@ -909,7 +909,7 @@ class pygameMain(object):
                     category_names = []
                     
                     if len(categories) < 4 or categories == {}:
-                        categories = [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
+                        categories = [{'name': 'Astronomy', 'color': colors.match_red}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
                         #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
                     
                     for catRec in categories:
