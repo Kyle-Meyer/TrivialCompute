@@ -31,6 +31,7 @@ import json
 from network.connector import connector
 from network.networkObjs import *
 from legend import categoryLegend
+from scoreboard import scoreboard
 
 import os
 import subprocess
@@ -110,6 +111,7 @@ class pygameMain(object):
         self.setupInfo = setupInfo
         self.legend = categoryLegend(font_size=20, screen_width=self.WIDTH, screen_height=self.HEIGHT)
         self.clientNumber = currPlayerIndex
+        self.scoreboards = []
         # Initialize playerList using setupInfo
         self.playerList = []
         #TODO, change how player list will work across network
@@ -150,10 +152,10 @@ class pygameMain(object):
     def createTriviaMenu(self):
         self.trivMenu.menuDuration = 750
         self.trivMenu.fadeBox.alpha = 200
-        self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Question PlaceHolder"))
+        self.trivMenu.addChildComponent(textWidget((640, 980),  400, 200, "Question PlaceHolder"))
         self.trivMenu.addDictionary()
         self.trivMenu.switchActiveDictionary(1)
-        self.trivMenu.addChildComponent(textWidget((640, 1060),  200, 200, "Answer PlaceHolder"))
+        self.trivMenu.addChildComponent(textWidget((640, 980),  400, 200, "Answer PlaceHolder"))
         offset = 0
         tempList = copy.deepcopy(self.playerList)
         if configModule.online:
@@ -261,64 +263,29 @@ class pygameMain(object):
     def restorePlayerScores(self, savedPlayerScores):
         for i in range(len(self.playerList)):
             self.playerList[i].playerScore = savedPlayerScores[i]
-            self.playBoard.board[self.playerList[i].playerScorePosition[0]][self.playerList[i].playerScorePosition[1]+1].title_text = str(self.playerList[i].playerScore["c1"])+ \
-                str(self.playerList[i].playerScore["c2"])+     \
-                str(self.playerList[i].playerScore["c3"])+     \
-                str(self.playerList[i].playerScore["c4"])
 
-    #TODO Convert scoreboxes and mini-tiles to classes if there is time
-    def drawScoreBoards(self):
-        # Get the size of tiles, Set the size of scorebox and mini-tiles
+    def initializeScoreboards(self, playerList):
         rect_width, rect_height = self.LENGTH - (.02 * self.OFFSET), self.LENGTH - (.08 * self.OFFSET)
         cell_width = rect_width // self.playBoard.cols
         cell_height = rect_height // self.playBoard.rows
         scoreBoxWidth = 1.5 * cell_width
         scoreBoxHeight = 1.5 * cell_height
-        miniTileWidth = scoreBoxWidth * 0.7 // 2
-        miniTileHeight = scoreBoxHeight * 0.7 // 2        
 
-        # Draw the scorebox for each player
-        for play in self.playerList:
-
-            # Set position of player's scorebox
-            scoreBox = self.coordToScreenPos([(play.playerScorePosition[0]), (play.playerScorePosition[1]+1)])
-            scoreBox = (scoreBox[0] - 0.25 * cell_width, scoreBox[1] - 0.25 * cell_height)
-
-            # Draw the player's scorebox
-            pygame.draw.rect(self.screen, null, pygame.Rect(scoreBox[0],scoreBox[1],scoreBoxWidth,scoreBoxHeight), 0)            
+        for play in playerList:
+            x_pos, y_pos = self.coordToScreenPos([(play.playerScorePosition[0]), (play.playerScorePosition[1]+1)])
+            x_pos, y_pos = (x_pos - 0.25 * cell_width, y_pos - 0.25 * cell_height)
+            self.scoreboards.append(scoreboard(play.playerName, play.circle_color, x_pos, y_pos, scoreBoxWidth, scoreBoxHeight))
             
-            # Draw the player's scorebox outline
-            pygame.draw.rect(self.screen, play.circle_color, pygame.Rect(scoreBox[0],scoreBox[1],scoreBoxWidth,scoreBoxHeight), 4)
-
-            # Set the mini-tile colors
-            miniTileColors = [lightNull, lightNull, lightNull, lightNull]
-            if play.playerScore["c1"] == "R":
-                miniTileColors[0] = match_red
-            if play.playerScore["c2"] == "G":  
-                miniTileColors[1] = match_green
-            if play.playerScore["c3"] == "B":
-                miniTileColors[2] = match_blue
-            if play.playerScore["c4"] == "Y":
-                miniTileColors[3] = match_yellow
-
-            # Draw the mini-tiles
-            pygame.draw.rect(self.screen, miniTileColors[0], pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 0)   
-            pygame.draw.rect(self.screen, miniTileColors[2], pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 0)
-            pygame.draw.rect(self.screen, miniTileColors[1], pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 0)
-            pygame.draw.rect(self.screen, miniTileColors[3], pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 0)
-            
-            # Draw the mini-tile outlines
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 1)   
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 1)
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2-miniTileWidth,scoreBox[1]+scoreBoxHeight//2,miniTileWidth,miniTileHeight), 1)
-            pygame.draw.rect(self.screen, black, pygame.Rect(scoreBox[0]+scoreBoxWidth//2,scoreBox[1]+scoreBoxHeight//2-miniTileHeight,miniTileWidth,miniTileHeight), 1)
-
     def drawPlayers(self):
         for play in self.playerList:
             play.drawPlayer(self.screen)
             if play == self.currPlayer:
                 diff = play.circle_radius - play.circle_inner_radius
                 pygame.draw.circle(self.screen, base3, (play.circle_x, play.circle_y), play.circle_radius+diff, diff*2)
+    
+    def drawScoreboards(self):
+        for i in range(len(self.scoreboards)):
+            self.scoreboards[i].drawScoreboard(self.screen, self.playerList[i].playerScore)
 
     # Convert screen position to tile coordinates
     #TODO redo all of this, its bad
@@ -421,8 +388,10 @@ class pygameMain(object):
 
 
     def mainLoopOnline(self):
+        questionId = None
         question, answer = '', ''
         hasPulled = False
+        base64_string = None
         #client 0 is always the dictator at this point
         if self.clientNumber == 0:
             self.n.send(initObject(len(self.playerList)))
@@ -447,8 +416,7 @@ class pygameMain(object):
                                     self.clientNumber, 
                                     (self.playerList[self.clientNumber].circle_x, self.playerList[self.clientNumber].circle_y), 
                                     self.diceRoll,
-                                    question, 
-                                    answer,
+                                    questionId,
                                     myVote, 
                                     passTurn) #send our info to the server
                 
@@ -456,7 +424,7 @@ class pygameMain(object):
                       "\n\t CLIENT: ", self.clientNumber, 
                       "\n\t COORDS: ", self.playerList[self.clientNumber].circle_x, ", ", self.playerList[self.clientNumber].circle_y,
                       "currRoll: ", self.diceRoll,
-                      "Question: ", question,
+                      "Question Id: ", questionId,
                       "Answer: ", answer)'''
             else:
                 sendObj = observeObject(self.clientNumber, myVote)
@@ -526,14 +494,17 @@ class pygameMain(object):
                     if shouldRedraw != configModule.optionalMatchOriginalColors:
                         #self.playBoard.create_board()
                         self.playBoard.updateTileColors()
-                        self.currPlayer.updateColor()
+                        self.legend.updateLegendColors()
+                        for play in self.playerList:
+                            play.updateColor()
+                        for scoreboard in self.scoreboards:
+                            scoreboard.updateScoreboxColors()
                     if mbs == -3:
                         #change the trivia button to accurately reflect what stage you are in
                         if self.currState < 3:
                             self.currState = 3
                         else:
                             self.currState = 4
-
 
                 if not self.clientNumber == self.controllingPlayer:
                     if mbs >= 0 and self.currState == 4:
@@ -632,8 +603,6 @@ class pygameMain(object):
                     
                     for catRec in categories:
                         category_names.append(catRec['name'])
-                    print(categories)
-                    print(category_names)
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
 
@@ -715,9 +684,12 @@ class pygameMain(object):
                 self.trivMenu.resetTimer()
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.startButton.lockOut = True
+                questionId = None
                 question = ''
                 answer = ''
-                imageBase64 = None
+                base64_string = None
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 if self.clientNumber == self.controllingPlayer:
                         self.currState = 6
             elif self.currState == 6:
@@ -748,7 +720,7 @@ class pygameMain(object):
             #self.testDice.drawDice(self.screen, self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut)
 
             self.drawPlayers()
-            self.drawScoreBoards()
+            self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
             
             if self.clientNumber == self.controllingPlayer:
@@ -769,9 +741,10 @@ class pygameMain(object):
 
     #offline variant, too lazy to surgically align things
     def mainLoopOffline(self):
+        questionId = None
         question, answer = '', ''
-        imageBase64 = None
         hasPulled = False
+        base64_string = None
         while self.run:
             for event in pygame.event.get():
                 #for now only send data on event
@@ -798,9 +771,12 @@ class pygameMain(object):
                     if self.clientNumber >= self.setupInfo['number_of_players']:
                         self.clientNumber = 0
                     self.currPlayer = self.playerList[self.clientNumber]
+                    questionId = None
                     question = ''
                     answer = ''
-                    imageBase64 = None
+                    base64_string = None
+                    self.trivMenu.drawImage = False
+                    self.trivMenu.base64_string = None
                     hasPulled = False
                     self.currState = 0
                 #BUTTON CALLBACK
@@ -825,7 +801,11 @@ class pygameMain(object):
                 if shouldRedraw != configModule.optionalMatchOriginalColors:
                     #self.playBoard.create_board()
                     self.playBoard.updateTileColors()
-                    self.currPlayer.updateColor()
+                    self.legend.updateLegendColors()
+                    for play in self.playerList:
+                        play.updateColor()
+                    for scoreboard in self.scoreboards:
+                        scoreboard.updateScoreboxColors()
                 if mbs == -3:
                     #change the trivia button to accurately reflect what stage you are in
                     if self.currState < 3:
@@ -850,9 +830,12 @@ class pygameMain(object):
             #print("currplayer ", self.currPlayer.playerName)
             #game state logic
             if self.currState == 0:
+                questionId = None
                 question = ''
                 answer = ''
-                imageBase64 = None
+                base64_string = None
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut=False
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut=True
                 hasPulled = False
@@ -867,7 +850,6 @@ class pygameMain(object):
             if self.currState == 1:
                 self.questionAnswerTextWidget.updateText('')
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                 self.currPlayer.hasRolled = True 
                 self.drawDice = True
@@ -957,7 +939,6 @@ class pygameMain(object):
 
                         self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                         self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
-
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -965,6 +946,8 @@ class pygameMain(object):
             elif self.currState == 4:
                 self.trivMenu.triviaClock.shouldDraw = False
                 self.trivMenu.triviaClock.startCounting = False
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 if self.trivMenu.away == False and self.trivMenu.activeIndex == 0:
                     self.trivMenu.switchActiveDictionary(1)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
@@ -975,9 +958,12 @@ class pygameMain(object):
                     ent.voteSubmitted = True
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.resetTimer()
+                questionId = None
                 question = ''
                 answer = ''
-                imageBase64 = None
+                base64_string = None
+                self.trivMenu.drawImage = False
+                self.trivMenu.base64_string = None
                 self.currState = 0
 
             if not self.testDice.rolling and self.currPlayer.hasRolled:
@@ -994,7 +980,7 @@ class pygameMain(object):
             self.testParticle.drawParticles(self.screen)
             self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
             self.drawPlayers()
-            self.drawScoreBoards()
+            self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
             
             self.testDice.drawDice(self.screen, self.drawDice)
@@ -1013,11 +999,11 @@ def main():
     pygame.init()
     #print("running")
     selected_menu_action = run_start_menu()
-    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': []}
+    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Computer Science', 'color': (0, 228, 53)}]}
     if selected_menu_action == "start":   
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         #TODO remove this later
-        if configModule.online:
+        if configModule.online or configModule.bypass:
             setupInfo = bypass
             print("Online:", setupInfo)
         else:
@@ -1036,6 +1022,7 @@ def main():
         demo.createTriviaMenu()
         demo.initializePlayersForNewGame()
         demo.legend.update_legend(categories=setupInfo['categories'])
+        demo.initializeScoreboards(demo.playerList)
         if configModule.online:
             demo.mainLoopOnline()
         else:
@@ -1057,6 +1044,8 @@ def main():
             demo.createSettingsMenu()
             demo.createTriviaMenu()
             demo.initializePlayersForNewGame()
+            demo.legend.update_legend(categories=setupInfo['categories'])
+            demo.initializeScoreboards(demo.playerList)            
             if configModule.online:
                 demo.mainLoopOnline()
             else:
@@ -1087,6 +1076,9 @@ def main():
 
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
+
+            demo.legend.update_legend(categories=setupInfo['categories'])
+            demo.initializeScoreboards(demo.playerList)
 
         if configModule.online:
             demo.mainLoopOnline()

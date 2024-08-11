@@ -53,7 +53,7 @@ class databaseConnection(object):
             print(f"An error occurred: {e}")             
 
     def getQuestionAndAnswerByCategory(self, category):
-        query = "SELECT question, answer FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
+        query = "SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
         params = (category,)
         return self.executeQueryFetchOne(query, params)
     
@@ -101,3 +101,8 @@ class databaseConnection(object):
         query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"setupInfo\", \"currentPlayerIndex\", \"date\") VALUES (%s , %s, %s, %s, current_timestamp)"
         params = (json_player_position_data, json_player_score_data, json_setupInfo, currPlayerIndex)
         return self.executeQueryInsert(query, params)
+
+    def getQuestionAndAnswerById(self, id):
+        query = "SELECT question, answer, \"imageBase64\" FROM questions WHERE id = %s"
+        params = (id,)
+        return self.executeQueryFetchOne(query, params)

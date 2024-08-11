@@ -10,6 +10,9 @@ from databaseConnection import databaseConnection
 
 def runSetupMenu(database):
 
+    #Default Categories
+    defaultCategories = [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Computer Science', 'color': (0, 228, 53)}]
+
     #Screen Settings
     screen_width = 1280
     screen_height = 720
@@ -309,6 +312,10 @@ def runSetupMenu(database):
                 for category, color in selected_categories.items()
             ]
         }
+
+        if len(game_setup_data['categories']) < 4:
+            game_setup_data['categories'] = defaultCategories
+            
         return game_setup_data
 
     def exitSetupMenu():

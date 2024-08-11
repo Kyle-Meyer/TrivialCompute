@@ -15,13 +15,12 @@ class initObject(object):
         self.totalPlayers = totalPlayers
 
 class playerObj(object):
-    def __init__(self, currState, playerNum, playerPos, dice, question, answer, myVote, passTurn):
+    def __init__(self, currState, playerNum, playerPos, dice, questionId, myVote, passTurn):
         self.state = currState
         self.id = playerNum
         self.position = playerPos
         self.dice = dice
-        self.question = question
-        self.answer = answer
+        self.questionId = questionId
         self.passTurn = passTurn
         self.myVote = myVote
 class observeObject:
@@ -33,7 +32,7 @@ class rollObj(object):
         self.diceRoll = diceRoll
 
 class serverObj(object):
-    def __init__(self, controller, state, player1Pos, player2Pos, player3Pos, player4Pos, currentDice, question, answer, player1Vote, player2Vote, player3Vote, player4Vote):
+    def __init__(self, controller, state, player1Pos, player2Pos, player3Pos, player4Pos, currentDice, questionId, player1Vote, player2Vote, player3Vote, player4Vote):
         self.state = state
         self.controller = controller
         self.player1Pos = player1Pos
@@ -41,8 +40,7 @@ class serverObj(object):
         self.player3Pos = player3Pos
         self.player4Pos = player4Pos
         self.dice = currentDice
-        self.question = question
-        self.answer = answer
+        self.questionId = questionId
         self.player1Vote = player1Vote
         self.player2Vote = player2Vote
         self.player3Vote = player3Vote
