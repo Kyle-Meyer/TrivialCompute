@@ -37,9 +37,7 @@ states = [0,0,0,0]
 controllingPlayer = 0
 currState = 0
 currRoll = 0
-currQuestion = ''
-currAnswer = ''
-currBase64String = None
+currQuestionId = None
 totalPlayers = 0
 #now to make a threaded function
 def threaded_client(conn, player):
@@ -48,16 +46,14 @@ def threaded_client(conn, player):
     global controllingPlayer
     global currState
     global currRoll
-    global currQuestion
-    global currAnswer
-    global currBase64String
+    global currQuestionId
     global votes
     global totalPlayers
     #load the player object as a pickle object
     print("==============================")
     print("sending...", players[player])
     print(type(players[0]))
-    handShakeObj = playerObj(0, player, (0,0), 0, '', '', None, -1, False)
+    handShakeObj = playerObj(0, player, (0,0), 0, None, -1, False)
     conn.sendall(pickle.dumps(handShakeObj))
     print("threaded client started")
     if player == 0: #if the controller reconnects to the server
@@ -91,9 +87,7 @@ def threaded_client(conn, player):
                 if data.state == 0:
                     votes = [-1, -1, -1, -1]
                 currRoll = data.dice
-                currQuestion = data.question
-                currAnswer = data.answer
-                currBase64String = data.base64_string
+                currQuestionId = data.questionId
                 #print("received: ", data)
                 #dumpData(data)
                 #print("sending: ", reply)
@@ -103,8 +97,7 @@ def threaded_client(conn, player):
                       "STATE: ", currState, 
                       " CONTROLLER = ", controllingPlayer, 
                       "DICE: ", currRoll,
-                      "Question: ", currQuestion, 
-                      "Answer: ", currAnswer,
+                      "Question Id: ", currQuestionId, 
                       "Votes: ", votes,
                       "BEING SENT TO: ", data.id)'''
                 votes[data.id] = data.vote
@@ -115,9 +108,7 @@ def threaded_client(conn, player):
                                 players[2], 
                                 players[3], 
                                 currRoll, 
-                                currQuestion, 
-                                currAnswer,
-                                currBase64String,
+                                currQuestionId,
                                 votes[0],
                                 votes[1],
                                 votes[2],
