@@ -10,9 +10,9 @@ class player(object):
     circle_inner_radius = 20
     circle_highlight_radius = 5
     circle_x, circle_y = 0, 0  #center coordinates, by screen
-    circle_color = blue
-    circle_shadow_color = blue
-    circle_highlight_color = blue
+    circle_color = null
+    circle_shadow_color = null
+    circle_highlight_color = null
     currCoordinate = (0,0)
     dragging = False  # This flag checks if the circle is being dragged
     playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
@@ -138,7 +138,7 @@ class player(object):
             #draw the darker circle
             pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius)
             #draw the mid tone circle, offset by the difference
-            diff = self.circle_radius - self.circle_inner_radius
+            diff = self.circle_radius - self.circle_inner_radius 
             pygame.draw.circle(screen, self.circle_color, (self.circle_x - diff, self.circle_y - diff), self.circle_inner_radius)
             #draw the outline
             pygame.draw.circle(screen, self.circle_shadow_color, (self.circle_x, self.circle_y), self.circle_radius+diff, diff*2)
@@ -176,7 +176,12 @@ class player(object):
             if self.circle_color == match_green:
                 self.circle_color = player_green
                 self.circle_shadow_color = player_green_dark
-                
+
+    def recolor(self, inColor, inShadow, inHighlight):
+        self.circle_color = inColor
+        self.circle_shadow_color = inShadow
+        self.circle_highlight_color = inHighlight
+        
     def __init__(self, inRadius = 2, inX = 100, inY = 100, inColor = player_blue):
         self.circle_radius = inRadius
         self.circle_inner_radius = inRadius - (inRadius // 10)
