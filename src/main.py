@@ -578,6 +578,7 @@ class pygameMain(object):
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                         self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+
                     self.drawDice = False
                 if self.controllingPlayer == self.clientNumber:
                     self.trivMenu.startButton.lockOut = False
@@ -645,7 +646,7 @@ class pygameMain(object):
                         if base64_string is not None:
                             self.trivMenu.drawImage = True
                             self.trivMenu.base64_string = base64_string
-                    
+                            
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -878,6 +879,7 @@ class pygameMain(object):
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
+
                     # self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
@@ -894,6 +896,8 @@ class pygameMain(object):
                         self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.drawDice = False
 
+                    
+
             elif self.currState == 3:
                 #self.trivMenu.currState += 1
                 self.trivMenu.triviaClock.shouldDraw = True
@@ -903,6 +907,7 @@ class pygameMain(object):
                     #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
+                    
                     if len(categories) < 4 or categories == {}:
                         categories = [{'name': 'Astronomy', 'color': colors.match_red}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
 
@@ -917,7 +922,7 @@ class pygameMain(object):
                     #     self.trivMenu.base64_string = base64_string
                     for catRec in categories:
                         category_names.append(catRec['name'])
-
+                        
                     print(categories)
                     print(category_names)
                     tile_coords = self.screenPosToCoord()
@@ -961,7 +966,7 @@ class pygameMain(object):
                         if base64_string is not None:
                             self.trivMenu.drawImage = True
                             self.trivMenu.base64_string = base64_string
-
+                        
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -1037,6 +1042,7 @@ def main():
             if setupInfo == {}:
                 print("No setup info found.")
                 return
+        #print(setupInfo)
         demo = pygameMain(setupInfo, database, 0)
         #demo.createGameSetupMenu(database)
         #demo.mainMenuLoop()

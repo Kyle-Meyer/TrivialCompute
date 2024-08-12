@@ -57,10 +57,16 @@ class databaseConnection(object):
         params = (category,)
         return self.executeQueryFetchOne(query, params)
     
+    # def getQuestionAndAnswerByCategories(self, categories):
+    #     placeholders = ', '.join(['%s' for _ in categories])
+    #     query = f"SELECT question, answer, \"imageBase64\" FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
+    #     return self.executeQueryFetchOne(query, categories)
+    
     def getQuestionAndAnswerByCategories(self, categories):
         placeholders = ', '.join(['%s' for _ in categories])
-        query = f"SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
+        query = f"SELECT question, answer FROM questions WHERE category IN ({placeholders}) ORDER BY RANDOM() LIMIT 1"
         return self.executeQueryFetchOne(query, categories)
+
 
     def getRandomQuestionAndAnswer(self):
         query = "SELECT question, answer FROM questions ORDER BY RANDOM() LIMIT 1"
