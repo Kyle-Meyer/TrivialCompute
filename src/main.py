@@ -120,6 +120,14 @@ class pygameMain(object):
             self.playerList.append(player(11, self.WIDTH // 2, self.HEIGHT // 2,self.setupInfo['players'][i]['color']))
             self.playerList[i].playerName = self.setupInfo['players'][i]['name']
             self.playerList[i].playerColor = self.setupInfo['players'][i]['color']
+            if self.setupInfo['players'][i]['color'] == match_yellow:
+                self.playerList[i].recolor(match_yellow, darkYellow, white)
+            elif self.setupInfo['players'][i]['color'] == match_blue:
+                self.playerList[i].recolor(match_blue, darkBlue, white)
+            elif self.setupInfo['players'][i]['color'] ==  match_red:
+                self.playerList[i].recolor(match_red, darkRed, white)
+            elif self.setupInfo['players'][i]['color'] ==  match_green:
+                self.playerList[i].recolor(match_green, darkGreen, white)
 
         # Initialize playBoard attributes that depend on setupInfo
         self.playBoard = cBoard(self.WIDTH, self.HEIGHT)
@@ -133,7 +141,7 @@ class pygameMain(object):
             a, b = position_switcher.get(i)
             self.playerList[i].playerScorePosition = (a,b)
             self.playBoard.board[a][b].title_text = self.playerList[i].playerName #Larry
-            self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White
+            self.playBoard.board[a][b+1].title_color = self.playerList[i].playerColor #White 
 
         self.tileColorMapping =  {
             triviaType.RED: match_red,
@@ -277,8 +285,11 @@ class pygameMain(object):
             self.scoreboards.append(scoreboard(play.playerName, play.circle_color, x_pos, y_pos, scoreBoxWidth, scoreBoxHeight))
             
     def drawPlayers(self):
+        count = 0
         for play in self.playerList:
             play.drawPlayer(self.screen)
+            #print(count, ": \n COLOR: ", play.circle_color, " \n INNER COLOR: ", play.circle_shadow_color, " \n HIGHLIGHT: ", play.circle_highlight_color)
+            count += 1
             if play == self.currPlayer:
                 diff = play.circle_radius - play.circle_inner_radius
                 pygame.draw.circle(self.screen, base3, (play.circle_x, play.circle_y), play.circle_radius+diff, diff*2)
@@ -294,6 +305,8 @@ class pygameMain(object):
         topEdgeOfTiles = int(self.playBoard.rect_y - 0.15 * self.LENGTH) 
         tileXCoord = int((self.currPlayer.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.02 * self.OFFSET))//self.playBoard.cols)) 
         tileYCoord = int((self.currPlayer.circle_y - topEdgeOfTiles)//((self.LENGTH - (.08 * self.OFFSET))//self.playBoard.rows))
+        #print(x, " : ", y)
+        print("board tile type: ", self.playBoard.board[tileXCoord][tileYCoord].mTrivia)
         return(tileXCoord,tileYCoord) 
     
     # Convert tile coordinates to screen position
@@ -516,8 +529,8 @@ class pygameMain(object):
             if self.currState == 0:
                 #print(self.trivMenu.isOut, " : ", self.trivMenu.preventSliding)
                 #self.trivMenu.preventSliding = True
-                if self.trivMenu.isOut: 
-                    print("SLIDE")
+                if self.trivMenu.isOut:
+                    pass
                 self.controllingPlayer = incData.controller
                 if passTurn == True:
                     print("passing control")
@@ -738,7 +751,7 @@ class pygameMain(object):
             self.drawPlayers()
             self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
-            
+            self.legend.draw(self.screen)
             if self.clientNumber == self.controllingPlayer:
                 self.testDice.drawDice(self.screen, self.drawDice)
             else:
@@ -749,7 +762,7 @@ class pygameMain(object):
             #bounding box draw
             if self.boundingDraw:
                 pygame.draw.rect(self.screen, debug_red, self.currPlayer.clampBox.box, 2)
-            self.legend.draw(self.screen)
+            
             pygame.display.update()
             self.clock.tick(60) #60 fps
 
@@ -1006,6 +1019,7 @@ class pygameMain(object):
             #draw calls
             self.screen.fill((25, 28, 38))
             self.testParticle.drawParticles(self.screen)
+            self.legend.draw(self.screen)
             self.playBoard.drawBoard(self.screen, self.currPlayer.currentNeighbors)
             self.drawPlayers()
             self.drawScoreboards()
@@ -1017,7 +1031,7 @@ class pygameMain(object):
             #bounding box draw
             if self.boundingDraw:
                 pygame.draw.rect(self.screen, debug_red, self.currPlayer.clampBox.box, 2)
-            self.legend.draw(self.screen)
+            
             pygame.display.update()
             self.clock.tick(60) #60 fps
 
@@ -1049,7 +1063,7 @@ def main():
         demo.createSettingsMenu()
         demo.createTriviaMenu()
         demo.initializePlayersForNewGame()
-        demo.legend.update_legend(categories=setupInfo['categories'])
+        demo.legend.update_legend(categories=bypass['categories'])
         demo.initializeScoreboards(demo.playerList)
         if configModule.online:
             demo.mainLoopOnline()
