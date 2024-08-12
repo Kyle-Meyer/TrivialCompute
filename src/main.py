@@ -578,7 +578,7 @@ class pygameMain(object):
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                         self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
-                    
+
                     self.drawDice = False
                 if self.controllingPlayer == self.clientNumber:
                     self.trivMenu.startButton.lockOut = False
@@ -596,13 +596,26 @@ class pygameMain(object):
                     #print("HAS NOT PULLED")
                     categories = self.setupInfo['categories']
                     category_names = []
-                    
+
                     if len(categories) < 4 or categories == {}:
                         categories = [{'name': 'Astronomy', 'color': match_red}, {'name': 'Biology', 'color': match_yellow}, {'name': 'Chemistry', 'color': match_blue}, {'name': 'Geology', 'color': match_green}]
-                        #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                    
+
+                        # category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    # else:
+                    #     for catRec in categories:
+                    #         category_names.append(catRec['name'])
+                    # if self.clientNumber == self.controllingPlayer:
+                    #     questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    # else:
+                    #     question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
+                    # self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    # if base64_string is not None:
+                    #     self.trivMenu.drawImage = True
+                    #     self.trivMenu.base64_string = base64_string
+
                     for catRec in categories:
                         category_names.append(catRec['name'])
+
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
 
@@ -622,15 +635,18 @@ class pygameMain(object):
 
                         if self.clientNumber == self.controllingPlayer:
                             if selectedCategory:
-                                question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                                questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
                             else:
                                 print("No category found")
                         else:
-                            question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+                            question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
 
                         self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                        self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
-
+                        
+                        if base64_string is not None:
+                            self.trivMenu.drawImage = True
+                            self.trivMenu.base64_string = base64_string
+                            
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -863,6 +879,8 @@ class pygameMain(object):
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
+
+                    # self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
                     if tile.mDistinct == tileDistinction.ROLL:
@@ -892,10 +910,19 @@ class pygameMain(object):
                     
                     if len(categories) < 4 or categories == {}:
                         categories = [{'name': 'Astronomy', 'color': colors.match_red}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
-                        #category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                    
+
+                        # category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
+                    # else:
+                    #     for catRec in categories:
+                    #         category_names.append(catRec['name'])
+                    # questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
+                    # self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    # if base64_string is not None:
+                    #     self.trivMenu.drawImage = True
+                    #     self.trivMenu.base64_string = base64_string
                     for catRec in categories:
                         category_names.append(catRec['name'])
+                        
                     print(categories)
                     print(category_names)
                     tile_coords = self.screenPosToCoord()
@@ -904,12 +931,12 @@ class pygameMain(object):
                         # Handle the "Roll Again" logic here
                         print("Player landed on Roll Again tile. Roll the dice again.")
                         
-                        if self.clientNumber == self.controllingPlayer:
-                            # Trigger the roll dice workflow
-                            if self.currPlayer.hasRolled == True:
-                                self.currState = 1  # Set the state to indicate rolling the dice
+                        # if self.clientNumber == self.controllingPlayer:
+                        # Trigger the roll dice workflow
+                        if self.currPlayer.hasRolled == True:
+                            self.currState = 1  # Set the state to indicate rolling the dice
                                 #self.currPlayer.hasRolled = True  # Mark the player as having rolled
-                                continue
+                            continue
                                 # You can also trigger any additional logic for rolling the dice here, if needed
                                 # For example, you might call a method to actually roll the dice and update the UI
                                 
@@ -929,16 +956,17 @@ class pygameMain(object):
                                 selectedCategory = category['name']
                                 break
 
-                        if self.clientNumber == self.controllingPlayer:
-                            if selectedCategory:
-                                question, answer = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
-                            else:
-                                print("No category found")
+                        if selectedCategory:
+                            questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
                         else:
-                            question, answer, imageBase64 = incData.question, incData.answer, incData.imageBase64
+                            print("No category found")
 
                         self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                        self.trivMenu.activeDictionary[childType.TEXT][0].set_image_from_base64(imageBase64)
+                        
+                        if base64_string is not None:
+                            self.trivMenu.drawImage = True
+                            self.trivMenu.base64_string = base64_string
+                        
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
