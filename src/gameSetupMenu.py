@@ -11,7 +11,7 @@ from databaseConnection import databaseConnection
 def runSetupMenu(database):
 
     #Default Categories
-    defaultCategories = [{'name': 'Astronomy', 'color': (255, 0, 76)}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Computer Science', 'color': (0, 228, 53)}]
+    defaultCategories = [{'name': 'Astronomy', 'color': (255, 0, 76), 'askedQuestions': []}, {'name': 'Biology', 'color': (255, 236, 38), 'askedQuestions': []}, {'name': 'Chemistry', 'color': (41, 173, 255), 'askedQuestions': []}, {'name': 'Computer Science', 'color': (0, 228, 53), 'askedQuestions': []}]
 
     #Screen Settings
     screen_width = 1280
@@ -307,7 +307,8 @@ def runSetupMenu(database):
             'categories': [
                 {
                     'name': category,
-                    'color': color
+                    'color': color,
+                    'askedQuestions': []
                 }
                 for category, color in selected_categories.items()
             ]

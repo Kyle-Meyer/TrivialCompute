@@ -611,7 +611,7 @@ class pygameMain(object):
                     category_names = []
 
                     if len(categories) < 4 or categories == {}:
-                        categories = [{'name': 'Astronomy', 'color': match_red}, {'name': 'Biology', 'color': match_yellow}, {'name': 'Chemistry', 'color': match_blue}, {'name': 'Geology', 'color': match_green}]
+                        categories = [{'name': 'Astronomy', 'color': match_red, 'askedQuestions': []}, {'name': 'Biology', 'color': match_yellow, 'askedQuestions': []}, {'name': 'Chemistry', 'color': match_blue, 'askedQuestions': []}, {'name': 'Geology', 'color': match_green, 'askedQuestions': []}]
 
                         # category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
                     # else:
@@ -643,12 +643,24 @@ class pygameMain(object):
                         selectedCategory = None
                         for category in categories:
                             if category['color'] == tile_trivia:
-                                selectedCategory = category['name']
+                                selectedCategory = category
                                 break
 
                         if self.clientNumber == self.controllingPlayer:
                             if selectedCategory:
-                                questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                                questionAndAnswerInCategoryThatWasntAlreadyAsked = self.databaseConnection.getQuestionAndAnswerByCategoryThatWasntAlreadyAsked(selectedCategory['name'], selectedCategory['askedQuestions'])
+                                if questionAndAnswerInCategoryThatWasntAlreadyAsked == None:
+                                    questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory['name'])
+                                    for category in self.setupInfo['categories']:
+                                        if category['name'] == selectedCategory['name']:
+                                            category['askedQuestions'] = [questionId]
+                                            break
+                                else:
+                                    questionId, question, answer, base64_string = questionAndAnswerInCategoryThatWasntAlreadyAsked
+                                    for category in self.setupInfo['categories']:
+                                        if category['name'] == selectedCategory['name']:
+                                            category['askedQuestions'].append(questionId)
+                                            break    
                             else:
                                 print("No category found")
                         else:
@@ -922,7 +934,7 @@ class pygameMain(object):
                     category_names = []
                     
                     if len(categories) < 4 or categories == {}:
-                        categories = [{'name': 'Astronomy', 'color': colors.match_red}, {'name': 'Biology', 'color': (255, 236, 38)}, {'name': 'Chemistry', 'color': (41, 173, 255)}, {'name': 'Geology', 'color': (0, 228, 53)}]
+                        categories = [{'name': 'Astronomy', 'color': colors.match_red, 'askedQuestions': []}, {'name': 'Biology', 'color': (255, 236, 38), 'askedQuestions': []}, {'name': 'Chemistry', 'color': (41, 173, 255), 'askedQuestions': []}, {'name': 'Geology', 'color': (0, 228, 53), 'askedQuestions': []}]
 
                         # category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
                     # else:
@@ -966,13 +978,25 @@ class pygameMain(object):
                         selectedCategory = None
                         for category in categories:
                             if category['color'] == tile_trivia:
-                                selectedCategory = category['name']
+                                selectedCategory = category
                                 break
 
                         if selectedCategory:
-                            questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                            questionAndAnswerInCategoryThatWasntAlreadyAsked = self.databaseConnection.getQuestionAndAnswerByCategoryThatWasntAlreadyAsked(selectedCategory['name'], selectedCategory['askedQuestions'])
+                            if questionAndAnswerInCategoryThatWasntAlreadyAsked == None:
+                                questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory['name'])
+                                for category in self.setupInfo['categories']:
+                                    if category['name'] == selectedCategory['name']:
+                                        category['askedQuestions'] = [questionId]
+                                        break
+                            else:
+                                questionId, question, answer, base64_string = questionAndAnswerInCategoryThatWasntAlreadyAsked
+                                for category in self.setupInfo['categories']:
+                                    if category['name'] == selectedCategory['name']:
+                                        category['askedQuestions'].append(questionId)
+                                        break    
                         else:
-                            print("No category found")
+                            print("No category found")    
 
                         self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                         
@@ -1096,6 +1120,7 @@ def main():
         else:
             #print("Previous game state found.")
             (id, playerPositions, playerScores, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
+            print(setupInfo)
             converted_setupInfo = {
                 'number_of_players': setupInfo['number_of_players'],
                 'players': [
@@ -1105,7 +1130,15 @@ def main():
                     }
                     for player in setupInfo['players']
                 ],
-                'categories': setupInfo['categories']
+                'categories': [
+                    {
+                        'name': category['name'],
+                        'color': tuple(category['color']),
+                        'askedQuestions': category['askedQuestions']
+
+                    }
+                    for category in setupInfo['categories']
+                ]
             }
 
             demo = pygameMain(converted_setupInfo, database, currPlayerIndex)
@@ -1119,7 +1152,7 @@ def main():
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
 
-            demo.legend.update_legend(categories=setupInfo['categories'])
+            demo.legend.update_legend(categories=converted_setupInfo['categories'])
             demo.initializeScoreboards(demo.playerList)
 
         if configModule.online:
