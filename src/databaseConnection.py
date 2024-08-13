@@ -56,6 +56,14 @@ class databaseConnection(object):
         query = "SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category = %s ORDER BY RANDOM() LIMIT 1"
         params = (category,)
         return self.executeQueryFetchOne(query, params)
+
+    def getQuestionAndAnswerByCategoryThatWasntAlreadyAsked(self, category, askedQuestionsInCategory):
+        if askedQuestionsInCategory == [] or askedQuestionsInCategory == None:
+            return self.getQuestionAndAnswerByCategory(category)
+        else:
+            query = "SELECT id, question, answer, \"imageBase64\" FROM questions WHERE category = %s AND id NOT IN %s ORDER BY RANDOM() LIMIT 1"
+            params = (category, tuple(askedQuestionsInCategory))
+            return self.executeQueryFetchOne(query, params)  
     
     # def getQuestionAndAnswerByCategories(self, categories):
     #     placeholders = ', '.join(['%s' for _ in categories])
