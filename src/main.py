@@ -32,6 +32,7 @@ from network.connector import connector
 from network.networkObjs import *
 from legend import categoryLegend
 from scoreboard import scoreboard
+from playerTracker import playerTracker
 
 import os
 import subprocess
@@ -82,6 +83,7 @@ class pygameMain(object):
         self.testDice.diceText.moveBox((self.testDice.diceText.rect.centerx, self.testDice.diceText.rect.centery - 20))
         self.testDice.diceText.changeTextSize(30)
         self.testDice.diceText.moveBox((self.testDice.diceText.rect.centerx, self.testDice.diceText.rect.centery + 60))
+        self.playerTracker = playerTracker((200,150),300,50)
         self.questionAnswerTextWidget = textWidget((350, 400), 100, 100, "")
         self.questionAnswerTextWidget.border_thickness = 0
         self.testButton = button((10, 10))
@@ -90,10 +92,10 @@ class pygameMain(object):
         self.testButton2.lockOut = True
         self.testMenu = menu((200, 350), 300, 550) 
         self.testMenu.title_text = "Game Menu"
-        self.testMenu.addChildComponent(button((150, 200),  180, 90, "1. Roll dice"))
-        self.testMenu.addChildComponent(button((150, 300),  180, 90, "2. Move Token"))
-        self.testMenu.addChildComponent(button((150, 400),  180, 90, "3. Save Game"))
-        self.testMenu.addChildComponent(button((150, 500),  180, 90, "6. Settings"))
+        self.testMenu.addChildComponent(button((150, 250),  180, 90, "1. Roll dice"))
+        self.testMenu.addChildComponent(button((150, 350),  180, 90, "2. Move Token"))
+        self.testMenu.addChildComponent(button((150, 450),  180, 90, "3. Save Game"))
+        self.testMenu.addChildComponent(button((150, 550),  180, 90, "6. Settings"))
         self.testMenuButtons = {'Roll Dice':1, 'Move Token':2, 'Save Game':3}
         self.settingsMenu = slidingMenu((-1280, self.HEIGHT//2), 600, 400)
         self.trivMenu = triviaMenu((self.WIDTH//2, -720), 700, 600)
@@ -297,6 +299,9 @@ class pygameMain(object):
     def drawScoreboards(self):
         for i in range(len(self.scoreboards)):
             self.scoreboards[i].drawScoreboard(self.screen, self.playerList[i].playerScore)
+
+    def drawPlayerTurn(self):
+        self.playerTracker.updatePlayerTracker(self.screen, self.currPlayer.playerName, self.currPlayer.playerColor)       
 
     # Convert screen position to tile coordinates
     #TODO redo all of this, its bad
@@ -763,6 +768,7 @@ class pygameMain(object):
             self.drawPlayers()
             self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
+            self.drawPlayerTurn()            
             self.legend.draw(self.screen)
             if self.clientNumber == self.controllingPlayer:
                 self.testDice.drawDice(self.screen, self.drawDice)
@@ -1048,7 +1054,7 @@ class pygameMain(object):
             self.drawPlayers()
             self.drawScoreboards()
             self.testMenu.drawMenu(self.screen, base3)
-            
+            self.drawPlayerTurn()
             self.testDice.drawDice(self.screen, self.drawDice)
             self.settingsMenu.drawMenu(self.screen)
             self.trivMenu.drawMenu(self.screen)
