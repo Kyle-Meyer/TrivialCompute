@@ -301,7 +301,7 @@ class pygameMain(object):
             self.scoreboards[i].drawScoreboard(self.screen, self.playerList[i].playerScore)
 
     def drawPlayerTurn(self):
-        self.playerTracker.updatePlayerTracker(self.screen, self.currPlayer.playerName, self.currPlayer.playerColor)       
+        self.playerTracker.updatePlayerTracker(self.screen, self.currPlayer.playerName, self.currPlayer.circle_color)       
 
     # Convert screen position to tile coordinates
     #TODO redo all of this, its bad
