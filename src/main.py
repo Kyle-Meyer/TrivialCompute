@@ -33,6 +33,7 @@ from network.networkObjs import *
 from legend import categoryLegend
 from scoreboard import scoreboard
 from playerTracker import playerTracker
+from gameOverScreen import displayGameOver
 
 import os
 import subprocess
@@ -358,6 +359,7 @@ class pygameMain(object):
     # Crown the victor
     def crownVictor(self):
         self.playBoard.board[self.currPlayer.playerScorePosition[0]][self.currPlayer.playerScorePosition[1]].title_color = winner_green
+        displayGameOver(self.screen, self.playerList, self.setupInfo['categories'], self.currPlayer)
                 
     def handleCurrentPlayerMoves(self):
         self.currPlayer.currentNeighbors.clear()
@@ -712,12 +714,22 @@ class pygameMain(object):
                             voteScore += 1
                         elif i == 1:
                             voteScore -= 1
+
+                    # Update Player's Report Card
+                    if voteScore > 0:
+                        wrongAnswer = False
+                    else:
+                        wrongAnswer = True
+                    self.currPlayer.updateReportCard(self.tileColorMapping[tile.mTrivia], wrongAnswer) 
+
+                    # Update Player's Score
                     if voteScore > 0:
                         if self.currPlayer.currCoordinate in [(4,0),(8,4),(4,8),(0,4)]: 
                                 self.updatePlayerScore(self.currPlayer.currCoordinate)
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                                return
                     else:
                         passTurn = True
                     #advance stuff
@@ -861,6 +873,10 @@ class pygameMain(object):
                         self.currState = 4
                 elif mbs >= 0:
                     self.currState = 5
+
+                    #Update Player's Report Card
+                    self.currPlayer.updateReportCard(self.tileColorMapping[tile.mTrivia], mbs)
+
                     #check if correct
                     if mbs == 0:
                         #print("correct clicked")
@@ -869,6 +885,7 @@ class pygameMain(object):
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                                return
                     else:
                         self.clientNumber +=1
                         if self.clientNumber >= len(self.playerList):
@@ -1095,6 +1112,15 @@ def main():
         demo.initializePlayersForNewGame()
         demo.legend.update_legend(categories=bypass['categories'])
         demo.initializeScoreboards(demo.playerList)
+
+        # Optionally fill everyone's wedges for testing purposes
+        if configModule.optionalFillScores:
+            print("Filling scores")
+            for play in demo.playerList:
+                print("Player: ", play.playerName)
+                play.playerScore =  {"c1":"R","c2":"G","c3":"B","c4":"Y"}
+                print("Score: ", play.playerScore)
+
         if configModule.online:
             demo.mainLoopOnline()
         else:
@@ -1165,6 +1191,7 @@ def main():
             demo.mainLoopOnline()
         else:
             demo.mainLoopOffline()
+        pygame.quit()
 
     else:
         pygame.quit()
