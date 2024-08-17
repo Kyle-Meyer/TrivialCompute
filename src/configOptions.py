@@ -13,4 +13,3 @@ configModule.optionalSkeletalDemoRolls = [4,2,6,3,5,5,3,4]
 configModule.online = False
 configModule.bypass = True
 configModule.optionalFillScores = False
-
