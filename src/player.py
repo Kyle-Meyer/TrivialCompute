@@ -177,6 +177,19 @@ class player(object):
                 self.circle_color = player_green
                 self.circle_shadow_color = player_green_dark
 
+    def updateReportCard(self, color, wrong):
+        self.playerReportCard[color] = (self.playerReportCard[color][0], self.playerReportCard[color][1] + 1)
+        if not wrong:
+            self.playerReportCard[color] = (self.playerReportCard[color][0] + 1, self.playerReportCard[color][1])
+
+    def printReportCard(self):
+        print("Report Card for " + self.playerName)
+        print("="*30)
+        print(str(self.playerReportCard[match_red][0]) + " correct out of " + str(self.playerReportCard[match_red][1]) + " for red")
+        print(str(self.playerReportCard[match_green][0]) + " correct out of " + str(self.playerReportCard[match_green][1]) + " for green")
+        print(str(self.playerReportCard[match_blue][0]) + " correct out of " + str(self.playerReportCard[match_blue][1]) + " for blue")
+        print(str(self.playerReportCard[match_yellow][0]) + " correct out of " + str(self.playerReportCard[match_yellow][1]) + " for yellow")
+
     def recolor(self, inColor, inShadow, inHighlight):
         self.circle_color = inColor
         self.circle_shadow_color = inShadow
@@ -204,6 +217,7 @@ class player(object):
         self.circle_x = inX
         self.circle_y = inY
         self.playerScore =  {"c1":"_","c2":"_","c3":"_","c4":"_"}
+        self.playerReportCard = {match_red:(0,0),match_green:(0,0),match_blue:(0,0),match_yellow:(0,0)}
         self.clampBox = boundingBox()
         self.tileOffset =(0,0)
         self.updateColor()
