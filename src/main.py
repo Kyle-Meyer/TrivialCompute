@@ -1110,7 +1110,7 @@ def main():
         demo.createSettingsMenu()
         demo.createTriviaMenu()
         demo.initializePlayersForNewGame()
-        demo.legend.update_legend(categories=bypass['categories'])
+        demo.legend.update_legend(categories=setupInfo['categories'])
         demo.initializeScoreboards(demo.playerList)
 
         # Optionally fill everyone's wedges for testing purposes
