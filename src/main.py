@@ -274,6 +274,10 @@ class pygameMain(object):
         for i in range(len(self.playerList)):
             self.playerList[i].playerScore = savedPlayerScores[i]
 
+    def restorePlayerReportCards(self, savedPlayerReportCards):
+        for i in range(len(self.playerList)):
+            self.playerList[i].playerReportCard = savedPlayerReportCards[i]       
+
     def initializeScoreboards(self, playerList):
         rect_width, rect_height = self.LENGTH - (.02 * self.OFFSET), self.LENGTH - (.08 * self.OFFSET)
         cell_width = rect_width // self.playBoard.cols
@@ -1133,6 +1137,7 @@ def main():
                     {
                         'name': player['name'],
                         'color': tuple(player['color'])  # Convert color list to tuple
+                        'reportCard': player['reportCard']
                     }
                     for player in setupInfo['players']
                 ],
@@ -1154,6 +1159,10 @@ def main():
 
             playerScoresList = list(playerScores.values())
             demo.restorePlayerScores(playerScoresList)
+
+
+
+            demo.restorePlayerReportCards()
 
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)

@@ -1,5 +1,6 @@
 import psycopg2
 import json
+from colors import *
 
 class databaseConnection(object):
     def __init__(self, dbname, user, password, host='localhost', port='5432'):
@@ -114,3 +115,23 @@ class databaseConnection(object):
         query = "SELECT question, answer, \"imageBase64\" FROM questions WHERE id = %s"
         params = (id,)
         return self.executeQueryFetchOne(query, params)
+
+    def savePlayerGrades(self, playerList, setupInfo):
+        for player in playerList:
+            for category in setupInfo['categories']:
+                gradeForCategory = 0
+                if category['color'] == match_red:
+                    gradeForCategory = player['reportCard'][match_red][0] / player['reportCard'][match_red][1]
+                elif category['color'] == match_blue:
+                    gradeForCategory = player['reportCard'][match_blue][0] / player['reportCard'][match_blue][1]
+                elif category['color'] == match_green:
+                    gradeForCategory = player['reportCard'][match_green][0] / player['reportCard'][match_green][1]
+                else:
+                    gradeForCategory = player['reportCard'][match_yellow][0] / player['reportCard'][match_yellow][1]
+
+                query = "INSERT INTO player_grades (\"name\", \"category\", \"grade\", \"date\") VALUES (%s , %s, %s, current_timestamp)"
+
+                params = (player['name'], category['name'], gradeForCategory)
+                self.executeQueryInsert(query, params) 
+
+        return
