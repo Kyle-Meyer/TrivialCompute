@@ -218,6 +218,62 @@ class pygameMain(object):
         self.settingsMenu.switchActiveDictionary(1)
         self.settingsMenu.switchActiveDictionary(0)
 
+    def categorySelectionScreen(self, categories):
+        # Screen settings
+        screen_width = 1280
+        screen_height = 720
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        pygame.display.set_caption("Select a Category")
+
+        # Fonts
+        font = pygame.font.Font(None, 50)
+
+        # Button setup
+        button_width = 300
+        button_height = 75
+        button_padding = 20
+        button_x = (screen_width - button_width) // 2
+        buttons = []
+
+        # Prepare buttons with category names and colors
+        for i, category in enumerate(categories):
+            category_name = category['name']
+            color = category['color']
+            button_y = 100 + i * (button_height + button_padding)
+            button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+            buttons.append((button_rect, category_name, color))
+
+        # Main loop
+        selecting = True
+        selected_category = None
+
+        while selecting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        for button_rect, category_name, color in buttons:
+                            if button_rect.collidepoint(event.pos):
+                                selected_category = category_name
+                                selecting = False
+                                break
+
+            screen.fill(pygame.Color('black'))
+
+            # Draw buttons
+            for button_rect, category_name, color in buttons:
+                pygame.draw.rect(screen, color, button_rect)
+                text_surf = font.render(category_name, True, pygame.Color('black'))
+                text_rect = text_surf.get_rect(center=button_rect.center)
+                screen.blit(text_surf, text_rect)
+
+            pygame.display.flip()
+
+        return selected_category
+
+
    #TODO encapsulate this so that it can draw mutliple players
     def initializePlayersForNewGame(self):
         #localColorList = [player_red, player_blue, player_green, player_yellow]
@@ -584,7 +640,12 @@ class pygameMain(object):
 
             elif self.currState == 2:
                 currentTokenPosition = self.screenPosToCoord()
-                self.trivMenu.startButton.button_text = "Get Question"
+                #################
+                tile = self.playBoard.board[currentTokenPosition[0]][currentTokenPosition[1]]
+                if tile.mDistinct == tileDistinction.Center:
+                    self.trivMenu.startButton.button_text = "Select Category"
+                else:
+                    self.trivMenu.startButton.button_text = "Get Question"
                 if currentTokenPosition in self.currPlayer.currentNeighbors and \
                     currentTokenPosition != self.currPlayer.currCoordinate:
                     self.advanceToken(currentTokenPosition)
@@ -624,19 +685,6 @@ class pygameMain(object):
 
                     if len(categories) < 4 or categories == {}:
                         categories = [{'name': 'Astronomy', 'color': match_red, 'askedQuestions': []}, {'name': 'Biology', 'color': match_yellow, 'askedQuestions': []}, {'name': 'Chemistry', 'color': match_blue, 'askedQuestions': []}, {'name': 'Geology', 'color': match_green, 'askedQuestions': []}]
-
-                        # category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                    # else:
-                    #     for catRec in categories:
-                    #         category_names.append(catRec['name'])
-                    # if self.clientNumber == self.controllingPlayer:
-                    #     questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                    # else:
-                    #     question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
-                    # self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    # if base64_string is not None:
-                    #     self.trivMenu.drawImage = True
-                    #     self.trivMenu.base64_string = base64_string
 
                     for catRec in categories:
                         category_names.append(catRec['name'])
@@ -927,14 +975,25 @@ class pygameMain(object):
 
             elif self.currState == 2:
                 currentTokenPosition = self.screenPosToCoord()
-                self.trivMenu.startButton.button_text = "Get Question"
+                tile = self.playBoard.board[currentTokenPosition[0]][currentTokenPosition[1]]
+                
                 if currentTokenPosition in self.currPlayer.currentNeighbors and \
                     currentTokenPosition != self.currPlayer.currCoordinate:
                     self.advanceToken(currentTokenPosition)
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
                     self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                     self.currPlayer.currCoordinate = currentTokenPosition
-
+                    if tile.mDistinct == tileDistinction.CENTER:
+                        print("Player coords:", self.currPlayer.currCoordinate)
+                        print("Tile Coords:", tile.row, tile.col)
+                        print(self.currPlayer.playerScore.values())
+                        if self.checkIfPlayerJustWon():
+                            self.trivMenu.activeDictionary[childType.TEXT][0].updateText("Opponents Choose Category")
+                        else:
+                            self.trivMenu.activeDictionary[childType.TEXT][0].updateText("You choose the category")
+                        self.trivMenu.startButton.button_text = "Categories"
+                else:
+                    self.trivMenu.startButton.button_text = "Get Question"
                     # self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
@@ -965,16 +1024,6 @@ class pygameMain(object):
                     
                     if len(categories) < 4 or categories == {}:
                         categories = [{'name': 'Astronomy', 'color': colors.match_red, 'askedQuestions': []}, {'name': 'Biology', 'color': (255, 236, 38), 'askedQuestions': []}, {'name': 'Chemistry', 'color': (41, 173, 255), 'askedQuestions': []}, {'name': 'Geology', 'color': (0, 228, 53), 'askedQuestions': []}]
-
-                        # category_names = ['Astronomy', 'Biology', 'Chemistry', 'Geology'] # Default categories
-                    # else:
-                    #     for catRec in categories:
-                    #         category_names.append(catRec['name'])
-                    # questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategories(category_names)
-                    # self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
-                    # if base64_string is not None:
-                    #     self.trivMenu.drawImage = True
-                    #     self.trivMenu.base64_string = base64_string
                     for catRec in categories:
                         category_names.append(catRec['name'])
                         
@@ -983,25 +1032,20 @@ class pygameMain(object):
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
                     if tile.mDistinct == tileDistinction.ROLL:
-                        # Handle the "Roll Again" logic here
                         print("Player landed on Roll Again tile. Roll the dice again.")
-                        
-                        # if self.clientNumber == self.controllingPlayer:
-                        # Trigger the roll dice workflow
                         if self.currPlayer.hasRolled == True:
                             self.currState = 1  # Set the state to indicate rolling the dice
-                                #self.currPlayer.hasRolled = True  # Mark the player as having rolled
-                            continue
-                                # You can also trigger any additional logic for rolling the dice here, if needed
-                                # For example, you might call a method to actually roll the dice and update the UI
-                                
-                                # After rolling, you might want to reset or update the game state
-                                # Reset self.currPlayer.hasRolled to False if they need to roll again
-                                
+                            continue                              
                         # Handle tile color update and redraw
                         if shouldRedraw != configModule.optionalMatchOriginalColors:
                             self.playBoard.updateTileColors()
                             self.currPlayer.updateColor()
+                    if tile.mDistinct == tileDistinction.CENTER:
+                        # Handle the center tile logic
+                        print("Player landed on Center tile. Get a question from any category.")
+                        selectedCategory = self.categorySelectionScreen(categories)
+                        questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                     else:
                         # Handle the normal trivia tile logic
                         tile_trivia = self.tileColorMapping[tile.mTrivia]
