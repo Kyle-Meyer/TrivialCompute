@@ -223,7 +223,7 @@ class triviaMenu(menu):
             self.triviaClock.drawClock(screen)
         if self.drawImage and self.base64_string:
             self.base64_image = Base64Image(self.base64_string)
-            self.base64_image.drawImage(screen, self.image_x, self.image_y)
+            self.base64_image.drawImage(screen, self.startButton.button_Position_Screen[0] - self.base64_image.image.get_width()//2, self.image_y)
         text_surf = self.title.render(self.title_text, True, base3)
         text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size))
         screen.blit(text_surf, text_rect)

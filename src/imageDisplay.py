@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image as PILImage
 
 class Base64Image:
-    def __init__(self, base64_string, max_width=300, max_height=250):
+    def __init__(self, base64_string, max_width=300, max_height=175):
         self.base64_string = base64_string
         self.max_width = max_width
         self.max_height = max_height
