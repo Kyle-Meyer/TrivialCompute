@@ -1165,7 +1165,7 @@ def main():
     pygame.init()
     #print("running")
     selected_menu_action = run_start_menu()
-    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': [{'name': 'Astronomy', 'color': (255, 0, 76), 'askedQuestions': []}, {'name': 'Biology', 'color': (255, 236, 38), 'askedQuestions': []}, {'name': 'Chemistry', 'color': (41, 173, 255), 'askedQuestions': []}, {'name': 'Computer Science', 'color': (0, 228, 53), 'askedQuestions': []}]}
+    bypass = {'number_of_players': 2, 'players': [{'name': 'Player4', 'color': match_yellow}, {'name': 'Player3', 'color': match_blue}, {'name': 'Player1', 'color': match_red}, {'name': 'Player2', 'color': match_green}], 'categories': [{'name': 'Astronomy', 'color': match_red, 'askedQuestions': []}, {'name': 'Biology', 'color': match_yellow, 'askedQuestions': []}, {'name': 'Chemistry', 'color': match_blue, 'askedQuestions': []}, {'name': 'Computer Science', 'color': match_green, 'askedQuestions': []}]}
     if selected_menu_action == "start":   
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         #TODO remove this later

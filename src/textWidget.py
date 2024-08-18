@@ -13,6 +13,7 @@ class textWidget(object):
     menu_height = 200
     border_thickness = 0
     originalX = 0
+    num_wrapped_lines = 0
     rect = pygame.Rect(ScreenCoords[0], ScreenCoords[1], menu_width, menu_height)
 
     def draw_rounded_rect(self, surface):
@@ -37,6 +38,7 @@ class textWidget(object):
         
         # Render text with word wrap
         wrapped_lines = self.wrap_text(self.title_text, self.rect.width - self.border_thickness * 2)
+        self.num_wrapped_lines = len(wrapped_lines)
         y = self.rect.centery - (self.menu_height // 2) + self.title_text_size
         textCol = self.textCol
         for line in wrapped_lines:
