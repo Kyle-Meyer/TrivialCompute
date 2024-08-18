@@ -66,6 +66,17 @@ def remove_category(cur, conn, category_id):
     except psycopg2.Error as e: 
         messagebox.showerror("Error", f"Failed to remove category and associated questions: {e}") 
         conn.rollback() 
+        
+# Function to fetch distinct players from the player_grades table
+def get_players(cur):
+    cur.execute("SELECT DISTINCT name FROM player_grades")
+    return cur.fetchall()
+
+# Function to fetch grades for a selected player
+def get_grades_by_player(cur, player_name):
+    cur.execute("SELECT category, grade, date FROM player_grades WHERE name=%s ORDER BY date DESC", (player_name,))
+    return cur.fetchall()
+
 # Export database to file
 def export_database():
     file_path = filedialog.asksaveasfilename(defaultextension=".sql", filetypes=[("SQL files", "*.sql"), ("All files", "*.*")])
@@ -114,7 +125,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Database Manager")
-        self.geometry("1280x800")
+        self.geometry("1280x850")
         self.style = ttk.Style(self)
         self.style.theme_use('clam')
         self.conn = db_connect()
@@ -137,6 +148,10 @@ class App(tk.Tk):
 
         self.display_categories_button = ttk.Button(self.category_frame, text="Display Categories", command=self.display_categories)
         self.display_categories_button.pack(pady=10)
+
+        # Display players button
+        self.display_players_button = ttk.Button(self.category_frame, text="Display Players", command=self.display_players)
+        self.display_players_button.pack(pady=10)
 
         self.category_list = tk.Listbox(self.category_frame, font=('Arial', 12))
         self.category_list.pack(pady=10)
@@ -170,6 +185,8 @@ class App(tk.Tk):
             categories = get_categories(self.conn[1])
             for id, name in categories:
                 self.category_list.insert(tk.END, f"{id}: {name}")
+            # Reset binding to category selection
+            self.category_list.bind('<<ListboxSelect>>', self.on_category_select)
 
     def on_category_select(self, event):
         selection = event.widget.curselection()
@@ -340,6 +357,86 @@ class App(tk.Tk):
                 for widget in self.action_frame.winfo_children(): 
                     widget.destroy() 
 
+    def display_players(self):
+        if self.conn == None:
+            messagebox.showerror("Error", "Database connection error. Try resetting it.")
+        else:
+            self.category_list.delete(0, tk.END)  # Clear the current list
+            players = get_players(self.conn[1])
+            if players:
+                for player in players:
+                    self.category_list.insert(tk.END, player[0])
+                # Bind player selection event
+                self.category_list.bind('<<ListboxSelect>>', self.on_player_select)
+            else:
+                messagebox.showinfo("No Data", "No players found in the database.")
+
+    def on_player_select(self, event):
+        selection = event.widget.curselection()
+        if selection:
+            player_name = event.widget.get(selection[0])
+            self.display_player_grades(player_name)
+
+    def display_player_grades(self, player_name):
+        # Clear the action frame
+        for widget in self.action_frame.winfo_children():
+            widget.destroy()
+
+        # Create a canvas for scrollable content
+        canvas = tk.Canvas(self.action_frame, bg="white")
+        scrollbar = ttk.Scrollbar(self.action_frame, orient="vertical", command=canvas.yview)
+        
+        # Create a scrollable frame using tk.Frame and set the background color to gray
+        scrollable_frame = tk.Frame(canvas, bg="white")
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Pack the canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Add a title with the player's name
+        tk.Label(scrollable_frame, text=f"Player: {player_name}", font=('Arial', 16, 'bold'), bg="white").grid(row=0, column=0, columnspan=2, pady=(10, 20), sticky="n")
+
+        # Fetch and display grades
+        grades = get_grades_by_player(self.conn[1], player_name)
+
+        # Group grades by category
+        grouped_grades = {}
+        for category, grade, date in grades:
+            if category not in grouped_grades:
+                grouped_grades[category] = []
+            grouped_grades[category].append((date, grade))
+
+        # Display grouped grades
+        for category, entries in grouped_grades.items():
+            # Category header
+            tk.Label(scrollable_frame, text=f"Category: {category}", font=('Arial', 14, 'bold'), bg="white").grid(row=len(scrollable_frame.grid_slaves()), column=0, columnspan=2, pady=(20, 5), sticky="n")
+
+            # Column headers (Left-align Date label)
+            tk.Label(scrollable_frame, text="Date", font=('Arial', 12, 'underline'), bg="white").grid(row=len(scrollable_frame.grid_slaves()), column=0, padx=20, sticky="w")
+            tk.Label(scrollable_frame, text="Grade", font=('Arial', 12, 'underline'), bg="white").grid(row=len(scrollable_frame.grid_slaves()) - 1, column=1, padx=20, sticky="w")
+
+            # Display the grades under each category
+            for date, grade in entries:
+                tk.Label(scrollable_frame, text=date, font=('Arial', 12), bg="white").grid(row=len(scrollable_frame.grid_slaves()), column=0, padx=20, sticky="w")
+                tk.Label(scrollable_frame, text=grade, font=('Arial', 12), bg="white").grid(row=len(scrollable_frame.grid_slaves()) - 1, column=1, padx=20, sticky="w")
+
+            # Add a separator between categories for better readability
+            ttk.Separator(scrollable_frame, orient='horizontal').grid(row=len(scrollable_frame.grid_slaves()), column=0, columnspan=2, pady=10, sticky="ew")
+
+        # Center the entire scrollable frame within the action frame
+        scrollable_frame.grid_columnconfigure(0, weight=1)
+        scrollable_frame.grid_columnconfigure(1, weight=1)
+    
 if __name__ == "__main__": 
     app = App() 
     app.mainloop()
