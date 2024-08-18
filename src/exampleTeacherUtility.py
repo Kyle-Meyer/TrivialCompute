@@ -209,12 +209,11 @@ class App(tk.Tk):
 
         # Insert questions and images into the scrollable frame
         for question_id, question, answer, imageBase64 in questions:
-            question_frame = ttk.Frame(scrollable_frame)
-            question_frame.pack(fill=tk.X, pady=5)
-            
-            ttk.Label(question_frame, text=f"ID: {question_id}", font=('Arial', 12)).pack(anchor=tk.W)
-            ttk.Label(question_frame, text=f"Q: {question}", font=('Arial', 12)).pack(anchor=tk.W)
-            ttk.Label(question_frame, text=f"A: {answer}", font=('Arial', 12)).pack(anchor=tk.W)
+            question_frame = tk.Frame(scrollable_frame, bg="white", bd=15)
+            question_frame.pack(fill=tk.X, padx=0, pady=0)  # Adjust padding for content here    
+            tk.Label(question_frame, text=f"ID: {question_id}", font=('Arial', 12), bg="white").pack(anchor=tk.W)
+            tk.Label(question_frame, text=f"Q: {question}", font=('Arial', 12), bg="white").pack(anchor=tk.W)
+            tk.Label(question_frame, text=f"A: {answer}", font=('Arial', 12), bg="white").pack(anchor=tk.W)
             
             # Handle image display
             if imageBase64:
@@ -222,7 +221,7 @@ class App(tk.Tk):
                 image = Image.open(io.BytesIO(image_data))
                 image.thumbnail((100, 100))
                 photo = ImageTk.PhotoImage(image)
-                image_label = ttk.Label(question_frame, image=photo)
+                image_label = tk.Label(question_frame, image=photo, bg="white")
                 image_label.pack(pady=5)
                 image_label.photo = photo  # Keep a reference to avoid garbage collection
         

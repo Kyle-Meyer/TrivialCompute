@@ -18,7 +18,7 @@ multiText.changeTextSize(40)
 def runSetupMenu(database):
 
     #Default Categories
-    defaultCategories = [{'name': 'Astronomy', 'color': (255, 0, 76), 'askedQuestions': []}, {'name': 'Biology', 'color': (255, 236, 38), 'askedQuestions': []}, {'name': 'Chemistry', 'color': (41, 173, 255), 'askedQuestions': []}, {'name': 'Computer Science', 'color': (0, 228, 53), 'askedQuestions': []}]
+    defaultCategories = [{'name': 'Astronomy', 'color': (255, 0, 76), 'askedQuestions': []}, {'name': 'Biology', 'color': (255, 236, 38), 'askedQuestions': []}, {'name': 'Chemistry', 'color': (41, 173, 255), 'askedQuestions': []}, {'name': 'Animals', 'color': (0, 228, 53), 'askedQuestions': []}]
 
     #Screen Settings
     screen_width = 1280

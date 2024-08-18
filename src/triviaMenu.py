@@ -221,9 +221,7 @@ class triviaMenu(menu):
         self.draw_rounded_rect(screen)
         if self.triviaClock.shouldDraw:
             self.triviaClock.drawClock(screen)
-        if self.drawImage and self.base64_string:
-            self.base64_image = Base64Image(self.base64_string)
-            self.base64_image.drawImage(screen, self.startButton.button_Position_Screen[0] - self.base64_image.image.get_width()//2, self.image_y)
+
         text_surf = self.title.render(self.title_text, True, base3)
         text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - (self.menu_height // 2) + self.title_text_size))
         screen.blit(text_surf, text_rect)
@@ -248,6 +246,23 @@ class triviaMenu(menu):
             for i in range(len(self.activeDictionary[childType.CHECK])):
                 #print("drawing: ", i, " at ", self.activeDictionary[childType.CHECK][i].outer_rect.center)
                 self.activeDictionary[childType.CHECK][i].drawWidget(screen)
+        
+        # Draw the image if it exists
+        if self.drawImage and self.base64_string:         
+            y_center_of_first_line = self.activeDictionary[childType.TEXT][0].rect.centery - (self.activeDictionary[childType.TEXT][0].menu_height // 2) + self.activeDictionary[childType.TEXT][0].title_text_size
+            text_rect_height_per_line = 34 # TODO - Get this dynamically from the textWidget
+            y_bottom_of_last_line = y_center_of_first_line + text_rect_height_per_line//2 + (self.activeDictionary[childType.TEXT][0].num_wrapped_lines-1) * text_rect_height_per_line
+            y_top_boundary = y_bottom_of_last_line
+            y_bottom_boundary = self.startButton.button_rect.centery - self.startButton.border_thickness - self.startButton.button_height//2
+            self.base64_image = Base64Image(self.base64_string, max_height=((y_bottom_boundary - y_top_boundary)*0.9))
+            if (y_bottom_boundary - y_top_boundary) > (self.base64_image.image.get_height()):
+                # Image will fit, center it vertically
+                y = y_top_boundary + (y_bottom_boundary - y_top_boundary-self.base64_image.image.get_height())//2
+            else:
+                # Image will not fit, place it directly under the question
+                # Not sure how you got here... but let's just put it at the top of the boundary
+                y = y_top_boundary
+            self.base64_image.drawImage(screen, self.startButton.button_Position_Screen[0] - self.base64_image.image.get_width()//2, y)
         
         #self.rightButton.draw_button(screen)
         #self.leftButton.draw_button(screen)
