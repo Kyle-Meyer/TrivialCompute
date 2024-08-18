@@ -734,6 +734,7 @@ class pygameMain(object):
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                                self.databaseConnection.savePlayerGrades(self.playerList, self.setupInfo)
                                 return
                     else:
                         passTurn = True
@@ -855,7 +856,6 @@ class pygameMain(object):
                 elif abs == self.testMenuButtons['Save Game']-1:
                     #print('Save Game')
                     self.databaseConnection.saveCurrentGameState(self.playerList, self.setupInfo, self.clientNumber)
-                    self.databaseConnection.savePlayerGrades(self.playerList, self.setupInfo)
                 if abs == 3 or dbs == -3:
                     self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.testMenu.lockOut = not self.testMenu.lockOut
@@ -891,6 +891,7 @@ class pygameMain(object):
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                                self.databaseConnection.savePlayerGrades(self.playerList, self.setupInfo)
                                 return
                     else:
                         self.clientNumber +=1
