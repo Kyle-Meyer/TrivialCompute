@@ -41,6 +41,7 @@ import copy
 from _thread import *
 import signal
 import psutil
+import ast
 
 def kill(proc_pid):
     process = psutil.Process(proc_pid)
@@ -331,6 +332,10 @@ class pygameMain(object):
         for i in range(len(self.playerList)):
             self.playerList[i].playerScore = savedPlayerScores[i]
 
+    def restorePlayerReportCards(self, savedPlayerReportCards):
+        for i in range(len(self.playerList)):
+            self.playerList[i].playerReportCard = savedPlayerReportCards[i]       
+
     def initializeScoreboards(self, playerList):
         rect_width, rect_height = self.LENGTH - (.02 * self.OFFSET), self.LENGTH - (.08 * self.OFFSET)
         cell_width = rect_width // self.playBoard.cols
@@ -562,7 +567,7 @@ class pygameMain(object):
                         self.currState = 2
                     elif abs == self.testMenuButtons['Save Game']-1:
                         #print('Save Game')
-                        self.databaseConnection.saveCurrentGameState(self.playerList, self.currPlayer, [])
+                        self.databaseConnection.saveCurrentGameState(self.playerList, self.setupInfo, self.clientNumber)
                     elif abs == 1:
                         self.currState == 3
                         #self.trivMenu.triviaClock.startCounting = True
@@ -777,6 +782,7 @@ class pygameMain(object):
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                                self.databaseConnection.savePlayerGrades(self.playerList, self.setupInfo)
                                 return
                     else:
                         passTurn = True
@@ -933,6 +939,7 @@ class pygameMain(object):
                         elif self.currPlayer.currCoordinate == (4,4):
                             if self.checkIfPlayerJustWon():
                                 self.crownVictor()
+                                self.databaseConnection.savePlayerGrades(self.playerList, self.setupInfo)
                                 return
                     else:
                         self.clientNumber +=1
@@ -1195,8 +1202,7 @@ def main():
 
         else:
             #print("Previous game state found.")
-            (id, playerPositions, playerScores, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
-            print(setupInfo)
+            (id, playerPositions, playerScores, playerReportCards, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
             converted_setupInfo = {
                 'number_of_players': setupInfo['number_of_players'],
                 'players': [
@@ -1211,7 +1217,6 @@ def main():
                         'name': category['name'],
                         'color': tuple(category['color']),
                         'askedQuestions': category['askedQuestions']
-
                     }
                     for category in setupInfo['categories']
                 ]
@@ -1224,6 +1229,21 @@ def main():
 
             playerScoresList = list(playerScores.values())
             demo.restorePlayerScores(playerScoresList)
+
+
+            newReportCardDict = {}
+            for player, reportCardDict in playerReportCards.items():
+                newReportCardDict[player] = {}
+                for key_str, value_list in reportCardDict.items():
+                    # Convert the string key to a tuple
+                    key_tuple = ast.literal_eval(key_str)
+                    # Convert the list value to a tuple
+                    value_tuple = tuple(value_list)
+                    # Assign to the new dictionary
+                    newReportCardDict[player][key_tuple] = value_tuple
+
+            playerReportCardsList = list(newReportCardDict.values())
+            demo.restorePlayerReportCards(playerReportCardsList)
 
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
