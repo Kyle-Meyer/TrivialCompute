@@ -94,22 +94,40 @@ class databaseConnection(object):
         # Initialize dictionaries
         player_position_data = {}
         player_score_data = {}
+        player_report_card_data = {}
 
         count = 0
         # Populate dictionaries with incrementing player count
         for player in playerList:
             player_position_data[f'player{count}'] = player.currCoordinate
             player_score_data[f'player{count}'] = player.playerScore
+            print(player.playerReportCard)
+            player_report_card_data[f'player{count}'] = self.convertTupleKeysToStringsAndTupleValuesToList(player.playerReportCard)
             count += 1
 
         # Convert the dictionary to a JSON string
         json_player_position_data = json.dumps(player_position_data)
         json_player_score_data = json.dumps(player_score_data)
+        json_player_report_card_data = json.dumps(player_report_card_data)
         json_setupInfo = json.dumps(setupInfo)
 
-        query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"setupInfo\", \"currentPlayerIndex\", \"date\") VALUES (%s , %s, %s, %s, current_timestamp)"
-        params = (json_player_position_data, json_player_score_data, json_setupInfo, currPlayerIndex)
+        query = "INSERT INTO saved_game_states (\"playerPositions\", \"playerScores\", \"playerReportCards\", \"setupInfo\", \"currentPlayerIndex\", \"date\") VALUES (%s , %s, %s, %s, %s, current_timestamp)"
+        params = (json_player_position_data, json_player_score_data, json_player_report_card_data, json_setupInfo, currPlayerIndex)
         return self.executeQueryInsert(query, params)
+
+    def convertTupleKeysToStringsAndTupleValuesToList(self, dictionaryToConvert):
+        new_dict = {}
+        for key, value in dictionaryToConvert.items():
+            # Convert the key from a tuple to a string if it's a tuple
+            if isinstance(key, tuple):
+                key = str(key)  # Convert tuple to its string representation
+            # Recursively process nested dictionaries and lists
+            if isinstance(value, dict):
+                value = convert_tuple_keys_to_strings(value)
+            elif isinstance(value, list):
+                value = [convert_tuple_keys_to_strings(item) if isinstance(item, dict) else item for item in value]
+            new_dict[key] = value
+        return new_dict
 
     def getQuestionAndAnswerById(self, id):
         query = "SELECT question, answer, \"imageBase64\" FROM questions WHERE id = %s"
@@ -121,17 +139,28 @@ class databaseConnection(object):
             for category in setupInfo['categories']:
                 gradeForCategory = 0
                 if category['color'] == match_red:
-                    gradeForCategory = player['reportCard'][match_red][0] / player['reportCard'][match_red][1]
+                    if player.playerReportCard[match_red][1] == 0:
+                        gradeForCategory = 0
+                    else:    
+                        gradeForCategory = (player.playerReportCard[match_red][0] / player.playerReportCard[match_red][1]) * 100
                 elif category['color'] == match_blue:
-                    gradeForCategory = player['reportCard'][match_blue][0] / player['reportCard'][match_blue][1]
+                    if player.playerReportCard[match_blue][1] == 0:
+                        gradeForCategory = 0
+                    else:
+                        gradeForCategory = (player.playerReportCard[match_blue][0] / player.playerReportCard[match_blue][1]) * 100
                 elif category['color'] == match_green:
-                    gradeForCategory = player['reportCard'][match_green][0] / player['reportCard'][match_green][1]
+                    if player.playerReportCard[match_green][1] == 0:
+                        gradeForCategory = 0
+                    else:    
+                        gradeForCategory = (player.playerReportCard[match_green][0] / player.playerReportCard[match_green][1]) * 100
                 else:
-                    gradeForCategory = player['reportCard'][match_yellow][0] / player['reportCard'][match_yellow][1]
+                    if player.playerReportCard[match_yellow][1] == 0:
+                        gradeForCategory = 0
+                    else:    
+                        gradeForCategory = (player.playerReportCard[match_yellow][0] / player.playerReportCard[match_yellow][1]) * 100
 
                 query = "INSERT INTO player_grades (\"name\", \"category\", \"grade\", \"date\") VALUES (%s , %s, %s, current_timestamp)"
 
-                params = (player['name'], category['name'], gradeForCategory)
+                params = (player.playerName, category['name'], gradeForCategory)
                 self.executeQueryInsert(query, params) 
-
         return

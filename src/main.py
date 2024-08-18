@@ -41,6 +41,7 @@ import copy
 from _thread import *
 import signal
 import psutil
+import ast
 
 def kill(proc_pid):
     process = psutil.Process(proc_pid)
@@ -510,7 +511,7 @@ class pygameMain(object):
                         self.currState = 2
                     elif abs == self.testMenuButtons['Save Game']-1:
                         #print('Save Game')
-                        self.databaseConnection.saveCurrentGameState(self.playerList, self.currPlayer, [])
+                        self.databaseConnection.saveCurrentGameState(self.playerList, self.setupInfo, self.clientNumber)
                     elif abs == 1:
                         self.currState == 3
                         #self.trivMenu.triviaClock.startCounting = True
@@ -854,6 +855,7 @@ class pygameMain(object):
                 elif abs == self.testMenuButtons['Save Game']-1:
                     #print('Save Game')
                     self.databaseConnection.saveCurrentGameState(self.playerList, self.setupInfo, self.clientNumber)
+                    self.databaseConnection.savePlayerGrades(self.playerList, self.setupInfo)
                 if abs == 3 or dbs == -3:
                     self.settingsMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     self.testMenu.lockOut = not self.testMenu.lockOut
@@ -1155,15 +1157,13 @@ def main():
 
         else:
             #print("Previous game state found.")
-            (id, playerPositions, playerScores, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
-            print(setupInfo)
+            (id, playerPositions, playerScores, playerReportCards, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
             converted_setupInfo = {
                 'number_of_players': setupInfo['number_of_players'],
                 'players': [
                     {
                         'name': player['name'],
                         'color': tuple(player['color'])  # Convert color list to tuple
-                        'reportCard': player['reportCard']
                     }
                     for player in setupInfo['players']
                 ],
@@ -1172,7 +1172,6 @@ def main():
                         'name': category['name'],
                         'color': tuple(category['color']),
                         'askedQuestions': category['askedQuestions']
-
                     }
                     for category in setupInfo['categories']
                 ]
@@ -1187,8 +1186,19 @@ def main():
             demo.restorePlayerScores(playerScoresList)
 
 
+            newReportCardDict = {}
+            for player, reportCardDict in playerReportCards.items():
+                newReportCardDict[player] = {}
+                for key_str, value_list in reportCardDict.items():
+                    # Convert the string key to a tuple
+                    key_tuple = ast.literal_eval(key_str)
+                    # Convert the list value to a tuple
+                    value_tuple = tuple(value_list)
+                    # Assign to the new dictionary
+                    newReportCardDict[player][key_tuple] = value_tuple
 
-            demo.restorePlayerReportCards()
+            playerReportCardsList = list(newReportCardDict.values())
+            demo.restorePlayerReportCards(playerReportCardsList)
 
             convertedPlayerPositionsTuple = tuple((key, tuple(value)) for key, value in playerPositions.items())
             demo.initializePlayersForRestoreGame(convertedPlayerPositionsTuple)
