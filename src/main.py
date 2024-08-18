@@ -1104,7 +1104,7 @@ class pygameMain(object):
                     self.trivMenu.switchActiveDictionary(1)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
                 self.trivMenu.startButton.lockOut = True
-                print("STATE 4 LOCKOUT STATUS: ", self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut)
+            
             elif self.currState == 5:
                 #self.trivMenu.canVote = True TURN THIS BACK ON FOR SERVER STUFF
                 if self.trivMenu.isOut:
