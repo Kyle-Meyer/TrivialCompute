@@ -982,9 +982,12 @@ class pygameMain(object):
                 self.trivMenu.triviaClock.startCounting = False
                 self.trivMenu.triviaClock.shouldDraw = False
                 
-                
             if self.currState == 1:
                 self.questionAnswerTextWidget.updateText('')
+                question = ''
+                answer = ''
+                if self.trivMenu.activeIndex == 1:
+                    self.trivMenu.switchActiveDictionary(0)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                 self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                 self.currPlayer.hasRolled = True 
@@ -1017,18 +1020,15 @@ class pygameMain(object):
                     if tile.mDistinct == tileDistinction.ROLL:
                         print("Player landed on Roll Again tile. Roll the dice again.")
                         self.currPlayer.hasRolled = False
-                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False  # Unlock the roll dice button
-                        self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
                         self.currState = 0  # Reset to roll dice state
                     else:
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True  # Unlock the roll dice button
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
-                        self.currState = 0  # Reset to roll dice state
-                        self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                        #self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                        if not self.trivMenu.isOut:
+                            self.trivMenu.initiateSlide()
                     self.drawDice = False
-
-                    
-
+                
             elif self.currState == 3:
                 #self.trivMenu.currState += 1
                 self.trivMenu.triviaClock.shouldDraw = True
@@ -1047,22 +1047,17 @@ class pygameMain(object):
                     print(categories)
                     print(category_names)
                     tile_coords = self.screenPosToCoord()
-                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
-                    if tile.mDistinct == tileDistinction.ROLL:
-                        print("Player landed on Roll Again tile. Roll the dice again.")
-                        if self.currPlayer.hasRolled == True:
-                            self.currState = 1  # Set the state to indicate rolling the dice
-                            continue                              
-                        # Handle tile color update and redraw
-                        if shouldRedraw != configModule.optionalMatchOriginalColors:
-                            self.playBoard.updateTileColors()
-                            self.currPlayer.updateColor()
+                    tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]          
+                    # Handle tile color update and redraw
+                    if shouldRedraw != configModule.optionalMatchOriginalColors:
+                        self.playBoard.updateTileColors()
+                        self.currPlayer.updateColor()
                     if tile.mDistinct == tileDistinction.CENTER:
                         # Handle the center tile logic
                         print("Player landed on Center tile. Get a question from any category.")
                         selectedCategory = self.categorySelectionScreen(categories)
                         questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
-                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        #self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                     else:
                         # Handle the normal trivia tile logic
                         tile_trivia = self.tileColorMapping[tile.mTrivia]
@@ -1099,6 +1094,7 @@ class pygameMain(object):
 
                 # self.trivMenu.haltWidgetDraw = True
                 self.trivMenu.startButton.button_text = "Reveal Answer"
+                
             elif self.currState == 4:
                 self.trivMenu.triviaClock.shouldDraw = False
                 self.trivMenu.triviaClock.startCounting = False
@@ -1108,11 +1104,11 @@ class pygameMain(object):
                     self.trivMenu.switchActiveDictionary(1)
                 self.trivMenu.activeDictionary[childType.TEXT][0].updateText(answer)
                 self.trivMenu.startButton.lockOut = True
+                print("STATE 4 LOCKOUT STATUS: ", self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut)
             elif self.currState == 5:
                 #self.trivMenu.canVote = True TURN THIS BACK ON FOR SERVER STUFF
-                for ent in self.trivMenu.activeDictionary[childType.VOTE]:
-                    ent.voteSubmitted = True
-                self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                if self.trivMenu.isOut:
+                    self.trivMenu.initiateSlide()
                 self.trivMenu.resetTimer()
                 questionId = None
                 question = ''
@@ -1121,7 +1117,7 @@ class pygameMain(object):
                 self.trivMenu.drawImage = False
                 self.trivMenu.base64_string = None
                 self.currState = 0
-
+                
             if not self.testDice.rolling and self.currPlayer.hasRolled:
                 self.diceRoll = self.testDice.diceValue
                 self.currPlayer.updateBoxByDice(self.diceRoll, self.playBoard.board[0][0].box.size[0])

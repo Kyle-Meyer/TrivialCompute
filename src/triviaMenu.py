@@ -75,11 +75,13 @@ class triviaMenu(menu):
             if time_elapsed <= self.menuDuration:
                 self.rect.centery = self.ease_in(time_elapsed, initial_y, target_y - initial_y, self.menuDuration)
                 self.startButton.button_rect.centery = self.ease_in(time_elapsed, 1300, -700, self.menuDuration)
+                self.canSlide = False
             else:
                 self.away = False
                 self.rect.centery = target_y
                 self.startButton.button_rect.centery = 600
                 self.isOut = True
+                self.canSlide = True
             
         elif self.slidingOut:
             initial_y = 360
@@ -87,11 +89,13 @@ class triviaMenu(menu):
             if time_elapsed <= self.menuDuration:     
                 self.rect.centery = self.ease_in(time_elapsed, initial_y, target_y - initial_y, self.menuDuration)
                 self.startButton.button_rect.centery = self.ease_in(time_elapsed, 600, 700, self.menuDuration)
+                self.canSlide = False
             else:
                 self.away = True
                 self.rect.centery = target_y
                 self.startButton.button_rect.centery = 1300
                 self.isOut = False
+                self.canSlide = True
 
     def slideButtons(self):
         time_elapsed = pygame.time.get_ticks() - self.start_time
@@ -189,6 +193,11 @@ class triviaMenu(menu):
         self.triviaClock.shouldDraw = False
         self.canVote = False
         self.startButton.lockOut = False
+
+    def initiateSlide(self):
+        if self.canSlide:
+            self.slideIn((640, 360))
+            
     def slideAll(self):
         if not self.preventSliding:
             self.slideFadeBox()
@@ -290,6 +299,7 @@ class triviaMenu(menu):
         self.preventSliding = False
         self.drawImage = False
         self.base64_string = None
+        self.canSlide = True
         self.image_x = 490  # X position to draw the image
         self.image_y = 375  # Y position to draw the image
         
