@@ -66,7 +66,7 @@ class button(object):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 #if event.button == 1:  # Left mouse click
                 if self.button_rect.collidepoint(event.pos):
-                    print(self.button_text, "clicked!")
+                    #print(self.button_text, "clicked!")
                     return True
         
     def updateTextColor(self, inColor):

@@ -2,10 +2,10 @@ import socket
 import pickle
 
 class connector(object):
-    def __init__(self):
+    def __init__(self, server, port):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "localhost"
-        self.port = 5555
+        self.server = server #"localhost"
+        self.port = port #5555
         self.addr = (self.server, self.port)
         self.obj = self.connect()
 

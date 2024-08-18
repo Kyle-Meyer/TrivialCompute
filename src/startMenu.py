@@ -59,7 +59,11 @@ def run_start_menu():
     def start_game():
         print("Start New Game button clicked")
         return "start"
-
+    
+    def join_game():
+        print("Joining game ")
+        return "join"
+    
     def restore_last_game():
         print("Restore Last Game button clicked")
         return "restore"
@@ -77,10 +81,11 @@ def run_start_menu():
     #config_button = Button("Configure", 850, 100, 300, 75, std_blue, config_game)
     start_button = Button("Start New Game", 850, 200, 300, 75, std_green, start_game)
     restore_button = Button("Restore Last Game", 850, 300, 300, 75, std_yellow, restore_last_game)
-    exit_button = Button("Exit", 850, 400, 300, 75, std_red, exit_game)
+    join_button = Button("Join Online Game", 850, 400, 300, 75, std_blue, join_game)
+    exit_button = Button("Exit", 850, 500, 300, 75, std_red, exit_game)
 
 
-    buttons = [start_button, restore_button, exit_button]
+    buttons = [start_button, restore_button, join_button, exit_button]
 
     # Main loop
     running = True

@@ -6,7 +6,14 @@ from colors import *
 import slideBarWidget
 import configMenu as cm
 from databaseConnection import databaseConnection
+from checkBoxWidget import checkBoxWidget
+from textWidget import textWidget
 
+
+multiCheck = checkBoxWidget((850, 380),50, 50)
+multiText = textWidget((1030, 515), 300, 300, "Host Online Game")
+multiText.textCol = base3
+multiText.changeTextSize(40)
 
 def runSetupMenu(database):
 
@@ -223,6 +230,7 @@ def runSetupMenu(database):
             new_name = current_name
 
             setup = True
+            #why are there two event queues
             while setup:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -233,7 +241,7 @@ def runSetupMenu(database):
                             active = not active
                         else:
                             active = False
-
+                    
                         # Check if a color button is clicked
                         for i, rect in enumerate(color_buttons):
                             if rect.collidepoint(event.pos):
@@ -269,7 +277,7 @@ def runSetupMenu(database):
                 draw_text(screen, 'Select Player Color:', font, pygame.Color('white'), (900, 350))
 
                 pygame.display.flip()
-                clock.tick(30)
+                clock.tick(60)
 
     def checkUniqueColors(buttons):
         # Extract the colors from the buttons (excluding the non-player buttons)
@@ -279,10 +287,10 @@ def runSetupMenu(database):
 
 
     button_positions = [
-        (850, 100), (1000, 100),
-        (850, 250), (1000, 250)
+        (850, 50), (1000, 50),
+        (850, 200), (1000, 200)
     ]
-
+    
     buttons = []
     player_buttons = []
     colors = [match_red, match_green, match_blue, match_yellow]
@@ -339,6 +347,10 @@ def runSetupMenu(database):
         screen.blit(background_image, (0, 0))
 
         for event in pygame.event.get():
+            rbs = multiCheck.listen(event)
+            if rbs:
+                configModule.online = True
+                configModule.host = True
             if event.type == pygame.QUIT:
                 running = False
                 return "exit"
@@ -349,10 +361,11 @@ def runSetupMenu(database):
                     break
                 elif result:
                     return result
-
+        
         for button in buttons:
             button.draw(screen)
-
+        multiCheck.drawWidget(screen)
+        multiText.drawWidget(screen)
         uniqueColors = checkUniqueColors(buttons)
         if uniqueColors:
             submitButton.color = std_green #Active state

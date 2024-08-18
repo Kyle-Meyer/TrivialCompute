@@ -1,11 +1,23 @@
 import pygame
+import math
 from colors import *
 from boundingBox import boundingBox
 from tile import *
 from board import *
 from configOptions import *
+from collections import deque
 
 class player(object):
+    example_board =  [["R","X","X","X","H","X","X","X","R"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["H","X","X","X","C","X","X","X","H"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["R","X","X","X","H","X","X","X","R"]]
+    movements = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     circle_radius = 30
     circle_inner_radius = 20
     circle_highlight_radius = 5
@@ -43,17 +55,37 @@ class player(object):
         self.getNeighbors(inboard, (curPosition[0], curPosition[1] - 1), diceRolls - 1, possibleNeighbors)
         self.getNeighbors(inboard, (curPosition[0], curPosition[1] + 1), diceRolls - 1, possibleNeighbors)
 
+    def is_valid_move_on_board(self, board, x, y):
+        rows = len(board)
+        cols = len(board[0])
+        return 0 <= x < rows and 0 <= y < cols and board[x][y] != "."
+
+    def bfs(self, board, start, max_distance):
+        queue = deque([(start[0], start[1], 0)])  # (x, y, current_distance)
+        visited = set()
+        visited.add(start)
+        valid_positions = []
+
+        while queue:
+            x, y, dist = queue.popleft()
+
+            # If the current distance is equal to the max distance, add to the list
+            if dist == max_distance:
+                valid_positions.append((x, y))
+                continue
+            
+            # Explore adjacent positions
+            for move in self.movements:
+                nx, ny = x + move[0], y + move[1]
+                
+                if self.is_valid_move_on_board(board, nx, ny) and (nx, ny) not in visited:
+                    visited.add((nx, ny))
+                    queue.append((nx, ny, dist + 1))
+        
+        return valid_positions
+    
     def pruneNeighbors(self, diceRoll):
-        #print(self.currentNeighbors)
-        toRemove = []
-        toRemove.append(self.currCoordinate)
-        for entry in self.currentNeighbors:
-            diff = abs((entry[0] - self.currCoordinate[0])) + abs((entry[1] - self.currCoordinate[1]))
-            if(diff != diceRoll) and diff != 0:
-                toRemove.append(entry)
-        #python does not support in place deletions, so we have to loop AGAIN
-        for entry in toRemove:
-            self.currentNeighbors.remove(entry)
+        self.currentNeighbors = self.bfs(self.example_board, self.currCoordinate, diceRoll)
 
     def checkIfHeld(self, inEvent : pygame.event):
         if inEvent.type == pygame.QUIT:
@@ -201,6 +233,16 @@ class player(object):
         self.circle_highlight_radius = inRadius // 10
         self.circle_color = inColor
         self.currentNeighbors = []
+        self.example_board =  [["R","X","X","X","H","X","X","X","R"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["H","X","X","X","C","X","X","X","H"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["X",".",".",".","X",".",".",".","X"],
+         ["R","X","X","X","H","X","X","X","R"]]
+        self.movements = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         #TODO add more of these conditionals for the other 4 colors
         if(inColor == player_blue):
             self.circle_shadow_color = player_dark_blue

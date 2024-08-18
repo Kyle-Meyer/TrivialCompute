@@ -11,11 +11,15 @@ class startGame(object):
         self.didStart = didstart
 
 class initObject(object):
-    def __init__(self, totalPlayers):
-        self.totalPlayers = totalPlayers
+    def __init__(self, initDictionary):
+        self.initDictionary = initDictionary
+
+class joinObject(object):
+    def __init__(self, requestID):
+        self.id = requestID
 
 class playerObj(object):
-    def __init__(self, currState, playerNum, playerPos, dice, questionId, myVote, passTurn):
+    def __init__(self, currState, playerNum, playerPos, dice, questionId, myVote, passTurn, trivMenuOut):
         self.state = currState
         self.id = playerNum
         self.position = playerPos
@@ -23,6 +27,8 @@ class playerObj(object):
         self.questionId = questionId
         self.passTurn = passTurn
         self.myVote = myVote
+        self.trivMenuOut = trivMenuOut
+
 class observeObject:
     def __init__(self, id, vote):
         self.id = id
@@ -32,7 +38,7 @@ class rollObj(object):
         self.diceRoll = diceRoll
 
 class serverObj(object):
-    def __init__(self, controller, state, player1Pos, player2Pos, player3Pos, player4Pos, currentDice, questionId, player1Vote, player2Vote, player3Vote, player4Vote):
+    def __init__(self, controller, state, player1Pos, player2Pos, player3Pos, player4Pos, currentDice, questionId, player1Vote, player2Vote, player3Vote, player4Vote, trivMenuOut):
         self.state = state
         self.controller = controller
         self.player1Pos = player1Pos
@@ -45,3 +51,4 @@ class serverObj(object):
         self.player2Vote = player2Vote
         self.player3Vote = player3Vote
         self.player4Vote = player4Vote
+        self.trivMenuOut = trivMenuOut

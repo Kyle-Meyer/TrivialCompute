@@ -104,15 +104,24 @@ class pygameMain(object):
         self.gameSetupMenu = slidingMenu((-1280, self.HEIGHT//2), 600, 400)
         self.diceRoll = 0
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        
+
         pygame.display.set_caption("Trivial Compute")
+        inData = None
         if configModule.online:
-            self.n = connector()
+            self.n = connector("localhost", 5555)
         else:
             self.n = None
+
+        if isinstance(setupInfo, str) and setupInfo == "join":
+            inData = self.n.send(joinObject(0))
+            self.setupInfo = inData.initDictionary
+            print("PASSED IN JOIN INFO ", self.setupInfo)
+        else:
+            self.setupInfo = setupInfo
         self.bounding_box = pygame.Rect(300, 200, 200, 200)
         self.bounding_box2 = pygame.Rect(100, 200, 200, 200)
         self.clock = pygame.time.Clock()
-        self.setupInfo = setupInfo
         self.legend = categoryLegend(font_size=20, screen_width=self.WIDTH, screen_height=self.HEIGHT)
         self.clientNumber = currPlayerIndex
         self.scoreboards = []
@@ -297,6 +306,7 @@ class pygameMain(object):
                     self.playerList[count].tileOffset=(0, offset)
                     self.playerList[count].circle_y += offset
             count += 1
+        print("should be setting")
         self.currPlayer = self.playerList[self.clientNumber]
 
     def initializePlayersForRestoreGame(self, convertedPlayerPositionsTuple):
@@ -372,8 +382,6 @@ class pygameMain(object):
         topEdgeOfTiles = int(self.playBoard.rect_y - 0.15 * self.LENGTH) 
         tileXCoord = int((self.currPlayer.circle_x - leftEdgeOfTiles)//((self.LENGTH - (.02 * self.OFFSET))//self.playBoard.cols)) 
         tileYCoord = int((self.currPlayer.circle_y - topEdgeOfTiles)//((self.LENGTH - (.08 * self.OFFSET))//self.playBoard.rows))
-        #print(x, " : ", y)
-        print("board tile type: ", self.playBoard.board[tileXCoord][tileYCoord].mTrivia)
         return(tileXCoord,tileYCoord) 
     
     # Convert tile coordinates to screen position
@@ -428,9 +436,14 @@ class pygameMain(object):
         #TODO prune non max distance neighbors for a more traditional trivial pursuit experience
         ##print(self.currPlayer.currCoordinate)
         oldCoord = self.currPlayer.currCoordinate
-        self.currPlayer.getNeighbors(self.playBoard, self.currPlayer.currCoordinate, self.diceRoll + 1, neighbors)
+        
+        #print("POSSIBLE NEIGHBORS: ", self.currPlayer.currentNeighbors)
         if configModule.optionalPruneNeighbors:
             self.currPlayer.pruneNeighbors(self.diceRoll)
+        else:
+            self.currPlayer.getNeighbors(self.playBoard, self.currPlayer.currCoordinate, self.diceRoll + 1, neighbors)
+        neighbors = self.currPlayer.currentNeighbors
+            #print("POSSIBLE NEIGHBORS after prune : ", self.currPlayer.currentNeighbors)
         for i in range(len(neighbors)):
             #if this within our range
             if self.currPlayer.checkValidMove(self.playBoard.board[neighbors[i][0]][neighbors[i][1]]):
@@ -474,8 +487,10 @@ class pygameMain(object):
         hasPulled = False
         base64_string = None
         #client 0 is always the dictator at this point
-        if self.clientNumber == 0:
-            self.n.send(initObject(len(self.playerList)))
+        '''if self.clientNumber == 0:
+            self.n.send(initObject(len(self.playerList)))'''
+        if configModule.host:
+            self.n.send(initObject(self.setupInfo))
         #self.n.send(startGame(True)) turn this back on when its time to handle proper connection closing and refusal
         currSelf = self.n.getObj()
        
@@ -499,7 +514,8 @@ class pygameMain(object):
                                     self.diceRoll,
                                     questionId,
                                     myVote, 
-                                    passTurn) #send our info to the server
+                                    passTurn,
+                                    self.trivMenu.isOut) #send our info to the server
                 
                 '''print("SENDING: \n\t STATE: ", self.currState, 
                       "\n\t CLIENT: ", self.clientNumber, 
@@ -511,8 +527,10 @@ class pygameMain(object):
                 sendObj = observeObject(self.clientNumber, myVote)
 
             incData = self.n.send(sendObj)
+            print("trivMenu status according to master: ", incData.trivMenuOut)
             self.currState = incData.state
-            if incData == -1:
+            #print("I am in state: ", self.currState, " controlling player is: ", self.controllingPlayer)
+            if not incData:
                 #print("FATAL: cannot connect to game")
                 sys.exit()
             temp = []
@@ -599,6 +617,8 @@ class pygameMain(object):
                 #self.trivMenu.preventSliding = True
                 if self.trivMenu.isOut:
                     pass
+                    #self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                    #self.trivMenu.isOut = False
                 self.controllingPlayer = incData.controller
                 if passTurn == True:
                     print("passing control")
@@ -640,9 +660,10 @@ class pygameMain(object):
 
             elif self.currState == 2:
                 currentTokenPosition = self.screenPosToCoord()
+                passTurn = False
                 #################
                 tile = self.playBoard.board[currentTokenPosition[0]][currentTokenPosition[1]]
-                if tile.mDistinct == tileDistinction.Center:
+                if tile.mDistinct == tileDistinction.CENTER:
                     self.trivMenu.startButton.button_text = "Select Category"
                 else:
                     self.trivMenu.startButton.button_text = "Get Question"
@@ -659,13 +680,15 @@ class pygameMain(object):
                         self.currPlayer.hasRolled = False
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = False  # Unlock the roll dice button
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True # Unlock the move token button
-                        self.currState = 0  # Reset to roll dice state
+                        if self.clientNumber == self.controllingPlayer: 
+                            self.currState = 0  # Reset to roll dice state
                     else:
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Roll Dice']-1].lockOut = True
                         self.testMenu.child_Dictionary[childType.BUTTON][self.testMenuButtons['Move Token']-1].lockOut = True
+                        print("SLIDING IN ON STATE 2")
                         self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
+                        self.drawDice = False
 
-                    self.drawDice = False
                 if self.controllingPlayer == self.clientNumber:
                     self.trivMenu.startButton.lockOut = False
                     self.trivMenu.haltButtons = False
@@ -691,47 +714,40 @@ class pygameMain(object):
 
                     tile_coords = self.screenPosToCoord()
                     tile = self.playBoard.board[tile_coords[0]][tile_coords[1]]
+                    # Handle the normal trivia tile logic
+                    tile_trivia = self.tileColorMapping[tile.mTrivia]
+                    selectedCategory = None
+                    for category in categories:
+                        if category['color'] == tile_trivia:
+                            selectedCategory = category
+                            break
 
-                    if tile.mDistinct == tileDistinction.ROLL:
-                        print("Player landed on Roll Again tile. Roll the dice again.")
-                        self.currPlayer.hasRolled = False
-                        self.currState = 1  # Reset to roll dice state
-                        continue
-                    else:
-                        # Handle the normal trivia tile logic
-                        tile_trivia = self.tileColorMapping[tile.mTrivia]
-                        selectedCategory = None
-                        for category in categories:
-                            if category['color'] == tile_trivia:
-                                selectedCategory = category
-                                break
-
-                        if self.clientNumber == self.controllingPlayer:
-                            if selectedCategory:
-                                questionAndAnswerInCategoryThatWasntAlreadyAsked = self.databaseConnection.getQuestionAndAnswerByCategoryThatWasntAlreadyAsked(selectedCategory['name'], selectedCategory['askedQuestions'])
-                                if questionAndAnswerInCategoryThatWasntAlreadyAsked == None:
-                                    questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory['name'])
-                                    for category in self.setupInfo['categories']:
-                                        if category['name'] == selectedCategory['name']:
-                                            category['askedQuestions'] = [questionId]
-                                            break
-                                else:
-                                    questionId, question, answer, base64_string = questionAndAnswerInCategoryThatWasntAlreadyAsked
-                                    for category in self.setupInfo['categories']:
-                                        if category['name'] == selectedCategory['name']:
-                                            category['askedQuestions'].append(questionId)
-                                            break    
+                    if self.clientNumber == self.controllingPlayer:
+                        if selectedCategory:
+                            questionAndAnswerInCategoryThatWasntAlreadyAsked = self.databaseConnection.getQuestionAndAnswerByCategoryThatWasntAlreadyAsked(selectedCategory['name'], selectedCategory['askedQuestions'])
+                            if questionAndAnswerInCategoryThatWasntAlreadyAsked == None:
+                                questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory['name'])
+                                for category in self.setupInfo['categories']:
+                                    if category['name'] == selectedCategory['name']:
+                                        category['askedQuestions'] = [questionId]
+                                        break
                             else:
-                                print("No category found")
+                                questionId, question, answer, base64_string = questionAndAnswerInCategoryThatWasntAlreadyAsked
+                                for category in self.setupInfo['categories']:
+                                    if category['name'] == selectedCategory['name']:
+                                        category['askedQuestions'].append(questionId)
+                                        break    
                         else:
-                            question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
+                            print("No category found")
+                    else:
+                        question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerById(incData.questionId)
 
-                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                    
+                    if base64_string is not None:
+                        self.trivMenu.drawImage = True
+                        self.trivMenu.base64_string = base64_string
                         
-                        if base64_string is not None:
-                            self.trivMenu.drawImage = True
-                            self.trivMenu.base64_string = base64_string
-                            
                     hasPulled = True
 
                 # self.trivMenu.haltWidgetDraw = True
@@ -787,13 +803,14 @@ class pygameMain(object):
                     else:
                         passTurn = True
                     #advance stuff
-                    if self.clientNumber == self.controllingPlayer:
-                        self.currState = 5
+                    #if self.clientNumber == self.controllingPlayer:
+                    self.currState = 5
                     #self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                     #if self.clientNumber == self.controllingPlayer:
                 
             elif self.currState == 5:
                 self.trivMenu.resetTimer()
+                print("should call slide state 5")
                 self.trivMenu.slideIn((self.WIDTH//2, self.HEIGHT//2))
                 self.trivMenu.startButton.lockOut = True
                 questionId = None
@@ -1134,6 +1151,15 @@ class pygameMain(object):
             self.clock.tick(60) #60 fps
 
         pygame.quit()
+PID = None
+def launch_pygame_server():
+    # Start main.py and wait for 
+    # it to finish
+    global PID
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the full path to the server.py file
+    server_path = os.path.join(script_dir, "network/server.py")
+    PID = subprocess.Popen(["python", server_path])
 
 def main(): 
     pygame.init()
@@ -1143,8 +1169,10 @@ def main():
     if selected_menu_action == "start":   
         database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
         #TODO remove this later
-        if configModule.online or configModule.bypass:
+        if configModule.bypass:
             setupInfo = bypass
+            configModule.online = True
+            configModule.host = True
             print("Online:", setupInfo)
         else:
             setupInfo = runSetupMenu(database)
@@ -1154,6 +1182,11 @@ def main():
             if setupInfo == {}:
                 print("No setup info found.")
                 return
+        if configModule.host:
+            print("setting as host")
+            configModule.serverName = "localhost"
+            configModule.serverPort = 5555
+            launch_pygame_server()
         #print(setupInfo)
         demo = pygameMain(setupInfo, database, 0)
         #demo.createGameSetupMenu(database)
@@ -1199,7 +1232,7 @@ def main():
                 demo.mainLoopOnline()
             else:
                 demo.mainLoopOffline()
-
+    
         else:
             #print("Previous game state found.")
             (id, playerPositions, playerScores, playerReportCards, setupInfo, currPlayerIndex, gameDate) = gameStateFromDB
@@ -1256,9 +1289,23 @@ def main():
         else:
             demo.mainLoopOffline()
         pygame.quit()
-
+    elif selected_menu_action == "join":
+        database = databaseConnection(dbname='trivialCompute', user='postgres', password='postgres')
+        configModule.online = True
+        demo = pygameMain("join", database, 0)
+        demo.createSettingsMenu()
+        demo.createTriviaMenu()
+        demo.initializePlayersForNewGame()
+        demo.legend.update_legend(categories=demo.setupInfo['categories'])
+        demo.initializeScoreboards(demo.playerList)  
+        if configModule.online:
+            demo.mainLoopOnline()
+        else:
+            demo.mainLoopOffline()
     else:
         pygame.quit()
-    
+    print("attempting kill")
+    if configModule.host:
+        PID.kill()
 if __name__=="__main__": 
     main() 
