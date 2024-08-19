@@ -416,7 +416,7 @@ class pygameMain(object):
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.GREEN: self.currPlayer.playerScore[cat]="G"
             elif self.playBoard.board[coord[0]][coord[1]].mTrivia == triviaType.YELLOW: self.currPlayer.playerScore[cat]="Y"
         return
-    
+
     # Check for game winner
     def checkIfPlayerJustWon(self):
         if self.currPlayer.currCoordinate == (4,4):
@@ -1057,7 +1057,7 @@ class pygameMain(object):
                         print("Player landed on Center tile. Get a question from any category.")
                         selectedCategory = self.categorySelectionScreen(categories)
                         questionId, question, answer, base64_string = self.databaseConnection.getQuestionAndAnswerByCategory(selectedCategory)
-                        #self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
+                        self.trivMenu.activeDictionary[childType.TEXT][0].updateText(question)
                     else:
                         # Handle the normal trivia tile logic
                         tile_trivia = self.tileColorMapping[tile.mTrivia]
